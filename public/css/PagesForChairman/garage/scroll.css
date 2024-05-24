@@ -1,0 +1,43 @@
+:root {
+  --scrollbarBgColor: rgba(0, 0, 0, .05);
+  --scrollbarThumbColor: rgba(0, 0, 0, .15);
+  --scrollbarThumbColorSecond: rgba(255, 255, 255, .7);
+  --scrollbarWidth: 16px;
+  --scrollbarBorder: 0 solid var(--scrollbarBgColor);
+  --scrollbarBorderRadius: calc(var(--scrollbarWidth) / 4);
+}
+
+.scroll {
+  scrollbar-width: var(--scrollbarWidth);
+  scrollbar-color: var(--scrollbarThumbColor) var(--scrollbarBgColor);
+}
+.scroll::-webkit-scrollbar {
+  width: var(--scrollbarWidth);
+}
+.scroll::-webkit-scrollbar-track {
+  background: var(--scrollbarBgColor);
+  border-radius: var(--scrollbarBorderRadius);
+}
+.scroll::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbarThumbColor);
+  border-radius: var(--scrollbarBorderRadius);
+  border: var(--scrollbarBorder);
+  background-image: linear-gradient(
+    180deg,
+    var(--scrollbarThumbColor) 0%,
+    var(--scrollbarThumbColorSecond) 90%);
+}
+
+/* this stuff below doesn't
+   affect scrollbar styling */
+
+.scroll {
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 4px;
+  margin: 20px;
+  display: flex;
+}
+

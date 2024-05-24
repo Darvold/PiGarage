@@ -1,0 +1,286 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+.flex_block_main {
+	display: flex;
+	width: 100%;
+	justify-content: center;
+}
+.main_body {
+	position: relative;
+	padding: 20px;
+	height: 100%;
+	width: 100%;
+	min-height: 820px;
+	float: left;
+}
+.main_block_coop {
+	margin-bottom: 10px;
+	margin-top: 10px;
+	margin-left: 10px;
+	width: 1600px;
+	height: 100%;
+	border-radius: 4px;
+	background-color: white;
+	box-shadow: 0px 2px 10px 2px black;
+}
+.main_head {
+	width: 100%;
+	height: 50px;
+	display: flex;
+	align-items: center;
+	border-bottom: 1px solid black;
+	gap: 30px;
+	padding-left: 30px;
+}
+.main_head_tools {
+	width: 100%;
+	height: 70px;
+	display: flex;
+	align-items: center;
+	border-bottom: 1px solid black;
+	gap: 30px;
+	padding-left: 30px;
+}
+.main_head a {
+	position: relative;
+	text-decoration: none;
+	color: black;
+	font-size: 27px;
+	padding: 4px;
+	transition: 0.3s ease;
+}
+.main_head a::before {
+	content: "";
+	position: absolute;
+	width: 100%;
+	height: 2px; 
+	background-color: black; 
+	bottom: 0;
+	left: 0;
+	transform: scaleX(0); 
+	transform-origin: center;
+	transition: transform 0.3s ease; 
+}
+.main_head a:hover {
+	border-radius: 4px;
+}
+.main_head a:hover::before {
+	transform: scaleX(1);
+}
+.main_head a.active::before {
+	transform: scaleX(1);
+}
+.center {
+	margin: 20px;
+}
+/* spacing */
+table, .table_two {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 23px;
+}
+
+thead th, tbody td {
+	border: 1px solid black;
+}
+
+.table_two thead th, tbody td {
+	border: 1px solid black;
+}
+
+th, td {
+	padding: 8px;
+	width: 110px;
+	max-width: 110x;
+	text-align: center;
+}
+
+.table_two th, td {
+	padding: 8px;
+	width: 110px;
+	max-width: 110x;
+	text-align: center;
+}
+th {
+	background-color: hsla(0, 0%, 80%, 0.6);
+}
+.table_two th {
+	background-color: hsla(0, 0%, 80%, 0.6);
+}
+
+th:first-child {
+	text-align: left;
+}
+.table_two th:first-child {
+	text-align: left;
+}
+td:nth-child(1) {
+	font-size: 27px;
+}
+
+
+table:first-of-type td:nth-child(4) {
+	background-color: hsla(0, 0%, 80%, 0.6);
+}
+
+table:first-of-type tr td:nth-child(4) {
+	background-color: hsla(0, 0%, 80%, 0.6);
+}
+
+table:first-of-type td:nth-child(6):not(.table_two) {
+	background-color: hsla(0, 0%, 80%, 0.6);
+}
+
+table:first-of-type tr td:nth-child(6):not(.table_two) {
+	background-color: hsla(0, 0%, 80%, 0.6);
+}
+
+.table_two:first-of-type td:nth-child(4) {
+		background-color: white;
+}
+
+.table_two:first-of-type tr td:nth-child(4) {
+		background-color: white;
+}
+
+.table_two:first-of-type td:nth-child(6):not(.table_two) {
+	background-color: white;
+}
+
+.table_two:first-of-type tr td:nth-child(6):not(.table_two) {
+	background-color: white;
+}
+.block_information {
+	width: 100%;
+}
+.buttons_information {
+	width: 100%;
+	align-items: center;
+	height: 100%;
+	gap: 20px;
+	display: flex;
+}
+.Button_right {
+	width: 400px;
+	margin-right: 20px;
+	float: right;
+	background-color: white;
+	border-radius: 4px;
+	padding: 5px;
+	font-size: 26px;
+	transition: 0.3s ease;
+}
+.Button_right:hover {
+	background-color: rgba(51, 187, 204, 0.5);
+}
+.block_information span {
+	font-size: 28px;
+	display: block;
+
+}
+.block_information_link {
+	width: 100%;
+	display: flex;
+}
+.block_information_link a {
+	margin: 10px;
+	border-radius: 4px;
+	padding: 5px;
+	font-size: 26px;
+	transition: 0.3s ease;
+	color: black;
+	text-decoration: none;
+	border: 3px solid rgb(19, 105, 192);
+}
+.block_information_link a:hover {
+	background-color: #EEE;
+}
+.buttons_information button {
+	background-color: white;
+	border-radius: 4px;
+	padding: 5px;
+	font-size: 26px;
+	transition: 0.3s ease;
+}
+.buttons_information button:hover {
+	background-color: rgba(51, 187, 204, 0.5);
+}
+.block_information button {
+	margin: 10px;
+	background-color: white;
+	border-radius: 4px;
+	padding: 5px;
+	font-size: 26px;
+	transition: 0.3s ease;
+}
+.block_information button:hover {
+	background-color: rgba(51, 187, 204, 0.5);
+}
+/*Стили для левого меню настроек месяца и года*/
+.year_buttons {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+.Button_correct_left {
+	width: 40px;
+	font-size: 38px;
+	border: 1px solid black;
+	border-radius: 15px 0px 0px 15px;
+	transition: background-color 0.5s ease;
+	cursor: pointer;
+}
+.Button_correct_right {
+	width: 40px;
+	font-size: 38px;
+	border: 1px solid black;
+	border-radius: 0px 15px 15px 0px;
+	transition: background-color 0.5s ease;
+	cursor: pointer;
+}
+
+.Button_correct_left:hover,
+.Button_correct_right:hover {
+	background-color: #E5DE19FF;
+}
+
+.Years_correct {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	display: flex;
+	width: 100%;
+	justify-content: center;
+}
+.Number_year {
+	font-size: 36px;
+	background-color: white;
+	border: 1px solid black;
+	padding: 2px;
+}
+/*Конец кнопки года*/
+.flex_two_table {
+	display: flex;
+	width: 100%;
+}
+.block_information_two_table {
+	width: 100%;
+	margin: 20px;
+}
+.block_information_two_table  span {
+	font-size: 28px;
+	display: block;
+}
+.block_information_two_table button {
+	display: block;
+	margin: 10px;
+	background-color: white;
+	border-radius: 4px;
+	padding: 5px;
+	font-size: 26px;
+	transition: 0.3s ease;
+}
+.block_information_two_table button:hover {
+	background-color: rgba(51, 187, 204, 0.5);
+}

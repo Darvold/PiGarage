@@ -1,0 +1,21 @@
+.main_garages_block {
+  --scrollbar-foreground: #BBB;
+  --scrollbar-background: #666;
+  --scrollbar-size: 8px;
+  /* плашка-бегунок, фон */
+  scrollbar-color: var(--scrollbar-foreground) var(--scrollbar-background);
+}
+.main_garages_block::-webkit-scrollbar {
+  width: var(--scrollbar-size); /* в основном для вертикальных полос прокрутки */
+  height: var(--scrollbar-size); /* в основном для горизонтальных полос прокрутки */
+}
+.main_garages_block::-webkit-scrollbar-thumb { /* плашка-бегунок */
+  background: var(--scrollbar-foreground); /* фон */
+  border-radius: 4px;
+}
+.main_garages_block::-webkit-scrollbar-track { /* фон */
+  background: var(--scrollbar-background);
+}
+/* this stuff below doesn't
+   affect scrollbar styling */
+

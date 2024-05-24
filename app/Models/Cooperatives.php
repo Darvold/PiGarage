@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+
+class Cooperatives extends Model
+{
+    use HasFactory;
+    use Notifiable;
+    public $timestamps = false;
+    protected $table = 'cooperatives';
+    protected $guarded = [];
+    protected $primaryKey = 'id_coop';
+    public function metersReadings()
+    {
+        return $this->hasMany(MetersReadings::class, 'id_coop', 'id_coop');
+    }
+
+}

@@ -1,0 +1,70 @@
+:root {
+  --scrollbarBgColor: rgba(0, 0, 0, .05);
+  --scrollbarThumbColor: rgba(0, 0, 0, .15);
+  --scrollbarThumbColorSecond: rgba(255, 255, 255, .7);
+  --scrollbarWidth: 16px;
+  --scrollbarBorder: 0 solid var(--scrollbarBgColor);
+  --scrollbarBorderRadius: calc(var(--scrollbarWidth) / 4);
+}
+/*
+.main_body {
+  scrollbar-width: var(--scrollbarWidth);
+  scrollbar-color: var(--scrollbarThumbColor) var(--scrollbarBgColor);
+}
+.main_body::-webkit-scrollbar {
+  width: var(--scrollbarWidth);
+}
+.main_body::-webkit-scrollbar-track {
+  background: var(--scrollbarBgColor);
+  border-radius: var(--scrollbarBorderRadius);
+}
+.main_body::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbarThumbColor);
+  border-radius: var(--scrollbarBorderRadius);
+  border: var(--scrollbarBorder);
+  background-image: linear-gradient(
+    180deg,
+    var(--scrollbarThumbColor) 0%,
+    var(--scrollbarThumbColorSecond) 90%);
+}*/
+.left_block {
+  --scrollbar-foreground: #BBB;
+  --scrollbar-background: hsla(0, 0%, 20%, 0.8);
+  --scrollbar-size: 8px;
+  /* плашка-бегунок, фон */
+  scrollbar-color: var(--scrollbar-foreground) var(--scrollbar-background);
+}
+.left_block::-webkit-scrollbar {
+  width: var(--scrollbar-size); /* в основном для вертикальных полос прокрутки */
+  height: var(--scrollbar-size); /* в основном для горизонтальных полос прокрутки */
+}
+.left_block::-webkit-scrollbar-thumb { /* плашка-бегунок */
+  background: var(--scrollbar-foreground); /* фон */
+  border-radius: 4px;
+}
+.left_block::-webkit-scrollbar-track { /* фон */
+  background: var(--scrollbar-background);
+}
+
+.right_block {
+  --scrollbar-foreground: #BBB;
+  --scrollbar-background: hsla(0, 0%, 20%, 0.8);
+  --scrollbar-size: 8px;
+  /* плашка-бегунок, фон */
+  scrollbar-color: var(--scrollbar-foreground) var(--scrollbar-background);
+}
+.right_block::-webkit-scrollbar {
+  width: var(--scrollbar-size); /* в основном для вертикальных полос прокрутки */
+  height: var(--scrollbar-size); /* в основном для горизонтальных полос прокрутки */
+}
+.right_block::-webkit-scrollbar-thumb { /* плашка-бегунок */
+  background: var(--scrollbar-foreground); /* фон */
+  border-radius: 4px;
+}
+.right_block::-webkit-scrollbar-track { /* фон */
+  background: var(--scrollbar-background);
+}
+
+/* this stuff below doesn't
+   affect scrollbar styling */
+
