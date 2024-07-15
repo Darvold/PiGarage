@@ -18,7 +18,7 @@ class LoginAndRegistrController extends Controller
 {
     public function indexUser()
     {
-        if (Auth::check()) {
+        if (Auth::id()) {
             $user = Users::where('id', Auth::id())->first();
             if ($user->id_al == 2) {
                 return redirect()->route('ProfileChairman.index');
@@ -30,7 +30,7 @@ class LoginAndRegistrController extends Controller
     }
     public function indexLoginUser()
     {
-        if (Auth::check()) {
+        if (Auth::id()) {
             $user = Users::where('id', Auth::id())->first();
             if ($user->id_al == 2) {
                 return redirect()->route('ProfileChairman.index');
@@ -83,25 +83,21 @@ class LoginAndRegistrController extends Controller
             'email' => 'required|email',
             'password' => 'required',
         ]);
-        $data['id_al'] = $request->input('id_al');
 
         $user = Users::where('email', $data['email'])
-            ->where('id_al', $data['id_al']) // Добавляем условие на уровень доступа
             ->first();
-       /*  $user = Users::where('email', $data['email'])->first();*/
 
         //dd($user);
         if (!$user) {
             return redirect()->back()->with('error', 'Неверный Email или пароль!')->withInput();
         }
 
-        $id = $user-> id;
         if ($user && password_verify($data['password'], $user->password)) {
             auth()->login($user);
 
-            if ($data['id_al'] == 2) {
+            if ($user->id_al == 2) {
                 return redirect()->route('ProfileChairman.index');
-            } elseif ($data['id_al'] == 1) {
+            } elseif ($user->id_al == 1) {
                 return redirect()->route('ProfileUser.index');
             }
         }

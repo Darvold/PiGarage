@@ -156,16 +156,22 @@ border-radius: 2px;
 	margin-right: 10px;
 	display: flex;
 	align-items: center;
-font-size: 18px;
+	font-size: 18px;
+}
+.map_controls_label_inf {
+	margin-right: 10px;
+	display: flex;
+	align-items: center;
+	font-size: 18px;
 }
 /* Увеличение размера чекбокса при активации */
 input[type="checkbox"]:checked {
-  transform: scale(1.3);
-  margin-right: 6px;
+	transform: scale(1.3);
+	margin-right: 6px;
 }/* Увеличение размера чекбокса */
 input[type="checkbox"] {
-  transform: scale(1.3); 
-  margin-right: 6px;
+	transform: scale(1.3); 
+	margin-right: 6px;
 }
 .custom-icon-control {
 	height: 25px;
@@ -173,7 +179,7 @@ input[type="checkbox"] {
 	margin-left: 4px;
 }
 .custom-icon-control-coop {
-		height: 27px;
+	height: 27px;
 	width: 22px;
 	margin-left: 4px;
 }

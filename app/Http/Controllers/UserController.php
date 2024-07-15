@@ -13,10 +13,8 @@ use Jenssegers\Date\Date;
 class UserController extends Controller
 {
     public function indexUser() {
-
             // Получите текущего аутентифицированного пользователя
             $user = Auth::user();
-
             return view('PagesForUser.profile.profile', compact('user'));
 
     }

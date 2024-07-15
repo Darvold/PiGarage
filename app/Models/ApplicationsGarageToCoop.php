@@ -14,4 +14,5 @@ class ApplicationsGarageToCoop extends Model
     protected $table = 'applications_garage_to_coop';
     protected $guarded = [];
     protected $primaryKey = 'id_application';
+
 }

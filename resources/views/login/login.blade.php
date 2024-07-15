@@ -28,20 +28,6 @@
             <img src="{{ asset('css/LoginAndRegisterUser/icons/password.svg') }}" class="icon">
             <input type="password" name="password" placeholder="Менее 6 символов" required>
         </div>
-
-
-        <div class="form-group-check">
-            <div class="form-group-radio">
-                <label>Я </br>участник</label>
-                <input type="radio" class="radio" name="user_role" value="participant" required>
-            </div>
-            <div class="form-group-radio">
-                <label>Я </br>председатель</label>
-                <input type="radio" class="radio" name="user_role" value="chairperson" required>
-                <input type="hidden" name="id_al" id="id_al" value="{{ old('id_al') }}">
-            </div>
-        </div>
-
         <button type="submit">Отправить</button>
         <div class="Button-Back">
             <a href="{{route('welcome.index')}}" class="Button_a"><img src="{{ asset('css/LoginAndRegisterUser/icons/back.svg') }}" class="icon-back"></a>
@@ -75,25 +61,6 @@
                 }, 6000); // 3 секунды
             });
         }, 0); // Задержка перед появлением
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const participantRadio = document.querySelector('input[name="user_role"][value="participant"]');
-        const chairpersonRadio = document.querySelector('input[name="user_role"][value="chairperson"]');
-        const id_alInput = document.getElementById('id_al');
-
-        participantRadio.addEventListener('change', () => {
-            if (participantRadio.checked) {
-                id_alInput.value = 1;
-            }
-        });
-
-        chairpersonRadio.addEventListener('change', () => {
-            if (chairpersonRadio.checked) {
-                id_alInput.value = 2;
-            }
-        });
     });
 </script>
 </body>

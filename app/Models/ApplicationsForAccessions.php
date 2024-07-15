@@ -9,11 +9,11 @@ use Illuminate\Notifications\Notifiable;
 
 class ApplicationsForAccessions extends Model
 {
-    use SoftDeletes;
     use HasFactory;
     use Notifiable;
     public $timestamps = false;
     protected $table = 'applications_for_accessions';
     protected $guarded = [];
     protected $primaryKey = 'id_application';
+
 }

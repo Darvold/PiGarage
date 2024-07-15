@@ -20,6 +20,7 @@
     'ProfileCoopStyles' => 'PagesForChairman/myCoop/',
     'ProfileCreateCoopStyles' => 'PagesForChairman/createCoop/',
     'ProfileConnectCoopStyles' => 'PagesForChairman/connectCoop/',
+    'ProfileApplicationToCoopStyles' => 'PagesForChairman/applicationToCoop/',
     'ProfileCoopPivotTableStyles' => 'PagesForChairman/myCoopPivotTable/',
     'ProfileCoopBlocksStyles' => 'PagesForChairman/pageBlocks/',
     'ProfileCoopRate' => 'PagesForChairman/rate/',

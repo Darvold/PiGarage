@@ -63,13 +63,34 @@
 .left_block {
 	border-radius: 4px;
 	display: flex;
-	flex-direction: column;
-	gap: 20px;
-	padding: 10px;
+	position: relative;
 	border: 1px solid black;
-	width: 40%;
+	width: 30%;
 	height: 780px;
+	
+}
+.list_my_coop {
+	border-radius: 4px;
+	flex-direction: column;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	padding: 10px;
+	margin-top: 20px;
+	gap: 10px;
 	overflow-y: auto;
+}
+.my_coop {
+	box-shadow: 0px 1px 4px 2px hsla(0, 0%, 0%, 0.7);
+	position: absolute;
+	top: -10px;
+	left: 15px;
+	background-color: white;
+	border: 1px solid black;
+	border-radius: 4px;
+	padding: 4px;
+	font-size: 20px;
+	z-index: 945;
 }
 .messageArray {
 	gap: 10px;
@@ -78,6 +99,9 @@
 }
 .messages_container {
 	font-size: 27px;
+}
+.myForm {
+
 }
 .right_block {
 	gap: 20px;
@@ -91,14 +115,16 @@
 .block_coop {
 	border-radius: 4px;
 	border: 1px solid black;
-	height: 120px;
+	height: auto;
+	min-height: 60px;
 	display: flex;
-	width: 100%;
+	min-width: 380px;
 }
 .block_applications {
 	border-radius: 4px;
 	border: 1px solid black;
-	height: 120px;
+	min-height: 120px;
+	height: auto;
 	display: flex;
 	width: 100%;
 }
@@ -110,16 +136,25 @@
 	width: 100%;
 }
 .img_center_left {
-	width: 150px;
-	height: 120px;
+	width: 110px;
+	height: 90px;
 	justify-content: center;
 	align-items: center;
 	display: flex;
 }
-.right_text {
+.img_center_left_icon {
+	width: 110px;
+	height: 90px;
+	justify-content: center;
+	align-items: center;
+	display: flex;
+}
+
+.right_text, .right_text_left_column {
 	position: relative;
 	width: 100%;
-	height: 120px;
+
+	height: auto;
 	display: flex;
 	flex-direction: column;
 }
@@ -138,24 +173,24 @@
 .block_coop img {
 	margin: 10px;
 	border: 2px solid black;
-	width: 100px;
-	height: 100px;
+	width: 60px;
+	height: 60px;
 	border-radius: 100%;
 	object-fit: cover;
 }
 .block_applications img {
-	margin: 10px;
+	margin: 5px;
 	border: 2px solid black;
-	width: 100px;
-	height: 100px;
+	width: 70px;
+	height: 70px;
 	border-radius: 100%;
 	object-fit: cover;
 }
 .block_applications_garage img {
 	margin: 10px;
 	border: 2px solid black;
-	width: 100px;
-	height: 100px;
+	width: 70px;
+	height: 70px;
 	border-radius: 100%;
 	object-fit: cover;
 }
@@ -163,10 +198,17 @@
 	display: flex;
 	align-items: center;
 	margin: 10px;
-	font-size: 25px;
+	font-size: 22px;
 }
-.block_applications span {
+.right_text_left_column span {
 	margin-top: 30px;
+	display: flex;
+	margin-left: 5px;
+	font-size: 22px;
+}
+.right_text_fio {
+	align-items: center;
+	height: 80px;
 	display: flex;
 	margin-left: 10px;
 	font-size: 25px;
@@ -192,7 +234,9 @@
 	bottom: 0;
 	margin-bottom: 5px;
 }
-
+.myFormCancelUser {
+	margin-right: 20px;
+}
 .display_form_garage {
 	gap: 20px;
 	margin-top: 10px;
@@ -215,6 +259,7 @@
 	background-color: #26ae60;
 }
 .button_red {
+	margin-right: 30px;
 	padding: 4px;
 	border-radius: 4px;
 	font-size: 20px;
@@ -227,9 +272,11 @@
 }
 
 .button_coop_array {
+	display: flex;
+	justify-content: center;
 	border: 1px solid black;
 	background-color: white;
-	width: 100%;
+	min-width: 380px;
 	border-radius: 6px;
 	transition: .2s;
 }
@@ -240,7 +287,7 @@
 	border: 3px solid #1369c0;
 }
 .coopMessagesEmpty {
-	font-size: 35px;
+	font-size: 27px;
 }
 .right_two_contains {
 	width: 40%;
@@ -260,4 +307,184 @@
 	transition: .5s ease;
 }
 
+.success-message {
+	position: absolute;
+	left: 40px;
+	top: 20px;
+	background-color: white;
+	border: 3px solid #62BD41FF;
+	border-radius: 4px;
+	width: 200px;
+	height: 50px;
+	box-shadow: 0px 4px 7px 5px hsla(0, 0%, 0%, 0.7);
+	z-index: 140;
+}
+.error-message {
+	position: absolute;
+	left: 40px;
+	top: 20px;
+	background-color: white;
+	border: 3px solid red;
+	border-radius: 4px;
+	width: 200px;
+	height: 50px;
+	box-shadow: 0px 4px 7px 5px hsla(0, 0%, 0%, 0.7);
+	z-index: 140;
+}
+.text_message {
+	width: 100%;
+	height: 100%;
+	font-size: 27px;
+	align-items: center;
+	justify-content: center;
+	display: flex;
+}
+.block_garage_inf span:not(.text_message, .absolute_span_number_garage) {
+	margin-top: 5px;
+	display: flex;
+	margin-left: 10px;
+	font-size: 23px;
+}
+.block_garage_inf span input {
+	margin-left: 5px;
+	min-width: 50px;
+	padding: 2px 4px 2px 4px;
+	border-radius: 3px;
+	border: 1px solid black;
+	font-size: 20px;
+	width: 60px;
+}
 
+.block_garage_inf {
+	margin-left: 20px;
+	position: relative;
+	height: auto;
+	margin-bottom: 10px;
+}
+.space_between {
+	height: 40px;
+}
+.block_garage_inf:not(:last-child) .border-line {
+	position: absolute;
+	width: 117%;
+	left: -100px;
+	border-bottom: 3px solid black;
+}
+
+.absolute_span_number_garage {
+	margin-top: 30px;
+	display: flex;
+	margin-left: 10px;
+	font-size: 25px;
+	position: absolute;
+	left: -105px;
+}
+
+
+
+
+.checkbox-wrapper-13 {
+	position: absolute;
+	right: 10px;
+	top: 60px;
+}
+.checkbox-wrapper-13 label {
+	font-size: 19px;
+}
+@supports (-webkit-appearance: none) or (-moz-appearance: none) {
+	.checkbox-wrapper-13 input[type=checkbox] {
+		--active: #275EFE;
+		--active-inner: #fff;
+		--focus: 2px rgba(39, 94, 254, .3);
+		--border: #BBC1E1;
+		--border-hover: #275EFE;
+		--background: #fff;
+		--disabled: #F6F8FF;
+		--disabled-inner: #E1E6F9;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		height: 26px;
+		outline: none;
+		display: inline-block;
+		vertical-align: top;
+		position: relative;
+		margin: 0;
+		cursor: pointer;
+		border: 1px solid var(--bc, var(--border));
+		background: var(--b, var(--background));
+		transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:after {
+		content: "";
+		display: block;
+		left: 0;
+		top: 0;
+		position: absolute;
+		transition: transform var(--d-t, 0.2s) var(--d-t-e, ease), opacity var(--d-o, 0.2s);
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:checked {
+		--b: var(--active);
+		--bc: var(--active);
+		--d-o: .3s;
+		--d-t: .6s;
+		--d-t-e: cubic-bezier(.2, .85, .32, 1.2);
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:disabled {
+		--b: var(--disabled);
+		cursor: not-allowed;
+		opacity: 0.9;
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:disabled:checked {
+		--b: var(--disabled-inner);
+		--bc: var(--border);
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:disabled + label {
+		cursor: not-allowed;
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:hover:not(:checked):not(:disabled) {
+		--bc: var(--border-hover);
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:focus {
+		box-shadow: 0 0 0 var(--focus);
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:not(.switch) {
+		width: 26px;
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:not(.switch):after {
+		opacity: var(--o, 0);
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:not(.switch):checked {
+		--o: 1;
+	}
+	.checkbox-wrapper-13 input[type=checkbox] + label {
+		display: inline-block;
+		vertical-align: middle;
+		cursor: pointer;
+		margin-left: 4px;
+	}
+
+	.checkbox-wrapper-13 input[type=checkbox]:not(.switch) {
+		border-radius: 7px;
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:not(.switch):after {
+		width: 7px;
+		height: 12px;
+		border: 2px solid var(--active-inner);
+		border-top: 0;
+		border-left: 0;
+		left: 8px;
+		top: 4px;
+		transform: rotate(var(--r, 20deg));
+	}
+	.checkbox-wrapper-13 input[type=checkbox]:not(.switch):checked {
+		--r: 43deg;
+	}
+}
+
+.checkbox-wrapper-13 * {
+	box-sizing: inherit;
+}
+.checkbox-wrapper-13 *:before,
+.checkbox-wrapper-13 *:after {
+	box-sizing: inherit;
+}

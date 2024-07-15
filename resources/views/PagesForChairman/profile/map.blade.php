@@ -39,14 +39,23 @@
         // Создаем пользовательский элемент управления
         customControl = new ymaps.control.Button({
             data: {
-                content: '<div id="map-controls" class="map-controls">' +
-                    '<label class="map_controls_label_left">' +
-                    '<input type="checkbox" id="user-marker-toggle" class="checked_button" checked> Показать мое местоположение' + '<img class="custom-icon-control" src="{{asset('icons/map/marker_AI.png')}}" alt="Marker"/>' +
-                    '</label>' +
-                    '<label class="map_controls_label_right">' +
-                    '<input type="checkbox" id="markers-toggle" class="checked_button" checked> Показать метки' + '<img class="custom-icon-control-coop" src="{{asset('icons/map/GroupMarker.png')}}" alt="Marker"/>' +
-                    '</label>' +
-                    '</div>',
+                content: `
+    <div id="map-controls" class="map-controls">
+        <label class="map_controls_label_left">
+            <input type="checkbox" id="user-marker-toggle" class="checked_button" checked> Показать мое местоположение
+            <img class="custom-icon-control" src="{{asset('icons/map/marker_AI.png')}}" alt="Marker"/>
+        </label>
+        <label class="map_controls_label_right">
+            <input type="checkbox" id="markers-toggle" class="checked_button" checked> Показать метки
+            <img class="custom-icon-control-coop" src="{{asset('icons/map/GroupMarker.png')}}" alt="Marker"/>
+        </label>
+    </div>
+`,
+        /*<label class="map_controls_label_inf">
+            <span class="region_inf"></span>
+            <span>&nbsp;|&nbsp;</span>
+            <span class="city_inf"></span>
+        </label>*/ //Это html нужен если подключён автоопределение региона и города, сам код закоментирован ниже
             },
             options: {
                 maxWidth: [250, 400],
@@ -61,6 +70,35 @@
         // Добавляем пользовательский элемент управления на карту
         myMap.controls.add(customControl);
 
+// Обработчик события изменения границ видимой области карты
+/*        myMap.events.add('boundschange', function () {
+            // Определяем регион и город по координатам центра видимой области карты
+            var mapCenter = myMap.getCenter();
+            ymaps.geocode(mapCenter).then(function (res) {
+                var firstGeoObject = res.geoObjects.get(0);
+                if (firstGeoObject) {
+                    var addressDetails = firstGeoObject.properties.get('metaDataProperty.GeocoderMetaData.AddressDetails');
+                    var region = '';
+                    var city = '';
+
+                    if (addressDetails && addressDetails.Country) {
+                        var administrativeArea = addressDetails.Country.AdministrativeArea;
+                        if (administrativeArea) {
+                            region = administrativeArea.AdministrativeAreaName || '';
+                            if (administrativeArea.Locality) {
+                                city = administrativeArea.Locality.LocalityName || '';
+                            } else if (administrativeArea.SubAdministrativeArea && administrativeArea.SubAdministrativeArea.Locality) {
+                                city = administrativeArea.SubAdministrativeArea.Locality.LocalityName || '';
+                            }
+                        }
+                    }
+
+                    // Обновляем информацию о регионе и городе
+                    $('.region_inf').text(`Регион: ${region}`);
+                    $('.city_inf').text(`Город: ${city}`);
+                }
+            });
+        });*/
         // Создаем коллекцию для хранения меток
         myCollection = new ymaps.GeoObjectCollection();
 // Обработчик события изменения зума карты
@@ -278,14 +316,18 @@
         // Создаем пользовательский элемент управления
         let customControl = new ymaps.control.Button({
             data: {
-                content: '<div id="map-controls" class="map-controls">' +
-                    '<label class="map_controls_label_left">' +
-                    '<input type="checkbox" id="user-marker-toggle" class="checked_button" checked> Показать мое местоположение' + '<img class="custom-icon-control" src="{{asset('icons/map/marker_AI.png')}}" alt="Marker"/>' +
-                    '</label>' +
-                    '<label class="map_controls_label_right">' +
-                    '<input type="checkbox" id="markers-toggle" class="checked_button" checked> Показать метки' + '<img class="custom-icon-control-coop" src="{{asset('icons/map/GroupMarker.png')}}" alt="Marker"/>' +
-                    '</label>' +
-                    '</div>',
+                content: `
+    <div id="map-controls" class="map-controls">
+        <label class="map_controls_label_left">
+            <input type="checkbox" id="user-marker-toggle" class="checked_button" checked> Показать мое местоположение
+            <img class="custom-icon-control" src="{{asset('icons/map/marker_AI.png')}}" alt="Marker"/>
+        </label>
+        <label class="map_controls_label_right">
+            <input type="checkbox" id="markers-toggle" class="checked_button" checked> Показать метки
+            <img class="custom-icon-control-coop" src="{{asset('icons/map/GroupMarker.png')}}" alt="Marker"/>
+        </label>
+    </div>
+`,
             },
             options: {
                 maxWidth: [250, 400],
@@ -409,10 +451,11 @@
         // Получение id_coop из data-атрибута метки
         id_coop = e.get('target').properties.get('id_coop');
         savedIdCoop = id_coop;
+        return savedIdCoop;
     }
 
     $('#add-marker-btn').click(function () {
-        let coordinatesDiv = $('#coordinates2').text('Теперь нажмите на место на карте, где будет распологаться ваш кооператив').hide().fadeIn(300);
+        $('#coordinates2').text('Теперь нажмите на место на карте, где будет распологаться ваш кооператив').hide().fadeIn(300);
     });
 
     // Флаг для блокировки кнопки
@@ -482,6 +525,7 @@
             }
         });
     });
+
     function addressCityText() {
         if (savedAddress && savedCity !== null) {
             $('#coordinates2').html("Адрес: " + savedAddress + "<br>Город: " + savedCity).hide().fadeIn(200);
@@ -489,6 +533,7 @@
             $('#coordinates2').html("").hide().fadeIn(200);
         }
     }
+
     $('#save-marker-btn').click(async function (e) {
         e.preventDefault(); // Предотвращаем отправку формы
         var nameField = $('input[name="name"]');
@@ -531,7 +576,7 @@
             }
             // Блокировка кнопки
             $('.save_marker').prop('disabled', true);
-            setTimeout(function() {
+            setTimeout(function () {
                 // Восстановление доступности кнопки
                 $('.save_marker').prop('disabled', false);
             }, 3500);
@@ -544,33 +589,203 @@
             $('#coordinates2').text('Метка не была добавлена. Пожалуйста, добавьте метку на карту.').hide().fadeIn(200);
             return false; // Останавливаем отправку формы
         }
-            // Обновляем значения скрытых полей
-            $('input[name="latitude"]').val(savedCoords[0]);
-            $('input[name="longitude"]').val(savedCoords[1]);
+        // Обновляем значения скрытых полей
+        $('input[name="latitude"]').val(savedCoords[0]);
+        $('input[name="longitude"]').val(savedCoords[1]);
 
-            try {
-                // Получение региона и города по координатам
-                const result = await getRegionAndCityFromCoordinates(savedCoords);
+        try {
+            // Получение региона и города по координатам
+            const result = await getRegionAndCityFromCoordinates(savedCoords);
 
-                // Сохраняем адрес и город
-                $('input[name="city"]').val(result.city);
-                $('input[name="address"]').val(result.address);
+            // Сохраняем адрес и город
+            $('input[name="city"]').val(result.city);
+            $('input[name="address"]').val(result.address);
 
-                // Теперь отправляем форму
-                $('#myForm').submit();
-            } catch (error) {
-                $('#coordinates2').text('Произошла ошибка при получении данных.').hide().fadeIn(200);
-            }
+            // Теперь отправляем форму
+            $('#myForm').submit();
+        } catch (error) {
+            $('#coordinates2').text('Произошла ошибка при получении данных.').hide().fadeIn(200);
+        }
     });
     $(document).on('click', '.button_send_app', async function (e) {
         e.preventDefault(); // Предотвращаем отправку формы
-
+        let idMess = $(this).closest('.Button_send').find('[name="id_message"]').val();
         // Обновление input в текущей форме
         $(this).closest('#requestForm').find('input[name="id_coop"]').val(savedIdCoop);
-        // Отправляем текущую форму
-        $('#requestForm').submit();
+        console.log(idMess);
 
+        if (idMess === '1') {
+            // Определяем селекторы для классов, id и name
+            const selectors = [
+                '.main_right_block',
+                '.head_main_right_block',
+                '.garage-btn',
+                '.delete_garage',
+                '#addGarageBtn',
+                '#block_input_1',
+                'input[name="number_meter"]',
+                'input[name="number_garage"]',
+                'input[name="number_block"]'
+            ];
+
+            // Функция для проверки существования элемента
+            function elementExists(selector) {
+                return $(selector).length > 0;
+            }
+
+            // Проверяем каждый селектор
+            let allExist = true;
+            for (let i = 0; i < selectors.length; i++) {
+                if (!elementExists(selectors[i])) {
+                    allExist = false;
+                    console.error('Element not found:', selectors[i]);
+                    break;
+                }
+            }
+            // Если не все элементы найдены, выводим ошибку
+            if (!allExist) {
+                $('.error_msg span').remove();
+                $('.error_msg').append('<span>Что-то пошло не так, попробуйте перезагрузить страницу</span>');
+
+                // Скроллим к элементу .error_msg
+                $('html, body').animate({
+                    scrollTop: $('.error_msg').offset().top - 300
+                }, 500, function () {
+                    // Добавляем класс для изменения CSS на 1 секунду
+                    let spanElement = $('.error_msg span');
+                    spanElement.addClass('highlight');
+
+                    // Убираем класс с плавной анимацией через 1 секунду
+                    setTimeout(function () {
+                        spanElement.removeClass('highlight');
+                    }, 1000);
+                });
+
+                return false;
+            }
+
+            let garages = [];
+            let hasEmptyFields = false;
+
+            $('.block_input').each(function (index, element) {
+                let garageNumber = $(element).closest('.main_right_block').find('.garage-btn').data('garage');
+                let meterNumber = $(element).find('input[name="number_meter"]').val();
+                let garageNum = $(element).find('input[name="number_garage"]').val();
+                let blockNumber = $(element).find('input[name="number_block"]').val();
+                if (!meterNumber || !garageNum || !blockNumber) {
+                    hasEmptyFields = true;
+                    return false; // Прерываем each
+                }
+                let garageData = {
+                    'number_meter': meterNumber,
+                    'number_garage': garageNum,
+                    'number_block': blockNumber
+                };
+
+                garages.push(garageData);
+            });
+ console.log(garages);
+            if (hasEmptyFields) {
+                $('.error_msg').empty();
+                $('.error_msg').append('<span>Необходимо ввести все данные гаража/гаражей</span>');
+                // Скроллим к элементу .error_msg
+                $('html, body').animate({
+                    scrollTop: $('.error_msg').offset().top - 300
+                }, 500, function () {
+                    // Добавляем класс для изменения CSS на 1 секунду
+                    let spanElement = $('.error_msg span');
+                    spanElement.addClass('highlight');
+                    $('.block_input input').filter(function () {
+                        return $(this).val() === '';
+                    }).addClass('error_msg_input');
+                    // Убираем класс с плавной анимацией через 1 секунду
+                    setTimeout(function () {
+                        spanElement.removeClass('highlight');
+                        $('.block_input input').removeClass('error_msg_input');
+                    }, 1000);
+                });
+                return false; // Останавливаем внешнюю функцию-обработчик
+            }
+
+            let jsonData = JSON.stringify(garages);
+            let hiddenField = $('<input>', {
+                type: 'hidden',
+                name: 'garageData',
+                value: jsonData
+            });
+            $('#requestForm').find('[name="garageData"]').remove();
+            // Добавляем скрытое поле в форму
+            $('#requestForm').append(hiddenField);
+        }
+       
+        // Отправляем форму
+        $('#requestForm').submit();
     });
+        let delayTimer; // Переменная для хранения таймера задержки
+        $('.head_search_coop button').click(function () {
+            let nameCoopSelect = $('.head_search_coop_input').find('input[name="name_coop"]').val();
+
+            if (nameCoopSelect.length >= 3) {
+                $('.head_search_coop button').prop("disabled", true);
+                // Очищаем блок с результатами и добавляем сообщение "Выполняем запрос..."
+                $('.block_name_result_coop').empty();
+                $('.block_name_result_coop').append(`<span class="span_text">Выполняем запрос...</span>`);
+
+                // Если уже есть установленный таймер, очищаем его
+                clearTimeout(delayTimer);
+
+                // Устанавливаем новый таймер задержки
+                delayTimer = setTimeout(function () {
+                    $.ajax({
+                        url: "{{route('ChairmanConnectCoop.index')}}",
+                        method: "GET",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            idMessage: 1,
+                            selectedRegion: selectedRegion,
+                            selectedCity: selectedCity,
+                            nameCoop: nameCoopSelect,
+                        },
+                        success: function (response) {
+                            let blockMessages = response.blockMessages;
+                            $('.block_name_result_coop').empty();
+                            if (Array.isArray(blockMessages) && blockMessages.length > 0) {
+                                for (var i = 0; i < blockMessages.length; i++) {
+                                    html = `<div class="inf_coop">
+                           <span>Название: ${blockMessages[i].name}</span>
+                           <span>Председатель: ${blockMessages[i].fio}</span>
+                           <span>Местонахождение: ${blockMessages[i].address}</span>
+                           <button data-id-point="${blockMessages[i].id_point}">Показать на карте</button>
+                       </div>`;
+                                    $('.block_name_result_coop').append(html);
+                                }
+                            } else {
+                                $('.block_name_result_coop').append(`<span class="span_text">Что-то пошло не так</span>`);
+                            }
+                        },
+                        error: function (error) {
+                            $('.block_name_result_coop').empty();
+                            $('.block_name_result_coop').append(`<span class="span_text">Произошла ошибка, повторите попытку позже</span>`);
+                        }
+                    });
+                }, 2000);
+                $('.head_search_coop button').prop("disabled", false);
+            } else {
+                $('.block_name_result_coop').empty();
+                $('.block_name_result_coop').append(`<span class="span_text">Название слишком короткое</span>`);
+            }
+        });
+    $(document).on('click', 'button[data-id-point]', function () {
+        var coordinates = $(this).data('id-point').split(',');
+        var lat = parseFloat(coordinates[0]);
+        var lon = parseFloat(coordinates[1]);
+        if (myMap) {
+            myMap.setCenter([lat, lon], 15);
+        } else {
+            console.error('Карта не инициализирована.');
+        }
+    });
+
     // Обработчик события на кнопку "Сохранить метку"
     /*    $('#save-marker-btn').click(function () {
             let markerName = $('#markerName').val();

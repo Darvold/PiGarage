@@ -22,8 +22,6 @@ Route::get('/registrationUser', 'LoginAndRegistrController@indexUser')
 Route::get('/authorizationUser', 'LoginAndRegistrController@indexLoginUser')
     ->name('login.index');
 
-Route::get('/getToken', 'LoginAndRegistrController@getToken');
-
 
 Route::post('/registrationUser', 'LoginAndRegistrController@registrationUser')
     ->name('registrationAddUser.store');
@@ -89,8 +87,8 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
             ->name('ChairmanMyCoopNewBlocks.store');
 
         // Сообщение от пользователей (Чаты и показания)
-        Route::get('/Chairman/Messages/', 'CommunicationController@Messages')
-            ->name('Messages.index');
+        /*Route::get('/Chairman/Messages/', 'CommunicationController@Messages')
+            ->name('Messages.index');*/
         Route::get('/Chairman/MyCoop/{idCoop}/MetersUser/', 'MyCooperatives@MessagesMeters')
             ->name('MessagesMeters.index');
         Route::post('/Chairman/MyCoop/{idCoop}/MetersUser/', 'MyCooperatives@MessagesMetersPost')
@@ -102,20 +100,24 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
         ->name('ChairmanCreateMyCoop.index');
     Route::post('/Chairman/MyCoop/CreateMyCoop/', 'MyCooperatives@ChairmanCreatingCoop')
         ->name('ChairmanSendingDataCreateCoop.store');
+
     // Присоединение к кооперативу
     Route::get('/Chairman/MyCoop/ConnectMyCoop/', 'MyCooperatives@ChairmanConnectCoop')
         ->name('ChairmanConnectCoop.index');
     Route::post('/Chairman/MyCoop/ConnectMyCoop/', 'MyCooperatives@JoinTheCoopOrCansel')
         ->name('JoinTheCoopOrCansel.store');
+    // Заявки пользователя на присоединения к кооперативу
+    Route::get('/Chairman/MyCoop/MyApplicationToCoop/', 'MyCooperatives@MyApplicationToCoop')
+        ->name('MyApplicationToCoop.index');
 
     // Заявки на присоединение к кооперативу
     Route::get('/Chairman/Communication/Applications/', 'CommunicationController@Applications')
         ->name('Applications.index');
-    Route::post('/Chairman/Communication/Applications/', 'CommunicationController@Add_Cansel_Reject_UserInCoop')
+    Route::post('/Chairman/Communication/Applications/', 'CommunicationController@ApplicationsPost')
         ->name('ApplicationsPost.store');
     Route::get('/Chairman/Communication/Applications/message/', 'CommunicationController@ApplicationsMessage')
         ->name('ApplicationsMessage.index');
-    Route::get('/Chairman/{id}/Communication/Applications/message/participant', 'CommunicationController@ApplicationsMessageGarage')
+    Route::get('/Chairman/Communication/Applications/message/participant', 'CommunicationController@ApplicationsMessageGarage')
         ->name('ApplicationsMessageGarage.index');
 
     // Отменённые заявки на присоединение к кооперативу

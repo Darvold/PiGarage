@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ApplicationsCreateNewCoop;
 use App\Models\ApplicationsForAccessions;
+use App\Models\ApplicationsGarageToCoop;
 use App\Models\CooperativeBlocks;
 use App\Models\Cooperatives;
 use App\Models\CooperativesBlocksLossesKw;
@@ -13,11 +14,15 @@ use App\Models\PayMents;
 use App\Models\Rates;
 use App\Models\UserAndCoop;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Jenssegers\Date\Date;
 use Mockery\Exception;
-
+use App\Rules\NoNegativeNumbers;
 class MyCooperatives extends Controller
 {
     public function ChairmanMyCoop()
@@ -26,6 +31,9 @@ class MyCooperatives extends Controller
         $myCoops = Cooperatives::where('user_id', Auth::id())->get();
 
         return view('PagesForChairman.profile.myCoop', compact('myCoops'));
+    }
+    protected function MyApplicationToCoop() {
+        return view('PagesForChairman.profile.myApplicationToCoop');
     }
 
     public function ChairmanCreateMyCoop()
@@ -69,8 +77,31 @@ class MyCooperatives extends Controller
     }
 
 
-    public function ChairmanConnectCoop()
+    public function ChairmanConnectCoop(Request $request)
     {
+        if ($request->ajax()) {
+            $idMessage = $request->input("idMessage");
+            if ($idMessage == 1) {
+                $nameCoop = $request->input("nameCoop");
+                $selectedRegion = $request->input("selectedRegion");
+                $selectedCity = $request->input("selectedCity");
+                $location = '%' . $selectedRegion . ', ' . $selectedCity . '%';
+                $nameCoopLike = '%' . $nameCoop . '%';
+
+                $allCoops = Cooperatives::where('name', 'LIKE', $nameCoopLike)
+                    ->where('address', 'LIKE', $location)
+                    ->leftJoin('users', 'cooperatives.user_id', '=', 'users.id')
+                    ->select('cooperatives.*', 'users.fio')
+                    ->get();
+
+                if ($allCoops->isNotEmpty()) {
+                    return response()->json(['blockMessages' => $allCoops]);
+                } else {
+                    return response()->json(['errorMessage' => "Ошибка: $nameCoop"], 500);
+                }
+            }
+            return response()->json(['errorMessage' => "Что-то пошло не так"]);
+        }
         $cooperatives = Cooperatives::select('cooperatives.*', 'users.*')
             ->leftJoin('users', 'cooperatives.user_id', '=', 'users.id')
             ->where('users.id_al', 2)
@@ -84,40 +115,83 @@ class MyCooperatives extends Controller
 
     public function JoinTheCoopOrCansel()
     {
-        try {
-            $data = request()->validate([
-                'id_coop' => 'required|numeric|min:0',
-            ]);
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку позже');
-        }
         $id_message = request()->input('id_message');
-        if ($id_message == 1) {
-            $data['user_id'] = Auth::id();
-            $data['status'] = 'pending';
-            $data['send_date'] = Date::now();
+        try {
+            if ($id_message == 1) {
+                $data = request()->validate([
+                    'id_coop' => 'required|numeric|min:0',
+                    'garageData' => ['required', new NoNegativeNumbers],
+                ]);
 
-            $restoreApplication = ApplicationsForAccessions::withTrashed()
-                ->where('user_id', Auth::id())
+            } else {
+                $data = request()->validate([
+                    'id_coop' => 'required|numeric|min:0',
+                ]);
+            }
+        } catch (ValidationException  $e) {
+        $garageData = request()->input('garageData', null);
+            $garagesDataJson = json_decode($garageData, true);
+            return redirect()->back()
+                ->with(['error' => 'Что-то пошло не так, возможно установлено отрицательное значение'])
+                ->with('garageData', $garagesDataJson);
+        }
+        if ($id_message == 1) {
+            $garagesData = json_decode($data['garageData'], true);
+            $restoreApplication = ApplicationsForAccessions::where('user_id', Auth::id())
                 ->where('id_coop', $data['id_coop'])
+                ->where('status', 'delete')
                 ->first();
             if ($restoreApplication) {
-                // восстанавливаем запись
-                $restoreApplication->restore();
+                $restoreApplication->update(['status' => 'pending', 'send_date' => Date::now()]);
+                    foreach ($garagesData as $gData) {
+                        //dd($garagesData);
+                            ApplicationsGarageToCoop::updateOrCreate(
+                                [
+                                    'user_id' => Auth::id(),
+                                    'id_block' => null,
+                                    'id_coop' => $data['id_coop'],
+                                    'status' => 'delete',
+                                ],
+                                [
+                                    'number_garage' => $gData['number_garage'],
+                                    'number_block' => $gData['number_block'],
+                                    'number_meter' => $gData['number_meter'],
+                                    'status' => 'pending',
+                                    'date_received' => Date::now()
+                                ]
+                            );
+                    }
                 return redirect()->back()->with('success', 'Заявка успешно отправлена!');
             }
-            ApplicationsForAccessions::updateOrCreate(
-                ['user_id' => $data['user_id'], 'id_coop' => $data['id_coop']],
-                $data
-            );
 
+            ApplicationsForAccessions::create([
+                'user_id' => Auth::id(),
+                'id_coop' => $data['id_coop'],
+                'status' => 'pending',
+                'send_date' => Date::now(),
+            ]);
+            foreach ($garagesData as $gData) {
+                ApplicationsGarageToCoop::create(
+                    [
+                        'user_id' => Auth::id(),
+                        'id_block' => null,
+                        'id_coop' => $data['id_coop'],
+                        'number_garage' => $gData['number_garage'],
+                        'number_block' => $gData['number_block'],
+                        'number_meter' => $gData['number_meter'],
+                        'status' => 'pending',
+                        'date_received' => Date::now()
+                    ]);
+            }
             return redirect()->back()->with('success', 'Заявка успешно отправлена!');
         }
         if ($id_message == 2) {
             ApplicationsForAccessions::where('user_id', Auth::id())
                 ->where('id_coop', $data['id_coop'])
-                ->where('status', 'pending')->delete();
-
+                ->where('status', 'pending')->update(['status' => 'delete']);
+            ApplicationsGarageToCoop::where('user_id', Auth::id())
+                ->where('id_coop', $data['id_coop'])
+                ->where('status', 'pending')->update(['status' => 'delete']);
             return redirect()->back()->with('success', 'Заявка успешно отменена!');
         }
         return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку позже');

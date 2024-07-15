@@ -16,13 +16,13 @@ button {
 	align-items: center;
 	display: flex;
 	justify-content: center;
-	height: 70px;
+	height: 60px;
 	box-shadow: 5px 3px 10px 0px black;
 }
 
 .image_profile {
-	height: 60px;
-	width: 60px;
+	height: 50px;
+	width: 50px;
 	border-radius: 100%;
 	object-fit: cover;
 	cursor: pointer;
@@ -44,7 +44,7 @@ button {
 .block_arrow_botton {
 	transition: 0.2s ease;
 	width: 80px;
-	height: 70px;
+	height: 60px;
 	display: flex;
 	justify-content: center;
 }
@@ -59,13 +59,13 @@ button {
 	margin-top: 5px;
 	display: flex;
 	align-items: center;
-	font-size: 35px;
+	font-size: 30px;
 }
 .svg {
 	margin-bottom: 15px;
 	margin-right: 5px;
-	width: 40px;
-	height: 40px;
+	width: 36px;
+	height: 36px;
 }
 .Block_Text_User {
 	gap: 20px;
@@ -74,7 +74,7 @@ button {
 }
 
 .Text_user {
-	font-size: 30px;
+	font-size: 26px;
 	cursor: pointer;
 }
 .arrow {
@@ -113,7 +113,7 @@ button {
 	border-radius: 4px;
 	width: 200px;
 	height: auto;
-	top: 80px;
+	top: 65px;
 	z-index: 2;
 	right: -10px;
 	padding: 4px 4px 15px 4px;

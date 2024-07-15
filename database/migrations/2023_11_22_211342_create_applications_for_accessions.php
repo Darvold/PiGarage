@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,8 +17,9 @@ return new class extends Migration
             $table->integer('user_id');
             $table->integer('id_coop');
             $table->string('status')->default('pending');
-            $table->datetime('send_date');
-            $table->softDeletes();
+            $table->datetime('send_date')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->datetime('date_accepted')->nullable();
+            $table->datetime('date_canceled')->nullable();
         });
     }
 

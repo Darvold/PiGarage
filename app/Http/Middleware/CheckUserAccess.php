@@ -20,7 +20,7 @@ class CheckUserAccess
     {
         $user = Users::where('id', Auth::id())->first();
 
-        if (Auth::check() == Auth::id() && $user->id_al == 2) {
+        if (Auth::check() == Auth::id() && $user->id_al == 1) {
             // Пользователь авторизован и имеет правильный id и уровень доступа
             return $next($request);
         }

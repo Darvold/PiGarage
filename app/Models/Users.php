@@ -22,6 +22,7 @@ class Users extends Authenticatable
     {
         return $this->hasMany(Garages::class, 'user_id', 'id');
     }
+
     public function Cooperatives()
     {
         return $this->hasMany(Cooperatives::class, 'user_id', 'id');
