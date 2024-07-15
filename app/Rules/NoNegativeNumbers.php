@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Rules;
+
+use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
+
+class NoNegativeNumbers implements ValidationRule
+{
+    /**
+     * Run the validation rule.
+     *
+     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail
+     */
+    public function validate(string $attribute, mixed $value, Closure $fail): void
+    {
+        if (!$this->passes($attribute, $value)) {
+            $fail("The $attribute cannot contain negative numbers.");
+        }
+    }
+    public function passes($attribute, $value)
+    {
+        $garagesDataArray = is_string($value) ? json_decode($value, true) : $value;
+
+        if (is_array($garagesDataArray)) {
+            foreach ($garagesDataArray as $item) {
+                if (isset($item['number_meter']) && $item['number_meter'] < 0) {
+                    return false;
+                }
+                if (isset($item['number_garage']) && $item['number_garage'] < 0) {
+                    return false;
+                }
+                if (isset($item['number_block']) && $item['number_block'] < 0) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+}
