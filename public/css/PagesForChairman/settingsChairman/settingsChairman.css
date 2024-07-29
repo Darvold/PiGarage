@@ -1,0 +1,192 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+.flex_block_main {
+	display: flex;
+	width: 100%;
+	justify-content: center;
+}
+.main_block {
+	margin-top: 10px;
+	margin-left: 10px;
+	width: 1400px;
+	height: 700px;
+	border-radius: 4px;
+	background-color: white;
+	box-shadow: 0px 2px 10px 2px black;
+}
+.main_body {
+	position: relative;
+	padding: 10px;
+	height: 100%;
+	min-height: 820px;
+	width: 100%;
+	float: left;
+}
+/*Ниже остальной CSS принадлежащий содержание страницы*/
+.flex_block_content {
+	display: flex;
+	width: 100%;
+	float: left;
+}
+.image_block_user img {
+	border: 2px solid black;
+	margin: 30px;
+	margin-bottom: 10px;
+	width: 240px;
+	height: 240px;
+	border-radius: 100%;
+	object-fit: cover;
+}
+
+.Float_right_coop {
+	width: 100%;
+	margin: 30px;
+}
+.Float_right {
+	width: 100%;
+	justify-content: center;
+	display: flex;
+}
+.Position_user_information {
+	width: auto;
+	height: 100%;
+	padding: 16px;
+
+}
+.form-group {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	height: 40px;
+}
+.form-group:nth-child(6), .form-group:nth-child(5) {
+	margin-top: 10px;
+	align-items: center;
+}
+.form-group label {
+	width: 240px;
+}
+.User_information {
+	font-size: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.Position_user_information input {
+	width: 350px;
+	display: flex;
+	justify-content: center;
+	text-align: center;
+	border-radius: 4px;
+	padding: 2px;
+	margin-top: 5px;
+	font-size: 22px;
+	outline: none;
+	transition: background-color 0.4s ease;
+}
+
+.Position_user_information input.valid {
+	border: 1px solid green;
+	border-color: #4180BDFF;
+	box-shadow: 0px 0px 0px 2px #5FC737FF;
+	z-index: 99;
+	transition: 0.3s ease;
+}
+.Position_user_information input.invalid {
+	border: 1px solid red;
+	box-shadow: none;
+}
+.Position_user_information input:focus {
+	border: 1px solid #4180BDFF;
+	border-color: #4180BDFF;
+	box-shadow: 0px 0px 0px 2px #4180BDFF;
+	z-index: 99;
+	transition: 0.3s ease;
+}
+.button_form {
+	width: 100%;
+	display: flex;
+	justify-content: end;
+}
+.form-group-date {
+	width: 100%;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	justify-content: start;
+}
+.button_form button {
+	text-align: center;
+	border-radius: 4px;
+	font-size: 19px;
+	height: 40px;
+	color: black;
+	background-color: white;
+	border: 3px solid #1369c0;
+	padding: 4px 8px 4px 8px;
+	transition: 0.3s ease;
+}
+.button_form button:hover {
+	background-color: #1369c0;
+	color: white;
+}
+
+/* Стили для выпадающего списка */
+.select_wrp {
+	display: flex;
+	margin-top: 8px;
+	width: 350px !important;
+	float: right;
+}
+.select2-dropdown {
+	box-shadow: 0px 0px 6px 3px black;
+	margin-top: 5px;
+	width: 350px !important;
+}
+.js-select-region .select2-hidden-accessible {
+
+}
+.select2-selection__arrow {
+	position: absolute !important;
+	width: 100% !important;
+	right: -220px !important;
+}
+.select2-container--default .select2-selection--single {
+	background-color: #fff;
+	border: 1px solid #aaa;
+	border-radius: 4px;
+	width: 350px;
+}
+.select2-selection__rendered {
+	height: 38px !important;
+	font-size: 23px !important;
+	display: flex !important;
+	align-items: center !important;
+
+}
+.select2-search__field {
+	font-size: 22px !important;
+}
+.select2-container .select2-selection--single {
+	box-sizing: border-box;
+	cursor: pointer;
+	display: block;
+	height: 38px !important;
+	border: 2px solid black !important;
+	user-select: none;
+	-webkit-user-select: none;
+}
+.select2-selection__placeholder {
+	font-size: 23px !important;
+	height: 100% !important;
+	color: black !important;
+	display: flex !important;
+	align-items: center !important;
+}
+.select2-results__options li {
+	font-size: 20px !important;
+}

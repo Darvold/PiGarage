@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('garages', function (Blueprint $table) {
             $table->id('id_garage');
-            $table->bigInteger('id_block');
+            $table->bigInteger('id_application');
             $table->bigInteger('user_id');
+            $table->bigInteger('id_block');
+            $table->bigInteger('id_coop');
             $table->bigInteger('number_garage');
             $table->bigInteger('number_block');
             $table->bigInteger('number_meter');
-            $table->bigInteger('id_coop');
-            $table->string('img_garage')->nullable()->default(null);
-            $table->datetime('date_accession');
+            /*$table->string('img_garage')->nullable()->default(null);*/
+            $table->softDeletes();
         });
     }
 

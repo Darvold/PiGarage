@@ -6,17 +6,16 @@
 <div class="main_block">
     <div class="main_head">
         <a href="{{route('ChairmanMyCoop.index')}}">Мои кооперативы</a>
-        <a href="{{route('ChairmanCreateMyCoop.index')}}" class="active">Создание
-            кооператива</a>
+        <a href="{{route('ChairmanCreateMyCoop.index')}}" class="active">Создать новый кооператив</a>
     </div>
     <div class="main_body">
         <div class="center_width_container">
             <div class="left_block">
                 <div class="information_text">
-                    <span style="font-size: 32px; font-weight: bold; ">Создать кооператив – быстро и легко!</span>
+                    <span>Создать кооператив – быстро и легко!</span>
                     <ol style="margin-top: 10px; margin-left: 15px;">
-                        <li>Напишите название кооператива и его общий счётчик.</li>
-                        <li>Установите расположение кооператива на карте, кликнув на "Добавить метку".</li>
+                        <li>Напишите название кооператива, его общий счётчик и количество гаражных блоков.</li>
+                        <li>Установите расположение кооператива на карте России, кликнув на "Добавить метку".</li>
                         <li>Подайте заявку, нажав на кнопку "Отправить заявку".</li>
                         <li>Дождитесь, пока администратор примет вашу заявку.</li>
                     </ol>
@@ -26,10 +25,13 @@
                         @csrf
                         <div class="left_block_label_and_input">
                             <label>Название кооператива:</label>
-                            <input type="text" name="name" id="markerName" required>
+                            <input type="text" name="name" title="Введите минимум 3 символа" id="markerName" value="{{ old('name') }}" required>
                             <br>
                             <label>Номер общего счётчика:</label>
-                            <input type="text" name="number_meter" id="numberMeter" required>
+                            <input type="number" pattern="[0-9]{1,10}" title="Только цифры" name="number_meter" oninput="this.value=this.value.replace(/\D/g,'')" value="{{ old('number_meter') }}" required>
+                            <br>
+                            <label>Количество гаражных блоков (мин. 1 | макс. 10):</label>
+                            <input type="tel" pattern="[0-9]{1,10}" title="Только цифры" name="number_garage_blocks" maxlength="2" max="10" oninput="this.value=this.value.replace(/\D/g,'')"  value="{{ old('number_garage_blocks') }}" required>
 
                             <input type="hidden" name="latitude" value="">
                             <input type="hidden" name="longitude" value="">
@@ -52,9 +54,8 @@
             <div class="right_block">
                 <div class="map" id="map" style="width: 100%; height: 100%;"></div>
             </div>
-            <script src="{{ asset('js/map/map.js') }}"></script>
         </div>
-        @include('PagesForChairman.profile.map')
+        @include('PagesForChairman.profile.mapCreateCoop')
     </div>
 </div>
 <script>
@@ -62,11 +63,5 @@
         event.preventDefault(); // Предотвращаем стандартное поведение кнопки
     });
 </script>
-<script>
-    // Используйте событие input для отслеживания ввода
-    $('#numberMeter').on('input', function () {
-        // Оставляем только цифры
-        $(this).val($(this).val().replace(/\D/g, ''));
-    });
-</script>
+
 @endsection

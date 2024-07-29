@@ -11,6 +11,9 @@ class UserAndCoop extends Model
 {
     use HasFactory;
     use Notifiable;
+    use SoftDeletes;
+
+    protected $dates = ['deleted_at'];
     public $timestamps = false;
     protected $table = 'user_and_coop';
     protected $guarded = [];

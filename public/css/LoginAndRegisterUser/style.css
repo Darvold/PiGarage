@@ -31,7 +31,48 @@ body {
 	margin-bottom: 15px;
 	position: relative;
 }
+.form-group-region {
+	height: 70px;
+	margin-bottom: 15px;
+	position: relative;
+	align-items: center;
+}
+.select_wrp {
+	display: flex;
+	margin-top: 8px;
+	width: 300px;
+	float: right;
+}
 
+/* Стили для выпадающего списка */
+.select2-dropdown {
+    box-shadow: 0px 0px 6px 3px black;
+}
+.select2-container--default .select2-selection--single {
+    background-color: #fff;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+}
+.select2-selection__rendered {
+	height: 38px !important;
+	font-size: 23px !important;
+	display: flex !important;
+	align-items: center !important;
+}
+.select2-container .select2-selection--single {
+    box-sizing: border-box;
+    cursor: pointer;
+    display: block;
+    height: 38px !important;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.select2-selection__placeholder {
+	font-size: 23px !important;
+	height: 100% !important;
+	display: flex !important;
+	align-items: center !important;
+}
 .form-group-radio {
 	margin-top: 10px;
 	margin-bottom: 15px;

@@ -4,6 +4,7 @@
 <div class="main_block_coop">
     <div class="main_head">
         <a href="{{route('ChairmanMyCoop.index')}}" class="active">Мои кооперативы</a>
+        <a href="{{route('ChairmanCreateMyCoop.index')}}">Создать кооператив</a>
     </div>
     <div class="main_body">
         @forelse($myCoops as $myCoop)
@@ -11,9 +12,9 @@
             <div class="block_coop">
                 <div class="image_block_user">
                     <img src="{{asset('image/user/defaultGarage.jpg')}}" alt="кооператив">
-                    <div class="Button_update_img">
+                    <!-- <div class="Button_update_img">
                         <a class="Update_img" href="">Изменить фото</a>
-                    </div>
+                    </div> -->
                 </div>
                 <div class="information_coop">
                     <div class="Float_right">
@@ -30,7 +31,7 @@
                             </div>
                             <div class="Button_table_position">
                                 <div style="height: 30px;">
-                                    <a href="{{route('ChairmanMyCoopPivotTable.index', ['id' => Auth::id(),'idCoop' => $myCoop -> id_coop])}}" class="Button_table">Сводная таблица</a>
+                                    <a href="{{route('ChairmanMyCoopPivotTable.index', ['idCoop' => $myCoop -> id_coop])}}" class="Button_table">Сводная таблица</a>
                                 </div>
                             </div>
                         </div>
@@ -39,20 +40,15 @@
             </div>
             <div class="Float_right_coop_information">
                 <span class="Additional_information">Дополнительная <br>информация</span>
-                <a href="">Участники (26)</a>
-                <a href="{{route('ChairmanMyCoopBlocks.index', ['idCoop' => $myCoop -> id_coop])}}">Гаражные блоки</a>
+                <a href="{{route('ChairmanMyCoopParticipants.index', ['idCoop' => $myCoop -> id_coop])}}">Участники ({{ $myCoop->user_and_coop_count }})</a>
+                <!-- <a href="{{route('ChairmanMyCoopBlocks.index', ['idCoop' => $myCoop -> id_coop])}}">Гаражные блоки</a> -->
                 <a href="{{route('MessagesMeters.index', ['idCoop' => $myCoop -> id_coop])}}">Показания участников</a>
-                <a href="">Заявки на вступления (2)</a>
             </div>
         </div>
         @empty
         <div class="else_block_array">У вас нет ни одного кооператива!</div>
         @endforelse
 
-
-        <div class="crate_coop">
-            <a href="{{route('ChairmanCreateMyCoop.index')}}">Создать новый кооператив</a>
-        </div>
     </div>
 </div>
 @endsection

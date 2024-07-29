@@ -11,22 +11,23 @@
 
 </head>
 <body>
+    <script src="{{ asset('js/NumberMask/imask.js') }}"></script>
 <div class="center">
     <form method="post" action="{{route('loginUser.store')}}" class="Reg_Form">
         @csrf
         <span class="Text-Label-border-bottom">
 				<span class="Text-Label">Авторизация</span>
 			</span>
-
         <div class="form-group">
-            <label for="email">Почта</label>
-            <img src="{{ asset('css/LoginAndRegisterUser/icons/email.svg') }}" class="icon" alt="">
-            <input type="email" name="email" placeholder="PiGarage.2023@mail.ru" value="{{old('email')}}" required>
+            <label for="phone">Телефон</label>
+            <img src="{{ asset('css/LoginAndRegisterUser/icons/phone.svg') }}" class="icon" alt="">
+            <input type="text" data-mask="phone" id="phone" class="phone" value="{{ old('phone') }}" required placeholder="+7">
+            <input type="hidden" name="phone" required>
         </div>
         <div class="form-group">
             <label for="password">Пароль</label>
             <img src="{{ asset('css/LoginAndRegisterUser/icons/password.svg') }}" class="icon">
-            <input type="password" name="password" placeholder="Менее 6 символов" required>
+            <input type="password" name="password" placeholder="" required>
         </div>
         <button type="submit">Отправить</button>
         <div class="Button-Back">
@@ -51,6 +52,13 @@
 <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
 <script>
     $(document).ready(function() {
+        $('button[type="submit"]').click(function(e) {
+            e.preventDefault();
+            let phoneInput = $('#phone').val();
+            let onlyDigits = phoneInput.replace(/\D/g, '');
+            $('input[name="phone"]').val(onlyDigits);
+            $(this).closest('form').submit();
+        });
         $(".notification").css('top', '-100px'); // Скрываем уведомление за пределами видимой области
         setTimeout(function() {
             $(".notification").animate({top: 20}, 500, function() {
@@ -62,6 +70,15 @@
             });
         }, 0); // Задержка перед появлением
     });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputElement = document.querySelector('[data-mask="phone"]')
+        const maskOptions = { // создаем объект параметров
+            mask: '+{7}(000)000-00-00' // задаем единственный параметр mask
+        }
+        IMask(inputElement, maskOptions) // запускаем плагин с переданными параметрами
+    })
 </script>
 </body>
 </html>

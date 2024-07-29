@@ -18,5 +18,17 @@ class Cooperatives extends Model
     {
         return $this->hasMany(MetersReadings::class, 'id_coop', 'id_coop');
     }
+    public function amountGarageBlock()
+    {
+        return $this->hasMany(CooperativeBlocks::class, 'id_coop', 'id_coop');
+    }
+    public function userAndCoop()
+    {
+        return $this->hasMany(UserAndCoop::class, 'id_coop', 'id_coop');
+    }
+    public function applicationsForAccessions()
+    {
+        return $this->hasMany(applicationsForAccessions::class, 'id_coop', 'id_coop');
+    }
 
 }

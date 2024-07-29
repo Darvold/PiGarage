@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id('id_connection');
             $table->integer('user_id');
             $table->integer('id_coop');
-            $table->datetime('date_accession');
-            $table->datetime('date_canceled')->nullable();
+            $table->dateTime('deleted_at')->nullable();
         });
     }
 

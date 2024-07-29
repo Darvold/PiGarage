@@ -24,19 +24,26 @@ class NoNegativeNumbers implements ValidationRule
 
         if (is_array($garagesDataArray)) {
             foreach ($garagesDataArray as $item) {
-                if (isset($item['number_meter']) && $item['number_meter'] < 0) {
-                    return false;
+                if (isset($item['number_meter'])) {
+                    if (!ctype_digit($item['number_meter']) || $item['number_meter'] <= 0) {
+                        return false;
+                    }
                 }
-                if (isset($item['number_garage']) && $item['number_garage'] < 0) {
-                    return false;
+                if (isset($item['number_garage'])) {
+                    if (!ctype_digit($item['number_garage']) || $item['number_garage'] <= 0) {
+                        return false;
+                    }
                 }
-                if (isset($item['number_block']) && $item['number_block'] < 0) {
-                    return false;
+                if (isset($item['number_block'])) {
+                    if (!ctype_digit($item['number_block']) || $item['number_block'] <= 0) {
+                        return false;
+                    }
                 }
             }
         }
 
         return true;
     }
+
 
 }

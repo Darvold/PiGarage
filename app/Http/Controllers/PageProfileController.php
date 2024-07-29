@@ -9,16 +9,18 @@ use App\Models\CooperativeBlocks;
 use App\Models\CooperativesBlocksLossesKw;
 use App\Models\Garages;
 use App\Models\MetersReadings;
+use App\Models\User;
 use App\Models\UserAndCoop;
 use App\Models\Cooperatives;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
 use Jenssegers\Date\Date;
-
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 class PageProfileController extends Controller
 {
-    public function indexChairman()
+    protected function indexChairman()
     {
         // Получите текущего аутентифицированного пользователя
         $user = Auth::user();
@@ -26,14 +28,56 @@ class PageProfileController extends Controller
         return view('PagesForChairman.profile.profile', compact('user', 'myCoops'));
     }
 
-    public function logout()
+    protected function settingsChairman()
+    {
+        $user = Auth::user();
+        $myCoops = Cooperatives::where('user_id', Auth::id())->get();
+        return view('PagesForChairman.profile.settingsChairman', compact('user', 'myCoops'));
+    }
+    protected function settingsChairmanPost(Request $request)
+    {
+        try {
+            $request->validate([
+                'fio' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255',
+                'region' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:20|unique:users,phone,' . auth()->id(),
+                'second_phone' => 'nullable|string|max:20',
+                'home_phone' => 'nullable|string|max:20',
+            ]);
+        } catch (ValidationException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+
+        User::where('id', Auth::id())->update([
+            'fio' => $request->fio,
+            'phone' => $this->formatPhoneNumber($request->phone),
+            'second_phone' => $this->formatPhoneNumber($request->second_phone),
+            'home_phone' => $this->formatPhoneNumber($request->home_phone) ? $this->formatPhoneNumber($request->home_phone) : null,
+            'email' => $request->email,
+            'region' => $request->region,
+        ]);
+
+        // Редирект с сообщением об успехе
+        return redirect()->back()->with('success', 'Данные успешно изменены!');
+    }
+
+    // Функция для форматирования номера телефона
+    private function formatPhoneNumber($phone)
+    {
+        // Удаляем все ненужные символы, оставляя только цифры
+        return preg_replace('/\D/', '', $phone);
+    }
+
+    protected function logout()
     {
         auth()->guard('web')->logout(); // Выход текущего пользователя
 
         return redirect()->route('login.index');
     }
 
-    public function ChairmanGarage()
+    protected function ChairmanGarage()
     {
         $garages = Garages::select('garages.*', 'cooperatives.name as coop_name', 'cooperatives.city as coop_city')
             ->leftJoin('cooperatives', 'cooperatives.id_coop', '=', 'garages.id_coop')
@@ -41,10 +85,10 @@ class PageProfileController extends Controller
             ->get();
 
 
-        return view('PagesForChairman.profile.garage', compact('garages'));
+        return view('PagesForChairman.profile.pageGarage.garage', compact('garages'));
     }
 
-    public function ChairmanCreateGarage(Request $request)
+    protected function ChairmanCreateGarage(Request $request)
     {
         if ($request->ajax()) {
             $idCoop = $request->input('idCoop');
@@ -56,11 +100,11 @@ class PageProfileController extends Controller
             ->where('user_and_coop.user_id', Auth::id())
             ->get();
 
-        return view('PagesForChairman.profile.createGarage', compact('coops'));
+        return view('PagesForChairman.profile.pageGarage.createGarage', compact('coops'));
 
     }
 
-    public function ChairmanCreatingGarage(Request $request)
+    protected function ChairmanCreatingGarage(Request $request)
     {
         try {
             $data = request()->validate([
@@ -104,21 +148,21 @@ class PageProfileController extends Controller
     }
 
 
-    public function myGaragePivotTable($idGarage)
+    protected function myGaragePivotTable($idGarage)
     {
         $garage = Garages::select('garages.*')
             ->where('garages.id_garage', $idGarage)->first();
         $coop = Cooperatives::select('cooperatives.name')
             ->where('id_coop', $garage->id_coop)->first();
         if ($garage) {
-            return view('PagesForChairman.profile.myGaragePivotTable', ['garage' => $garage, 'nameCoop' => $coop]);
+            return view('PagesForChairman.profile.pageGarage.myGaragePivotTable', ['garage' => $garage, 'nameCoop' => $coop]);
         } else {
             return back()->with('error', 'Гараж не найден');
         }
 
     }
 
-    public function ChairmanSubmitIndicationsGarage($idGarage)
+    protected function ChairmanSubmitIndicationsGarage($idGarage)
     {
 
         $garageCoop = Garages::where('id_garage', $idGarage)->with('cooperative')->first();
@@ -126,7 +170,7 @@ class PageProfileController extends Controller
 
     }
 
-    public function ChairmanSubmitIndicationsPostGarage(Request $request, $idGarage)
+    protected function ChairmanSubmitIndicationsPostGarage(Request $request, $idGarage)
     {
         $currentMonth = Date::now()->month;
         $currentYear = Date::now()->year;

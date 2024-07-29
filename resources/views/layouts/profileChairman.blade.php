@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PiGarage</title>
     <link rel="stylesheet" href="{{asset('css/HeadBlock/head.css')}}">
+    <link rel="stylesheet" href="{{asset('css/HeadBlock/headBody.css')}}">
     <link rel="stylesheet" href="{{asset('css/HeadBlock/msg.css')}}">
     <link rel="stylesheet" href="{{asset('css/NavigationBlock/left_block.css')}}">
     <link rel="stylesheet" href="{{asset('css/Body/scroll.css')}}">
@@ -12,6 +13,7 @@
     @php
     $profileStyles = [
     'ProfileUserStyles' => 'PagesForChairman/profile/',
+    'ProfileSettingsChairman' => 'PagesForChairman/settingsChairman/',
 
     'ProfileGarageStyles' => 'PagesForChairman/garage/',
     'ProfileCreateGarageStyles' => 'PagesForChairman/createGarage/',
@@ -26,6 +28,8 @@
     'ProfileCoopRate' => 'PagesForChairman/rate/',
     'ProfileCoopPayment' => 'PagesForChairman/payment/',
     'ProfileCoopLosses' => 'PagesForChairman/pageLossesCoop/',
+
+    'ParticipantsCoopStyles' => 'PagesForChairman/participantsCoop/',
 
     'ApplicationsStyles' => 'PagesForChairman/applications/',
     'MessagesStyles' => 'PagesForChairman/messages/',
@@ -48,7 +52,6 @@
     <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('js/moment-with-locales.js') }}"></script>
     <script src="{{ asset('js/lightbox/dist/js/lightbox.js') }}"></script>
-
 
     <div class="form-msg">
         @if (session('success'))
@@ -182,7 +185,7 @@
                 <img src="{{asset('icons/user/applications.svg')}}" alt="гаражи">
             </div>
             <div class="right_block_text_navigation">
-                <a href="{{route('Applications.index')}}">Заявки</a>
+                <a href="{{route('Applications.index')}}">Заявки ({{ $totalPendingApplications }})</a>
             </div>
         </div>
         <div class="text_button_navigation">

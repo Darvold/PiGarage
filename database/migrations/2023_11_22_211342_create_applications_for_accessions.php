@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->datetime('send_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->datetime('date_accepted')->nullable();
-            $table->datetime('date_canceled')->nullable();
+            $table->datetime('deleted_at')->nullable();
         });
     }
 

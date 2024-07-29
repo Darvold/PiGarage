@@ -3,6 +3,7 @@
     <div class="main_block">
         <div class="main_head">
             <a href="{{route('ProfileChairman.index')}}" class="active">Мой профиль</a>
+            <a href="{{route('SettingsChairman.index')}}">Настроить профиль</a>
         </div>
         <div class="main_body">
             <div class="flex_block_content">
@@ -16,9 +17,9 @@
                             <div class="User_information">
                                 <span>Почта: {{ $user->email }}</span>
                                 <span>Регион: {{ $user->region }}</span>
-                                <span>Телефон: {{ $user->phone }}</span>
-                                <span>Дополнительный телефон: +7(923)622-71-12</span>
-                                <span>Домашний телефон: 6-32-51</span><br><br>
+                                <span>Телефон: {{ formatPhoneNumber($user->phone) }}</span>
+                                <span>Дополнительный телефон: {{formatPhoneNumber($user['second_phone'])}}</span>
+                                <span>Домашний телефон: {{ formatHomePhoneNumber($user['home_phone']) }}</span><br><br>
                                 <span>Дата регистрации: {{ Date::parse($user->data_reg)->format('d.m.Y') }}</span>
                             </div>
                         </div>

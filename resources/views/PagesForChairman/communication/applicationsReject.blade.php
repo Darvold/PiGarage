@@ -3,46 +3,49 @@
 @section('profile')
     <div class="main_block">
         <div class="main_head">
-            <a href="{{route('Applications.index', ['id' => Auth::id()])}}">Заявки</a>
-            <a href="{{route('ApplicationsReject.index', ['id' => Auth::id()])}}" class="active">Отклонённые заявки</a>
+            <a href="{{route('Applications.index')}}">Заявки</a>
+            <a href="{{route('ApplicationsReject.index')}}" class="active">Отклонённые заявки</a>
         </div>
-        <div class="main_body">
-            <div class="left_block">
-                @foreach($coops as $coop)
-                    <form class="myForm" data-id-coop="{{$coop->id_coop}}" method="GET" action="">
-                        @csrf
-                        <input type="hidden" name="id_coop" id="id_coop_input" value="{{$coop->id_coop}}">
-                        <button type="submit" class="button_coop_array" data-id-coop="{{$coop->id_coop}}">
-                            <div class="block_coop">
-                                <div class="img_center_left">
-                                    <img src="{{asset('image/user/defaultGarage.jpg')}}" alt="кооператив">
-                                </div>
-                                <div class="right_text">
-                        <span>
-                            {{$coop -> name}}
-                        </span>
-                                </div>
-                                <span class="active_click" data-coop-id="{{$coop->id_coop}}"></span>
-                            </div>
-                        </button>
-                    </form>
-                @endforeach
-            </div>
-            <div class="right_two_contains">
-                <div class="buttons_ajax">
-                    <button class="buttons_ajax_user" data-type="user">Заявки от пользователей</button>
-                    <button class="buttons_ajax_participant" data-type="participant">Запросы от участников</button>
-                </div>
-                <div class="right_block">
-                    <div class="messageArray">
-
+   <div class="main_body">
+        <div class="left_block">
+            <span class="my_coop">Мои кооперативы</span>
+            <div class="list_my_coop">
+            @foreach($coops as $coop)
+            <form class="myForm" data-id-coop="{{$coop->id_coop}}" method="GET" action="">
+                @csrf
+                <button type="submit" class="button_coop_array" data-id-coop="{{$coop->id_coop}}">
+                    <div class="block_coop">
+                        <div class="img_center_left_icon">
+                            <img src="{{asset('image/user/defaultGarage.jpg')}}" alt="кооператив">
+                        </div>
+                        <div class="right_text_left_column">
+                            <span>
+                                {{$coop -> name}}
+                            </span>
+                        <p class="count_garage_block">Количество гаражных блоков: {{$coop->amount_garage_block_count}}</p>
+                        </div>
+                        <span class="active_click" data-coop-id="{{$coop->id_coop}}"></span>
                     </div>
-                    <span class="messages_container">Нажмите на нужный кооператив, а после выбор запроса: <br> <br>
-                            1) "Заявки от пользователей" - те, которым вы отказали; <br> <br>
-                            2) "Запросы от участников" - запросы от своих участников кооператива, которым вы отказали на присоединение их гаража, к вашему кооперативу.</span>
+                </button>
+            </form>
+            @endforeach
+          </div>
+        </div>
+        <div class="right_two_contains">
+            <div class="buttons_ajax">
+                <button class="buttons_ajax_user" data-type="user">Заявки от пользователей</button>
+                <button class="buttons_ajax_participant" data-type="participant">Запросы от участников</button>
+            </div>
+            <div class="right_block">
+                <div class="messageArray">
+
                 </div>
+                <span class="messages_container">Нажмите на нужный кооператив, а после выбор запроса: <br> <br>
+                    1) "Заявки от пользователей" – те, кто желает присоединиться к вашему кооперативу; <br> <br>
+                2) "Запросы от участников" – запросы от своих участников кооператива, которые желают присоединить свой гараж, к вашему кооперативу.</span>
             </div>
         </div>
+    </div>
     </div>
     <script>
         $(document).ready(function () {

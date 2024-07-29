@@ -33,6 +33,14 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
     // Главные страницы
     Route::get('/Chairman/Profile/', 'PageProfileController@indexChairman')
         ->name('ProfileChairman.index');
+
+    //Настройки
+    Route::get('/Chairman/Settings/', 'PageProfileController@settingsChairman')
+        ->name('SettingsChairman.index');
+    Route::post('/Chairman/Settings/', 'PageProfileController@settingsChairmanPost')
+        ->name('settingsChairmanPost.store');
+
+    //Список гаражей
     Route::get('/Chairman/Garages/', 'PageProfileController@ChairmanGarage')
         ->name('ChairmanGarage.index');
 
@@ -56,11 +64,15 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
     Route::get('/Chairman/MyCoop/', 'MyCooperatives@ChairmanMyCoop')
         ->name('ChairmanMyCoop.index');
 
-    // Гаражные блоки и таблица кооператива
+    // Гаражные блоки, таблица кооператива, участники и другие возможности
     Route::middleware([CheckIdCoop::class])->group(function () {
         // Главная таблица кооператива
         Route::get('/Chairman/MyCoop/PivotTable/{idCoop}', 'MyCooperatives@ChairmanMyCoopPivotTable')
             ->name('ChairmanMyCoopPivotTable.index');
+
+        //Просмотр участников гаражного кооператива
+        Route::get('/Chairman/MyCoop/PivotTable/{idCoop}/Participants','MyCooperatives@ParticipantsCoop')
+            ->name('ChairmanMyCoopParticipants.index');
 
         // Установка тарифа
         Route::get('/Chairman/MyCoop/PivotTable/{idCoop}/Rate', 'MyCooperatives@ChairmanMyCoopRate')
@@ -83,7 +95,7 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
         // гаражные блоки кооператива
         Route::get('/Chairman/MyCoop/{idCoop}/Blocks', 'MyCooperatives@ChairmanMyCoopBlocks')
             ->name('ChairmanMyCoopBlocks.index');
-        Route::post('/Chairman/MyCoop/{idCoop}/Blocks', 'MyCooperatives@ChairmanMyCoopNewBlocks')
+        Route::post('/Chairman/MyCoop/{idCoop}/Blocks', 'MyCooperatives@ChairmanMyCoopBlocksPost')
             ->name('ChairmanMyCoopNewBlocks.store');
 
         // Сообщение от пользователей (Чаты и показания)
@@ -98,38 +110,30 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
     // Создание кооператива
     Route::get('/Chairman/MyCoop/CreateMyCoop/', 'MyCooperatives@ChairmanCreateMyCoop')
         ->name('ChairmanCreateMyCoop.index');
-    Route::post('/Chairman/MyCoop/CreateMyCoop/', 'MyCooperatives@ChairmanCreatingCoop')
+    Route::post('/Chairman/MyCoop/CreateMyCoop/', 'MyCooperatives@ChairmanCreateMyCoopPost')
         ->name('ChairmanSendingDataCreateCoop.store');
 
     // Присоединение к кооперативу
     Route::get('/Chairman/MyCoop/ConnectMyCoop/', 'MyCooperatives@ChairmanConnectCoop')
         ->name('ChairmanConnectCoop.index');
-    Route::post('/Chairman/MyCoop/ConnectMyCoop/', 'MyCooperatives@JoinTheCoopOrCansel')
+    Route::post('/Chairman/MyCoop/ConnectMyCoop/', 'MyCooperatives@ChairmanConnectCoopPost')
         ->name('JoinTheCoopOrCansel.store');
-    // Заявки пользователя на присоединения к кооперативу
-    Route::get('/Chairman/MyCoop/MyApplicationToCoop/', 'MyCooperatives@MyApplicationToCoop')
+
+    // Заявки самого пользователя на присоединения к кооперативу
+    Route::get('/Chairman/MyCoop/MyApplicationToCoop/', 'CommunicationController@MyApplicationToCoop')
         ->name('MyApplicationToCoop.index');
 
-    // Заявки на присоединение к кооперативу
+    // Заявки других пользователей на присоединение к кооперативу
     Route::get('/Chairman/Communication/Applications/', 'CommunicationController@Applications')
         ->name('Applications.index');
     Route::post('/Chairman/Communication/Applications/', 'CommunicationController@ApplicationsPost')
         ->name('ApplicationsPost.store');
-    Route::get('/Chairman/Communication/Applications/message/', 'CommunicationController@ApplicationsMessage')
-        ->name('ApplicationsMessage.index');
-    Route::get('/Chairman/Communication/Applications/message/participant', 'CommunicationController@ApplicationsMessageGarage')
-        ->name('ApplicationsMessageGarage.index');
 
     // Отменённые заявки на присоединение к кооперативу
     Route::get('/Chairman/Communication/Applications/Reject', 'CommunicationController@ApplicationsReject')
         ->name('ApplicationsReject.index');
     Route::post('/Chairman/Communication/Applications/Reject', 'CommunicationController@ApplicationsRejectPost')
         ->name('ApplicationsRejectPost.store');
-    Route::get('/Chairman/Communication/Applications/Reject/message', 'CommunicationController@ApplicationsMessageReject')
-        ->name('ApplicationsMessageReject.index');
-    Route::get('/Chairman/Communication/Applications/Reject/participant', 'CommunicationController@ApplicationsMessageGarageReject')
-        ->name('ApplicationsMessageGarageReject.index');
-
 
     // Выход и учётной записи
     Route::get('/Chairman/Profile/logout', 'PageProfileController@logout')

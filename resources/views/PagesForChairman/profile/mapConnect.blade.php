@@ -249,7 +249,7 @@
                 </form>
             @endif
             </div>`,
-            balloonContentFooter: "Отправьте заявку чтобы присоединиться",
+            balloonContentFooter: `<span style="font-size: 16px">Количество гаражных блоков: {{$mapMarker['amount_garage_block_count']}}</span><br><span>Отправьте заявку чтобы присоединиться</span>`,
             iconCaption: '<?php echo $iconCaption; ?>'
             @endif
         }, {
@@ -684,7 +684,6 @@
 
                 garages.push(garageData);
             });
- console.log(garages);
             if (hasEmptyFields) {
                 $('.error_msg').empty();
                 $('.error_msg').append('<span>Необходимо ввести все данные гаража/гаражей</span>');
@@ -717,20 +716,21 @@
             // Добавляем скрытое поле в форму
             $('#requestForm').append(hiddenField);
         }
-       
+
         // Отправляем форму
         $('#requestForm').submit();
     });
+
         let delayTimer; // Переменная для хранения таймера задержки
         $('.head_search_coop button').click(function () {
-            let nameCoopSelect = $('.head_search_coop_input').find('input[name="name_coop"]').val();
+            nameCoopSelect = $('.head_search_coop_input').find('input[name="name_coop"]').val();
 
             if (nameCoopSelect.length >= 3) {
                 $('.head_search_coop button').prop("disabled", true);
                 // Очищаем блок с результатами и добавляем сообщение "Выполняем запрос..."
                 $('.block_name_result_coop').empty();
                 $('.block_name_result_coop').append(`<span class="span_text">Выполняем запрос...</span>`);
-
+                offset = 0;
                 // Если уже есть установленный таймер, очищаем его
                 clearTimeout(delayTimer);
 
@@ -745,33 +745,50 @@
                             selectedRegion: selectedRegion,
                             selectedCity: selectedCity,
                             nameCoop: nameCoopSelect,
+                            offset: offset,
                         },
                         success: function (response) {
-                            let blockMessages = response.blockMessages;
-                            $('.block_name_result_coop').empty();
-                            if (Array.isArray(blockMessages) && blockMessages.length > 0) {
-                                for (var i = 0; i < blockMessages.length; i++) {
-                                    html = `<div class="inf_coop">
-                           <span>Название: ${blockMessages[i].name}</span>
-                           <span>Председатель: ${blockMessages[i].fio}</span>
-                           <span>Местонахождение: ${blockMessages[i].address}</span>
-                           <button data-id-point="${blockMessages[i].id_point}">Показать на карте</button>
-                       </div>`;
-                                    $('.block_name_result_coop').append(html);
-                                }
-                            } else {
-                                $('.block_name_result_coop').append(`<span class="span_text">Что-то пошло не так</span>`);
-                            }
-                        },
+                                    blockMessages = response.blockMessages;
+                                    if (noEmty) {
+                                        $('.block_name_result_coop').empty();
+                                    }
+                                    noEmty = true;
+                                    if (Array.isArray(blockMessages) && blockMessages.length > 0) {
+                                        $('#load-more').css({
+                                            'display': 'block',
+                                        });
+                                        for (var i = 0; i < blockMessages.length; i++) {
+                                            $('.block_name_result_coop .span_text').remove();
+                                            html = `<div class="inf_coop">
+                                    <span>Название: ${blockMessages[i].name}</span>
+                                    <span>Председатель: ${blockMessages[i].fio}</span>
+                                    <span>Местонахождение: ${blockMessages[i].address}</span>
+                                    <button data-id-point="${blockMessages[i].id_point}">Показать на карте</button>
+                                    </div>`;
+                                            $('.block_name_result_coop').append(html);
+                                        }
+                                        offset += blockMessages.length;
+                                        countError = 0;
+                                        // Проверка, есть ли ещё записи
+                                        if (!response.hasMore) {
+                                            $('#load-more').hide();
+                                        }
+                                    } else {
+                                        $('.block_name_result_coop .span_text').remove();
+                                        $('.block_name_result_coop').append(`<span class="span_text">Ошибка, похоже нет кооперативов с заданными параметрами</span>`);
+                                    }
+                                },
                         error: function (error) {
-                            $('.block_name_result_coop').empty();
-                            $('.block_name_result_coop').append(`<span class="span_text">Произошла ошибка, повторите попытку позже</span>`);
+                            const textError = error.responseJSON.error;
+                            $('.block_name_result_coop .span_text').remove();
+                                    $('.block_name_result_coop').append(`<span class="span_text">${textError} ${countError ? '(' + countError + ')' : ''}</span>`);
+                                    countError += 1;
                         }
                     });
                 }, 2000);
                 $('.head_search_coop button').prop("disabled", false);
             } else {
-                $('.block_name_result_coop').empty();
+                $('.block_name_result_coop .span_text').remove();
                 $('.block_name_result_coop').append(`<span class="span_text">Название слишком короткое</span>`);
             }
         });

@@ -11,6 +11,9 @@ class ApplicationsForAccessions extends Model
 {
     use HasFactory;
     use Notifiable;
+    use SoftDeletes;
+
+    protected $dates = ['deleted_at'];
     public $timestamps = false;
     protected $table = 'applications_for_accessions';
     protected $guarded = [];

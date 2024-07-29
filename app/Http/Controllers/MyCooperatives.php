@@ -13,6 +13,8 @@ use App\Models\MetersReadings;
 use App\Models\PayMents;
 use App\Models\Rates;
 use App\Models\UserAndCoop;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -23,20 +25,24 @@ use Illuminate\Validation\ValidationException;
 use Jenssegers\Date\Date;
 use Mockery\Exception;
 use App\Rules\NoNegativeNumbers;
+use GuzzleHttp\Client;
+
 class MyCooperatives extends Controller
 {
-    public function ChairmanMyCoop()
+    //Контроллер для страницы всех кооперативов председателя
+    protected function ChairmanMyCoop()
     {
 
-        $myCoops = Cooperatives::where('user_id', Auth::id())->get();
+        $myCoops = Cooperatives::where('user_id', Auth::id())
+            ->withCount('userAndCoop')
+            ->get();
+
 
         return view('PagesForChairman.profile.myCoop', compact('myCoops'));
     }
-    protected function MyApplicationToCoop() {
-        return view('PagesForChairman.profile.myApplicationToCoop');
-    }
 
-    public function ChairmanCreateMyCoop()
+    //Контроллер для страницы создание кооператива
+    protected function ChairmanCreateMyCoop()
     {
         $cooperatives = Cooperatives::select('cooperatives.*', 'users.*')
             ->leftJoin('users', 'cooperatives.user_id', '=', 'users.id')
@@ -50,34 +56,79 @@ class MyCooperatives extends Controller
 
     }
 
-    public function ChairmanCreatingCoop()
+    protected function ChairmanCreateMyCoopPost()
     {
-        $data = request()->validate([
-            'name' => 'required',
-            'number_meter' => 'required|numeric|min:0',
-            'city' => 'required',
-            'address' => 'required',
-            'latitude' => 'required',
-            'longitude' => 'required',
-        ]);
-        $data['user_id'] = Auth::id();
-        $data['status'] = 'pending';
-        // Объединяем координаты в одну строку
-        $data['id_point'] = $data['latitude'] . ',' . $data['longitude'];
-        // Удаляем ненужные отдельные поля latitude и longitude
-        unset($data['latitude']);
-        unset($data['longitude']);
-        $data['date_received'] = Date::now();
+        try {
+            $data = request()->validate([
+                'name' => [
+                    'required',
+                    'min:3',
+                    'max:250',
+                    // Регулярное выражение для запрета тэгов < и > и других символов, которые могут использоваться в инъекциях
+                    //'regex:/^[^<>]+$/' - проверка на < >
+                    'regex:/^[a-zA-Z0-9\s\-]+$/u' // Разрешает только буквы, цифры, пробелы и дефисы
+                ],
+                'number_meter' => 'required|integer|digits_between:1,19',
+                'city' => 'required',
+                'address' => 'required',
+                'number_garage_blocks' => 'required|integer|min:1|max:10',
+                'latitude' => 'required|numeric|between:-90,90',
+                'longitude' => 'required|numeric|between:-180,180',
+            ]);
 
-        ApplicationsCreateNewCoop::create($data);
+        } catch (ValidationException $e) {
+            $errors = $e->validator->errors();
+            if ($errors->has('name')) {
+                return redirect()->back()->with(['error' => 'Название кооператива должно состоять минимум из 3-х символов до 250'])->withInput();
+            }
+            if ($errors->has('number_meter')) {
+                return redirect()->back()->with(['error' => 'Недопустимое количество цифр в номере счётчика – макс. 19'])->withInput();
+            }
+            if ($errors->has('number_garage_blocks')) {
+                return redirect()->back()->with(['error' => 'Количество гаражных блоков не совпадает с правилами'])->withInput();
+            }
+            // Другие ошибки:
+            return redirect()->back()->with(['error' => 'Что-то пошло не так, повторите попытку'])->withInput();
+        }
+        $data['name'] = filter_var($data['name'], FILTER_SANITIZE_STRING);
+        try {
+            // Проверяем координаты и страну, город
+            $test = $this->getCountryFromCoordinates($data['city'], $data['address'], $data['latitude'], $data['longitude']);
+            if ($test === true) {
+                // Координаты принадлежат России
+                $data['id_point'] = $data['latitude'] . ',' . $data['longitude'];
+            }
+            if ($test === '[1]') {
+                return redirect()->back()->with(['error' => 'Что-то пошло не так, возможно метка указано вне города/посёлка/село'])->withInput();
+            }
+            if ($test === '[2]') {
+                return redirect()->back()->with(['error' => 'Ваши координаты метки не отсносятся к России'])->withInput();
+            }
+            if (!$test) {
+                return redirect()->back()->with(['error' => 'Что-то пошло не так, попробуйте в другой день выполнить запрос'])->withInput();
+            }
 
-        return redirect()
-            ->route('ChairmanCreateMyCoop.index')
-            ->with('success', 'Заявка успешно отправлена!');
+            ApplicationsCreateNewCoop::create([
+                'user_id' => Auth::id(),
+                'name' => $data['name'],
+                'city' => $data['city'],
+                'address' => $data['address'],
+                'date_received' => Date::now(),
+                'number_meter' => $data['number_meter'],
+                'status' => 'pending',
+                'number_garage_blocks' => $data['number_garage_blocks'],
+                'id_point' => $data['id_point'],
+
+            ]);
+            return redirect()->back()->with('success', 'Заявка успешно отправлена!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку')->withInput();
+        }
     }
 
 
-    public function ChairmanConnectCoop(Request $request)
+    //Контроллер для просмотр заявков других пользователей
+    protected function ChairmanConnectCoop(Request $request)
     {
         if ($request->ajax()) {
             $idMessage = $request->input("idMessage");
@@ -87,23 +138,33 @@ class MyCooperatives extends Controller
                 $selectedCity = $request->input("selectedCity");
                 $location = '%' . $selectedRegion . ', ' . $selectedCity . '%';
                 $nameCoopLike = '%' . $nameCoop . '%';
+                $offset = $request->input('offset', 0);
 
                 $allCoops = Cooperatives::where('name', 'LIKE', $nameCoopLike)
                     ->where('address', 'LIKE', $location)
                     ->leftJoin('users', 'cooperatives.user_id', '=', 'users.id')
                     ->select('cooperatives.*', 'users.fio')
+                    ->skip($offset)
+                    ->take(5)
                     ->get();
 
-                if ($allCoops->isNotEmpty()) {
-                    return response()->json(['blockMessages' => $allCoops]);
+                $totalCount = Cooperatives::where('name', 'LIKE', $nameCoopLike)
+                    ->where('address', 'LIKE', $location)
+                    ->count();
+                $hasMore = ($offset + 5) < $totalCount;
+
+                if ($allCoops) {
+                    return response()->json(['blockMessages' => $allCoops,
+                        'hasMore' => $hasMore]);
                 } else {
-                    return response()->json(['errorMessage' => "Ошибка: $nameCoop"], 500);
+                    return response()->json(['error' => "Ошибка, похоже нет кооперативов с заданными параметрами"], 500);
                 }
             }
-            return response()->json(['errorMessage' => "Что-то пошло не так"]);
+            return response()->json(['error' => "Что-то пошло не так"], 500);
         }
         $cooperatives = Cooperatives::select('cooperatives.*', 'users.*')
             ->leftJoin('users', 'cooperatives.user_id', '=', 'users.id')
+            ->withCount('amountGarageBlock')
             ->where('users.id_al', 2)
             ->get();
         $applicationStatus = ApplicationsForAccessions::where('user_id', Auth::id())
@@ -113,7 +174,7 @@ class MyCooperatives extends Controller
 
     }
 
-    public function JoinTheCoopOrCansel()
+    protected function ChairmanConnectCoopPost()
     {
         $id_message = request()->input('id_message');
         try {
@@ -129,7 +190,7 @@ class MyCooperatives extends Controller
                 ]);
             }
         } catch (ValidationException  $e) {
-        $garageData = request()->input('garageData', null);
+            $garageData = request()->input('garageData', null);
             $garagesDataJson = json_decode($garageData, true);
             return redirect()->back()
                 ->with(['error' => 'Что-то пошло не так, возможно установлено отрицательное значение'])
@@ -137,30 +198,38 @@ class MyCooperatives extends Controller
         }
         if ($id_message == 1) {
             $garagesData = json_decode($data['garageData'], true);
+            $countGarageBlock = count(CooperativeBlocks::where('id_coop', $data['id_coop'])->get());
+            foreach ($garagesData as $gData) {
+                if ($gData['number_block'] > $countGarageBlock) {
+                    return redirect()->back()
+                        ->with(['error' => "Не правильно указан номер блока. В кооперативе доступно всего $countGarageBlock гаражных блоков"])
+                        ->with('garageData', $garagesData);
+                }
+            }
             $restoreApplication = ApplicationsForAccessions::where('user_id', Auth::id())
                 ->where('id_coop', $data['id_coop'])
                 ->where('status', 'delete')
                 ->first();
             if ($restoreApplication) {
                 $restoreApplication->update(['status' => 'pending', 'send_date' => Date::now()]);
-                    foreach ($garagesData as $gData) {
-                        //dd($garagesData);
-                            ApplicationsGarageToCoop::updateOrCreate(
-                                [
-                                    'user_id' => Auth::id(),
-                                    'id_block' => null,
-                                    'id_coop' => $data['id_coop'],
-                                    'status' => 'delete',
-                                ],
-                                [
-                                    'number_garage' => $gData['number_garage'],
-                                    'number_block' => $gData['number_block'],
-                                    'number_meter' => $gData['number_meter'],
-                                    'status' => 'pending',
-                                    'date_received' => Date::now()
-                                ]
-                            );
-                    }
+                foreach ($garagesData as $gData) {
+                    //dd($garagesData);
+                    ApplicationsGarageToCoop::updateOrCreate(
+                        [
+                            'user_id' => Auth::id(),
+                            'id_block' => null,
+                            'id_coop' => $data['id_coop'],
+                            'status' => 'delete',
+                        ],
+                        [
+                            'number_garage' => $gData['number_garage'],
+                            'number_block' => $gData['number_block'],
+                            'number_meter' => $gData['number_meter'],
+                            'status' => 'pending',
+                            'date_received' => Date::now()
+                        ]
+                    );
+                }
                 return redirect()->back()->with('success', 'Заявка успешно отправлена!');
             }
 
@@ -198,15 +267,17 @@ class MyCooperatives extends Controller
 
     }
 
-    public function ChairmanMyCoopPivotTable($idCoop)
+
+    //Главная таблица, сводная таблица кооператива
+    protected function ChairmanMyCoopPivotTable($idCoop)
     {
         $coopData = Cooperatives::where('id_coop', $idCoop)->first();
-        return view('PagesForChairman.profile.myCoopPivotTable', compact('coopData', 'idCoop'));
+        return view('PagesForChairman.profile.pivotTableCoop.myCoopPivotTable', compact('coopData', 'idCoop'));
 
     }
 
-
-    public function ChairmanMyCoopBlocks(Request $request, $idCoop)
+    //Гаражные блоки, изменение кВт
+    protected function ChairmanMyCoopBlocks(Request $request, $idCoop)
     {
         if ($request->ajax()) {
             $numberBlock = $request->input('numberBlock');
@@ -228,7 +299,7 @@ class MyCooperatives extends Controller
 
     }
 
-    public function ChairmanMyCoopNewBlocks($idCoop)
+    protected function ChairmanMyCoopBlocksPost($idCoop)
     {
         $id_message = request()->input('id_message');
         if ($id_message == 1) {
@@ -315,7 +386,8 @@ class MyCooperatives extends Controller
         return back()->with('error', 'Что-то пошло не так, повторите запрос позже');
     }
 
-    public function MessagesMeters(Request $request, $idCoop)
+
+    protected function MessagesMeters(Request $request, $idCoop)
     {
         if ($request->ajax()) {
             $id_block = $request->input('id_block');
@@ -370,7 +442,7 @@ class MyCooperatives extends Controller
 
     }
 
-    public function MessagesMetersPost(Request $request)
+    protected function MessagesMetersPost(Request $request)
     {
         $idMessage = $request->input('idMessage');
         $numberMeter = $request->input('numberMeter');
@@ -394,7 +466,8 @@ class MyCooperatives extends Controller
         return response()->json(['response' => 'error']);
     }
 
-    public function ChairmanMyCoopRate(Request $request, $idCoop)
+
+    protected function ChairmanMyCoopRate(Request $request, $idCoop)
     {
         if ($request->ajax()) {
             $year = $request->input('numberYear');
@@ -410,10 +483,10 @@ class MyCooperatives extends Controller
             ->whereYear('date_indication', $year)
             ->orderByRaw('MONTH(date_indication)')
             ->get();
-        return view('PagesForChairman.profile.pageRate', compact('year', 'coopData', 'idCoop', 'valueRates'));
+        return view('PagesForChairman.profile.pivotTableCoop.pageRate', compact('year', 'coopData', 'idCoop', 'valueRates'));
     }
 
-    public function ChairmanMyCoopRatePost(Request $request, $idCoop)
+    protected function ChairmanMyCoopRatePost(Request $request, $idCoop)
     {
         try {
             $data = request()->validate([
@@ -452,7 +525,8 @@ class MyCooperatives extends Controller
 
     }
 
-    public function ChairmanMyCoopLosses(Request $request, $idCoop)
+
+    protected function ChairmanMyCoopLosses(Request $request, $idCoop)
     {
         if ($request->ajax()) {
             $year = $request->input('numberYear');
@@ -468,10 +542,10 @@ class MyCooperatives extends Controller
             ->whereYear('date_indication', $year)
             ->orderByRaw('MONTH(date_indication)')
             ->get();
-        return view('PagesForChairman.profile.pageLossesCoop', compact('year', 'coopData', 'idCoop', 'valueRates'));
+        return view('PagesForChairman.profile.pivotTableCoop.pageLossesCoop', compact('year', 'coopData', 'idCoop', 'valueRates'));
     }
 
-    public function ChairmanMyCoopLossesPost(Request $request, $idCoop)
+    protected function ChairmanMyCoopLossesPost(Request $request, $idCoop)
     {
         try {
             $data = request()->validate([
@@ -510,7 +584,8 @@ class MyCooperatives extends Controller
 
     }
 
-    public function ChairmanMyCoopPayment(Request $request, $idCoop)
+
+    protected function ChairmanMyCoopPayment(Request $request, $idCoop)
     {
         if ($request->ajax()) {
             $data = request()->validate([
@@ -546,10 +621,10 @@ class MyCooperatives extends Controller
             ->orderByRaw('users.fio')
             ->get();
 
-        return view('PagesForChairman.profile.pagePayment', compact('year', 'coopData', 'idCoop', 'usersCoop', 'monthNow'));
+        return view('PagesForChairman.profile.pivotTableCoop.pagePayment', compact('year', 'coopData', 'idCoop', 'usersCoop', 'monthNow'));
     }
 
-    public function ChairmanMyCoopPaymentPost(Request $request, $idCoop)
+    protected function ChairmanMyCoopPaymentPost(Request $request, $idCoop)
     {
         try {
             $data = request()->validate([
@@ -597,4 +672,114 @@ class MyCooperatives extends Controller
         }
     }
 
+
+    //Участники кооператива
+    protected function ParticipantsCoop(Request $request, $idCoop)
+    {
+        $coopData = Cooperatives::where('id_coop', $idCoop)->first();
+        $garageBlocks = CooperativeBlocks::where('id_coop', $idCoop)->get();
+
+        $dataUsers = UserAndCoop::leftJoin('users', 'user_and_coop.user_id', '=', 'users.id')
+            ->leftJoin('garages', function ($join) use ($idCoop) {
+                $join->on('garages.user_id', '=', 'users.id')
+                    ->where('garages.id_coop', $idCoop);
+            })
+            ->where('user_and_coop.id_coop', $idCoop)
+            ->select(
+                'users.id',
+                'users.fio',
+                'users.phone',
+                'users.second_phone',
+                'users.home_phone',
+                'users.email',
+                'garages.number_garage',
+                'garages.number_block'
+            )
+            ->orderBy('users.fio')
+            ->get();
+
+        $usersGroupedByBlocks = $dataUsers->groupBy('number_block')->map(function ($users) {
+            return $users->groupBy('id')->map(function ($userGarages) {
+                $userData = $userGarages->first();
+                $garages = $userGarages->map(function ($garage) {
+                    return $garage->number_garage;
+                })->toArray();
+                return [
+                    'id' => $userData->id,
+                    'fio' => $userData->fio,
+                    'phone' => $userData->phone,
+                    'second_phone' => $userData->second_phone,
+                    'home_phone' => $userData->home_phone,
+                    'email' => $userData->email,
+                    'garages' => $garages
+                ];
+            })->values();
+        });
+
+        $emptyBlocks = $garageBlocks->filter(function($block) use ($usersGroupedByBlocks) {
+            return !isset($usersGroupedByBlocks[$block->number_block]);
+        });
+
+        return view('PagesForChairman.profile.pivotTableCoop.participantsCoop', compact('coopData', 'idCoop', 'usersGroupedByBlocks', 'garageBlocks', 'emptyBlocks'));
+    }
+
+
+
+
+
+    //Функция для проверки соответствия координат от пользователя
+    protected function getCountryFromCoordinates($city, $address, $latitude, $longitude)
+    {
+        $apiKeys = [
+            'e268d199-9698-48cd-ac43-a489a6d43bbd',
+            'aa1a4f1a-2153-49ec-bbc8-db91be38ff21',
+        ];
+
+        foreach ($apiKeys as $apiKey) {
+            $client = new Client();
+
+            try {
+                $response = $client->get('https://geocode-maps.yandex.ru/1.x/', [
+                    'query' => [
+                        'apikey' => $apiKey,
+                        'geocode' => $longitude . ',' . $latitude,
+                        'format' => 'json',
+                    ]
+                ]);
+
+                $data = json_decode($response->getBody(), true);
+
+                // Проверяем, что запрос успешен и есть результат
+                if (isset($data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address'])) {
+                    $geoData = $data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address'];
+
+                    // Проверяем, что код страны - Россия (RU)
+                    if ($geoData['country_code'] === 'RU') {
+                        // Проверяем соответствие города и адреса
+                        $fetchedCity = $geoData['Components'][3]['name'] ?? '';
+                        $fetchedAddress = $geoData['formatted'] ?? '';
+
+                        if (str_contains($fetchedAddress, $city) && str_contains($fetchedAddress, $address)) {
+                            return true;
+                        } else {
+                            return '[1]';
+                        }
+                    } else {
+                        return '[2]';
+                    }
+                }
+            } catch (GuzzleException $e) {
+                // Обработка ошибки 403 Forbidden
+                if ($e->getResponse() && $e->getResponse()->getStatusCode() === 403) {
+                    continue; // Пробуем следующий ключ в случае ошибки 403
+                }
+                continue; // Пробуем следующий ключ в случае других ошибок
+            } catch (Exception $e) {
+                continue; // Пробуем следующий ключ в случае общих ошибок
+            }
+        }
+
+        // Если все ключи исчерпаны и запрос не удался
+        return false;
+    }
 }

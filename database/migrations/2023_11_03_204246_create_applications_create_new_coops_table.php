@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('applications_create_new_coops', function (Blueprint $table) {
             $table->id('id_application');
-            $table->bigInteger('user_id');
+            $table->Integer('user_id');
             $table->string('name');
             $table->string('city');
             $table->string('address');
             $table->datetime('date_received');
-            $table->bigInteger('number_meter');
+            $table->Integer('number_meter');
+            $table->Integer('number_garage_blocks');
             $table->string('status');
             $table->string('id_point');
         });
