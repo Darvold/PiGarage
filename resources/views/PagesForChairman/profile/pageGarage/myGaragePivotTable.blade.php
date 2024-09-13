@@ -1,15 +1,15 @@
-@extends('layouts.profileChairman', ['myGaragePivotTableStyles' => ['myGaragePivotTable.css', 'scroll_coop.css']])
+@extends('layouts.mainChairman', ['myGaragePivotTableStyles' => ['myGaragePivotTable.css', 'scroll_coop.css']])
 @section('profile')
     <div class="main_block_coop">
         <div class="main_head">
             <a href="{{route('ChairmanGarage.index')}}">Мои гаражи</a>
-            <a href="{{route('myGaragePivotTable.index', ['idGarage' => $garage->id_garage])}}">Номер
+            <a href="{{route('myGaragePivotTable.index', ['idGarage' => $garage->id_garage])}}" class="active">Номер
                 гаража: {{$garage->number_garage}}</a>
         </div>
         <div class="main_head_tools">
             <div class="block_information_link">
-                <a>История замена счётчиков</a>
-                <a>Все участники кооператива</a>
+                <a href="{{route('garageMeters.index', ['idGarage' => $garage->id_garage])}}">История/замена счётчика</a>
+                {{--<a>Все участники кооператива</a>--}}
             </div>
             <div class="right_block_preferences">
                 <a class="Button_right">Настройки гаража</a>
@@ -17,7 +17,7 @@
         </div>
         <div class="main_body">
             <div class="block_information_link">
-                <a>Сменить номер счётчик</a>
+                {{--<a>Сменить номер счётчик</a>--}}
                 <a href="{{ route('ChairmanSubmitIndicationsGarage.index', ['idGarage' => $garage->id_garage, 'numberGarage' => $garage->number_garage])}}">Передать
                     показания председателю</a>
             </div>

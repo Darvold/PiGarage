@@ -1,4 +1,4 @@
-@extends('layouts.profileChairman', ['ProfileUserStyles' => ['main.css']])
+@extends('layouts.mainChairman', ['ProfileUserStyles' => ['main.css']])
 @section('profile')
     <div class="main_block">
         <div class="main_head">
@@ -31,7 +31,9 @@
                         <div class="User_information_coop">
                             <ul>
                                 @forelse($myCoops as $myCoop)
-                                <li><a href="{{route('ChairmanMyCoopPivotTable.index', ['idCoop' => $myCoop->id_coop])}}">{{$myCoop->name}}</a></li>
+                                    <li>
+                                        <a href="{{route('ChairmanMyCoopPivotTable.index', ['idCoop' => $myCoop->id_coop])}}">{{$myCoop->name}}</a>
+                                    </li>
                                 @empty
                                     <a href="{{route('ChairmanMyCoop.index')}}">Создать первый гаражный коорператив</a>
                                 @endforelse

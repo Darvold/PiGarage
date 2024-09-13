@@ -1,4 +1,4 @@
-@extends('layouts.profileChairman', ['ProfileCoopPivotTableStyles' => ['myCoopPivotTable.css', 'scroll_coop.css']])
+@extends('layouts.mainChairman', ['ProfileCoopPivotTableStyles' => ['myCoopPivotTable.css', 'scroll_coop.css']])
 
 @section('profile')
     <div class="main_block_coop">

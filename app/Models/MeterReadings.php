@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MetersReadings extends Model
+class MeterReadings extends Model
 {
     use HasFactory;
-    protected $table = 'meters_readings';
-    protected $primaryKey = 'id_reading'; // Указываем первичный ключ
-    public $timestamps = false; // Включаем автоматическое обновление времени создания и обновления
+    protected $table = 'meter_readings';
+    protected $primaryKey = 'id_reading';
+    public $timestamps = false;
     protected $guarded = [];
     public function garages()
     {
@@ -19,5 +19,9 @@ class MetersReadings extends Model
     public function cooperative()
     {
         return $this->hasOne(Cooperatives::class, 'id_coop', 'id_coop');
+    }
+    public function user()
+    {
+        return $this->hasMany(Users::class, 'id', 'user_id');
     }
 }

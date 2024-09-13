@@ -1,86 +1,86 @@
-@extends('layouts.profileChairman', ['ProfileCoopLosses' => ['losses.css', 'scroll.css']])
+@extends('layouts.mainChairman', ['ProfileCoopLosses' => ['losses.css', 'scroll.css']])
 
 @section('profile')
-@php
-$months = ['01' => 'Январь', '02' => 'Февраль', '03' => 'Март', '04' => 'Апрель', '05' => 'Май', '06' => 'Июнь', '07' => 'Июль', '08' => 'Август', '09' => 'Сентябрь', '10' => 'Октябрь', '11' => 'Ноябрь', '12' => 'Декабрь'];
-$numberMonths = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+    @php
+        $months = ['01' => 'Январь', '02' => 'Февраль', '03' => 'Март', '04' => 'Апрель', '05' => 'Май', '06' => 'Июнь', '07' => 'Июль', '08' => 'Август', '09' => 'Сентябрь', '10' => 'Октябрь', '11' => 'Ноябрь', '12' => 'Декабрь'];
+        $numberMonths = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 
-$groupedByMonth = [];
+        $groupedByMonth = [];
 
-// Перебираем массив данных и группируем по месяцам
-foreach ($valueRates as $valueRate) {
-    $month = explode('-', $valueRate['date_indication'])[1];
-    if (!isset($groupedByMonth[$month])) {
-        $groupedByMonth[$month] = [];
-    }
-    $groupedByMonth[$month][] = $valueRate;
-}
-@endphp
-<div class="main_block_coop">
-    <div class="main_head">
-        <a href="{{route('ChairmanMyCoop.index')}}">Мои кооперативы</a>
-        <a href="{{route('ChairmanMyCoopPivotTable.index', ['idCoop' => $idCoop])}}">{{$coopData->name}}</a>
-        <a href="{{route('ChairmanMyCoopRate.index', ['idCoop' => $idCoop])}}" class="active">Тарифы</a>
-    </div>
-    <div class="main_body">
-        <div class="right_block">
-            <div class="text_inf">
-                <span>Общая таблица потери электричества для гаражного кооператива</span>
-            </div>
-            <div class="table_kw_change">
-                <div class="head_block_table">
-                    <div class="button_form_ajax">
-                        <div class="block_1">
-                            <span>Таблица потерь</span>
-                            <button class="last_year"><</button>
-                            <span class="year">{{$year}}</span>
-                            <button class="next_year">></button>
+        // Перебираем массив данных и группируем по месяцам
+        foreach ($valueRates as $valueRate) {
+            $month = explode('-', $valueRate['date_indication'])[1];
+            if (!isset($groupedByMonth[$month])) {
+                $groupedByMonth[$month] = [];
+            }
+            $groupedByMonth[$month][] = $valueRate;
+        }
+    @endphp
+    <div class="main_block_coop">
+        <div class="main_head">
+            <a href="{{route('ChairmanMyCoop.index')}}">Мои кооперативы</a>
+            <a href="{{route('ChairmanMyCoopPivotTable.index', ['idCoop' => $idCoop])}}">{{$coopData->name}}</a>
+            <a href="{{route('ChairmanMyCoopRate.index', ['idCoop' => $idCoop])}}" class="active">Тарифы</a>
+        </div>
+        <div class="main_body">
+            <div class="right_block">
+                <div class="text_inf">
+                    <span>Общая таблица потери электричества для гаражного кооператива</span>
+                </div>
+                <div class="table_kw_change">
+                    <div class="head_block_table">
+                        <div class="button_form_ajax">
+                            <div class="block_1">
+                                <span>Таблица потерь</span>
+                                <button class="last_year"><</button>
+                                <span class="year">{{$year}}</span>
+                                <button class="next_year">></button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="main_block_table">
-                    @foreach ($numberMonths as $i => $monthNumber)
-                    @php
-                    $paddedMonth = str_pad($monthNumber, 2, '0', STR_PAD_LEFT);
-                    $monthName = $months[$monthNumber];
-                    $formId = 'form_month_' . $i;
-                    @endphp
-                    <form method="post"
-                    action="{{ route('ChairmanMyCoopLossesPost.store', ['idCoop' => $idCoop]) }}"
-                    class="form_month" id="{{ $formId }}">
-                    @csrf
-                    <input type="hidden" class="id_year" name="id_year" value="{{$year}}">
-                    <input type="hidden" class="id_month_number" name="id_month_number"
-                    value="{{ $monthNumber }}">
-                    <div class="month">
-                        <span>{{ $monthName }}</span>
-                    </div>
-                    <div>
-                        @if (isset($groupedByMonth[$monthNumber]))
-                        @foreach ($groupedByMonth[$monthNumber] as $valueRate)
-                        <input type="tel" pattern="[1-9][0-9]?" name="losses_value"
-                        id="tariff_value"
-                        maxlength="2" oninput="this.value=this.value.replace(/\D/g,'')"
-                        value="{{ $valueRate['losses_value'] }}">
+                    <div class="main_block_table">
+                        @foreach ($numberMonths as $i => $monthNumber)
+                            @php
+                                $paddedMonth = str_pad($monthNumber, 2, '0', STR_PAD_LEFT);
+                                $monthName = $months[$monthNumber];
+                                $formId = 'form_month_' . $i;
+                            @endphp
+                            <form method="post"
+                                  action="{{ route('ChairmanMyCoopLossesPost.store', ['idCoop' => $idCoop]) }}"
+                                  class="form_month" id="{{ $formId }}">
+                                @csrf
+                                <input type="hidden" class="id_year" name="id_year" value="{{$year}}">
+                                <input type="hidden" class="id_month_number" name="id_month_number"
+                                       value="{{ $monthNumber }}">
+                                <div class="month">
+                                    <span>{{ $monthName }}</span>
+                                </div>
+                                <div>
+                                    @if (isset($groupedByMonth[$monthNumber]))
+                                        @foreach ($groupedByMonth[$monthNumber] as $valueRate)
+                                            <input type="tel" pattern="[1-9][0-9]?" name="losses_value"
+                                                   id="tariff_value"
+                                                   maxlength="2" oninput="this.value=this.value.replace(/\D/g,'')"
+                                                   value="{{ $valueRate['losses_value'] }}">
+                                        @endforeach
+                                    @else
+                                        <input type="tel" pattern="[1-9][0-9]?" name="losses_value" id="losses_value"
+                                               maxlength="2" oninput="this.value=this.value.replace(/\D/g,'')"
+                                               value="">
+                                    @endif
+                                    <span>%</span>
+                                    <button type="submit" class="monthButton">Сохранить</button>
+                                </div>
+                            </form>
                         @endforeach
-                        @else
-                        <input type="tel" pattern="[1-9][0-9]?" name="losses_value" id="losses_value"
-                        maxlength="2" oninput="this.value=this.value.replace(/\D/g,'')"
-                        value="">
-                        @endif
-                        <span>%</span>
-                        <button type="submit" class="monthButton">Сохранить</button>
                     </div>
-                </form>
-                @endforeach
+                </div>
             </div>
         </div>
     </div>
-</div>
-</div>
-<script>
-    $(document).ready(function () {
-        $('.next_year').prop("disabled", true);
+    <script>
+        $(document).ready(function () {
+            $('.next_year').prop("disabled", true);
             let previousButton; // Переменная для хранения предыдущей кнопки
             let lastClickTime = 0; // Переменная для хранения времени последнего нажатия
             let clickCount = 0; // Счетчик нажатий
@@ -171,47 +171,47 @@ foreach ($valueRates as $valueRate) {
                         });
                     }
                 });
-}
+            }
 
-$('.last_year, .next_year').click(function (e) {
+            $('.last_year, .next_year').click(function (e) {
 
-    let currentTime = new Date().getTime();
-    let timeDifference = currentTime - lastClickTime;
-    currentYear = parseInt($('.year').text());
-    $('.main_block_table').empty();
-    $('.main_block_table').html('Подождите, запрос выполняется...').css({
-        'font-size': '22px',
-    });
-    if (timeDifference < 2000 && clickCount > 5) {
-        $('.main_block_table').empty();
+                let currentTime = new Date().getTime();
+                let timeDifference = currentTime - lastClickTime;
+                currentYear = parseInt($('.year').text());
+                $('.main_block_table').empty();
+                $('.main_block_table').html('Подождите, запрос выполняется...').css({
+                    'font-size': '22px',
+                });
+                if (timeDifference < 2000 && clickCount > 5) {
+                    $('.main_block_table').empty();
                     // Отображаем сообщение об ошибке
-        $(".main_block_table").text("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
+                    $(".main_block_table").text("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
 
                     // Блокируем кнопки на 3 секунды
-        $('.last_year, .next_year').prop("disabled", true);
+                    $('.last_year, .next_year').prop("disabled", true);
 
-        setTimeout(function () {
-            $('.next_year').prop("disabled", false);
-            if (currentYearInput === 2023) {
-                $('.last_year').prop("disabled", true);
-            } else {
-                $('.last_year').prop("disabled", false);
-            }
-            if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
-                $('.next_year').prop("disabled", true);
-            } else {
-                $('.next_year').prop("disabled", false);
-            }
-            sendAjaxRequestBlockKw(currentYearInput);
-        }, 3000);
-        clickCount = 0;
-    } else {
+                    setTimeout(function () {
+                        $('.next_year').prop("disabled", false);
+                        if (currentYearInput === 2023) {
+                            $('.last_year').prop("disabled", true);
+                        } else {
+                            $('.last_year').prop("disabled", false);
+                        }
+                        if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
+                            $('.next_year').prop("disabled", true);
+                        } else {
+                            $('.next_year').prop("disabled", false);
+                        }
+                        sendAjaxRequestBlockKw(currentYearInput);
+                    }, 3000);
+                    clickCount = 0;
+                } else {
                     // Сбрасываем счетчик, если прошло более 1 секунды с предыдущего нажатия
-        if (timeDifference >= 500) {
-            clickCount = 0;
-        }
-        clickCount++;
-        if ($(this).hasClass('last_year')) {
+                    if (timeDifference >= 500) {
+                        clickCount = 0;
+                    }
+                    clickCount++;
+                    if ($(this).hasClass('last_year')) {
                         // Если нажата кнопка "last_year"
                         currentYear = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
                         currentYearInput = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
@@ -240,6 +240,6 @@ $('.last_year, .next_year').click(function (e) {
                     return $('.year').text(currentYear) + currentYearInput;
                 }
             });
-});
-</script>
+        });
+    </script>
 @endsection

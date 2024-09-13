@@ -4,7 +4,7 @@
 	box-sizing: border-box;
 }
 .main_body {
-	gap: 20px;
+	gap: 0px;
 	position: relative;
 	padding: 20px;
 	height: 100%;
@@ -21,4 +21,216 @@
 	border-radius: 4px;
 	background-color: white;
 	box-shadow: 0px 2px 10px 2px black;
+}
+.inf_text {
+	width: 420px;
+	font-size: 24px;
+}
+.no_applications {
+	border: 2px dotted red;
+	width: auto;
+	font-size: 23px;
+	align-items: center;
+	display: flex;
+	justify-content: center;
+}
+.main_scroll {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	height: 790px;
+	width: 575px;
+	padding: 10px;
+}
+.main_block_application {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	width: auto;
+	min-width: 540px;
+	max-width: 500px;
+	border-radius: 4px;
+}
+.main_block_application:hover {
+	box-shadow: 0px 4px 10px 0px black;
+}
+.head_inf_app {
+	width: auto;
+	min-width: 540px;
+	max-width: 500px;
+	border: 1px solid black;
+	height: auto;
+	min-height: 150px;
+	padding: 5px;
+	border-radius: 4px;
+}
+.head_block_application span {
+	font-size: 24px;
+}
+.head_block_application {
+	width: 98%;
+	display: flex;
+	justify-content: center;
+	border-bottom: 2px solid black;
+}
+.main_body_application {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+.main_body_application {
+	padding: 5px;
+}
+.main_body_application span {
+	font-size: 22px;
+}
+.block_button {
+	position: relative;
+	display: flex;
+	align-items: center;
+	height: 40px;
+}
+.center_hight {
+	width: 100%;
+	position: absolute;
+	bottom: 0;
+}
+.block_button span {
+	float: left;
+	font-size: 22px;
+}
+.block_button span:last-child {
+	margin-left: 20px;
+}
+.block_button form {
+	float: right;
+}
+.block_button button {
+	background-color: white;
+	padding: 2px;
+	transition: 0.4s ease;
+	border-radius: 4px;
+	font-size: 20px;
+	transition: 0.3s ease;
+}
+.block_button button:hover {
+	background-color: #D8D8D8FF;
+}
+.garages_user_inf form button:last-child {
+	background-color: white;
+	border: 2px solid green;
+	padding: 2px;
+	transition: 0.4s ease;
+	border-radius: 4px;
+	font-size: 20px;
+	transition: 0.3s ease;
+}
+.garages_user_inf button:last-child:hover {
+	background-color: #D8D8D8FF;
+}
+.garages_user_inf {
+	border: 1px solid black;
+	border-radius: 4px;
+	padding: 5px;
+	display: flex;
+	flex-direction: column;
+	width: auto;
+	min-width: 540px;
+	max-width: 500px;
+}
+.garages_sent {
+	font-size: 22px;
+	display: flex;
+	align-items: center;
+}
+.head_main_right_block button {
+	font-size: 19px;
+	padding: 2px;
+	width: 110px;
+	height: 30px;
+	text-align: center;
+	margin-left: 10px;
+	border-radius: 4px;
+	background-color: white;
+	border: 3px solid rgb(19, 105, 192);
+}
+.head_main_right_block button:hover {
+	background-color: rgb(22, 117, 212);
+}
+.head_main_right_block button:first-child {
+	font-size: 19px;
+	padding: 2px;
+	width: 110px;
+	height: 30px;
+	text-align: center;
+	margin-left: 10px;
+	border-radius: 4px;
+	color: white;
+	background-color: rgb(19, 105, 192);
+	border: 3px solid rgb(19, 105, 192);
+}
+.head_main_right_block button:hover:first-child {
+	background-color: rgb(22, 117, 212);
+}
+.garage_inf {
+	margin-top: 10px;
+	margin-bottom: 5px;
+}
+.block_input {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+.block_input div {
+	display: block;
+	width: 430px;
+}
+.right_block_input input {
+	width: 220px;
+	border-radius: 4px;
+	font-size: 22px;
+	float: right;
+	transition: background-color 0.4s ease;
+	outline: none;
+}
+.right_block_input label {
+	font-size: 22px;
+	float: left;
+
+}
+.right_block_input {
+	height: 30px;
+}
+
+.right_block_input input:valid {
+	border: 1px solid green;
+	border-color: #4180BDFF;
+	box-shadow: 0px 0px 0px 2px #5FC737FF;
+	z-index: 99;
+	transition: 0.3s ease;
+}
+.right_block_input input:focus {
+	border: 1px solid #4180BDFF;
+	border-color: #4180BDFF;
+	box-shadow: 0px 0px 0px 2px #4180BDFF;
+	z-index: 99;
+	transition: 0.3s ease;
+}
+
+.span_status_pending {
+	border: 2px solid rgb(19, 105, 192);
+	padding: 1px 4px 1px 4px;
+	border-radius: 4px;
+}
+.span_status_delete {
+	border: 2px solid red;
+	padding: 1px 4px 1px 4px;
+	border-radius: 4px;
+}
+.span_status_accepted {
+	border: 2px solid green;
+	padding: 1px 4px 1px 4px;
+	border-radius: 4px;
 }

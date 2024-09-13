@@ -16,7 +16,7 @@ class Cooperatives extends Model
     protected $primaryKey = 'id_coop';
     public function metersReadings()
     {
-        return $this->hasMany(MetersReadings::class, 'id_coop', 'id_coop');
+        return $this->hasMany(MeterReadings::class, 'id_coop', 'id_coop');
     }
     public function amountGarageBlock()
     {

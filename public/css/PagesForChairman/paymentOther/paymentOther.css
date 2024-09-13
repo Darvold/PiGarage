@@ -7,9 +7,7 @@
 	position: relative;
 	padding: 10px;
 	height: 100%;
-	min-height: 820px;
 	width: 100%;
-	float: left;
 	display: flex;
 }
 .main_block_coop {
@@ -82,15 +80,55 @@
 	justify-content: center;
 	bottom: -30px;
 }
-.name_table_payment span {
-	border: 2px solid #1369c0;
-	border-radius: 4px;
-	padding: 5px;
-	height: 35px;
-	display: flex;
-	align-items: center;
-	font-size: 27px;
+/* Стиль для блока с выпадающим списком */
+.name_table_payment {
+	margin: 20px 0;
 }
+
+.name_table_payment label {
+	display: block;
+	font-size: 18px;
+	margin-bottom: 10px;
+	color: #333;
+}
+
+/* Стиль для выпадающего списка */
+select {
+	position: absolute;
+	bottom: -20px;
+	width: 400px;
+	height: 33px;
+	padding: 5px 25px 5px 5px;
+	font-size: 19px;
+	border-radius: 5px;
+	background-color: #f9f9f9;
+	color: black;
+	appearance: none; /* Убираем стрелку по умолчанию */
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path fill="none" stroke="%23333" stroke-width="2" d="M1 3 L5 7 L9 3"/></svg>');
+	background-repeat: no-repeat;
+	background-position: right 10px center;
+	background-size: 10px;
+	cursor: pointer;
+}
+
+/* Стиль при наведении */
+select:hover {
+	border-color: #0073e6;
+}
+
+/* Стиль для опций */
+select option {
+	padding: 10px;
+	font-size: 19px;
+	color: black;
+}
+
+/* Стиль для активной и выбранной опции */
+select option:checked {
+	background-color: #0073e6;
+	color: #fff;
+}
+
 .block_2 {
 	margin-top: 10px;
 	width: 100%;
@@ -642,4 +680,55 @@
 	50% {
 		transform: scale(1.2);
 	}
+}
+
+.text_description {
+	
+}
+
+.coop-payments {
+	width: 100%;
+	margin: 0 auto;
+	padding: 20px;
+	font-family: Arial, sans-serif;
+	background-color: #f9f9f9;
+	border-radius: 10px;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.coop-payments h2 {
+	font-size: 25px;
+	margin-bottom: 10px;
+	color: black;
+	text-align: center;
+}
+
+.coop-payments p {
+	font-size: 19px;
+	line-height: 1.6;
+	color: black;
+	margin-bottom: 20px;
+}
+
+.payment-type {
+	background-color: #fff;
+	padding: 15px;
+	border-radius: 8px;
+	margin-bottom: 20px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.payment-type h3 {
+	font-size: 22px;
+	margin-bottom: 10px;
+	color: #0073e6;
+}
+
+.payment-type p {
+	font-size: 19px;
+	color: black;
+}
+
+.coop-payments .payment-type:nth-child(odd) {
+	background-color: #f1f1f1;
 }

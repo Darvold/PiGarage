@@ -1,4 +1,4 @@
-@extends('layouts.mainChairman', ['ProfileCoopPayment' => ['payment.css', 'scroll.css']])
+@extends('layouts.mainChairman', ['ProfileCoopPaymentOther' => ['paymentOther.css', 'scroll.css']])
 
 @section('profile')
 @php($months = ['01' => 'Январь', '02' => 'Февраль', '03' => 'Март', '04' => 'Апрель',
@@ -8,7 +8,7 @@
     <div class="main_head">
         <a href="{{route('ChairmanMyCoop.index')}}">Мои кооперативы</a>
         <a href="{{route('ChairmanMyCoopPivotTable.index', ['idCoop' => $idCoop])}}">{{$coopData->name}}</a>
-        <a href="{{route('ChairmanMyCoopRate.index', ['idCoop' => $idCoop])}}" class="active">Оплата</a>
+        <a href="{{route('ChairmanMyCoopPaymentOther.index', ['idCoop' => $idCoop])}}" class="active">Оплата сборов</a>
     </div>
     <div class="main_body">
         <div class="flex_container">
@@ -21,12 +21,23 @@
                 <div class="head_table_block">
                     <div class="button_form_ajax">
                         <div class="block_1">
-                            <span>Таблица оплаты</span>
+                            <span>Таблица сборов</span>
                             <button class="last_year"><</button>
                             <span class="year">{{$year}}</span>
                             <button class="next_year">></button>
                             <div class="name_table_payment">
-                                <span>Электричество</span>
+                                <select id="paymentType" name="payment_type">
+                                    <option value="membership_fee" data-id="2">Членские взносы (Общий сбор)</option>
+                                    <option value="target_fee" data-id="3">Целевые взносы</option>
+                                    <option value="water_fee" data-id="4">Оплата за воду</option>
+                                    <option value="security_fee" data-id="5">Оплата за охрану</option>
+                                    <option value="cleaning_fee" data-id="6">Оплата за уборку и содержание территории</option>
+                                    <option value="maintenance_fee" data-id="7">Оплата за ремонт и техническое обслуживание</option>
+                                    <option value="utilities_fee" data-id="8">Оплата на хозяйственные нужды</option>
+                                    <option value="land_fee" data-id="9">Платежи за землю</option>
+                                    <option value="construction_fee" data-id="10">Строительные взносы</option>
+                                    <option value="reserve_fund" data-id="11">Фонд резервного капитала</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -34,10 +45,10 @@
                 <div class="body_table_block">
                     @foreach($usersCoop as $user)
                     <?php
-                    $randomNumber = rand(0, 999);
-                    $randomLetter = chr(rand(97, 122));
-                    $randomNumberFormatted = sprintf("%03d", $randomNumber);
-                    $randomString = $randomLetter . $randomNumberFormatted;
+                        $randomNumber = rand(0, 999);
+                        $randomLetter = chr(rand(97, 122));
+                        $randomNumberFormatted = sprintf("%03d", $randomNumber);
+                        $randomString = $randomLetter . $randomNumberFormatted;
                     ?>
                     <form method="post" action="" class="form_payment"
                     id="stringNumber{{$randomString}}Code{{$user->id}}{{$randomLetter}}PiPgarageNumber">
@@ -75,7 +86,6 @@
                     </div>
                 </form>
                 @endforeach
-
             </div>
         </div>
         <div class="flex_container_right_block">
@@ -140,50 +150,100 @@
                     <div class="checkbox-wrapper-4">
                         <input class="inp-cbx" id="morning{{$user->garage_id}}" type="checkbox"/>
                         <label class="cbx" for="morning{{$user->garage_id}}"><span>
-                          <svg width="12px" height="10px">
-                            <use xlink:href="#check-4"></use>
-                        </svg></span><span><!-- Text --></span></label>
-                        <svg class="inline-svg">
-                            <symbol id="check-4" viewbox="0 0 12 10">
-                                <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
-                            </symbol>
-                        </svg>
-                    </div>
-                </div>
-                @empty
-                <span class="empty_message">В кооперативе нет участников</span>
-                @endforelse
-            </div>
-        </div>
-        <div class="flex_container_right_block_garages">
-            <div class="right_head_block_garages">
-                <div class="span_text_garages">
-                    <span>Список гаражей:</span>
-                </div>
-                <div class="overflow_block_garages">
-                    @forelse($blocksWithGarages as $numberBlock => $garages)
-                    <div class="number_garage_block">
-                        <span>Гаражный блок №{{ $numberBlock }}</span>
-                        <div class="flex_container_garages">
-                            @foreach($garages as $garage)
-                            <div class="number_garage">
-                                <button>{{ $garage->number_garage }}</button>
-                                <input type="hidden" name="table_user_number_garage" value="{{ $garage->garage_id }}">
-                            </div>
-                            @endforeach
+                            <svg width="12px" height="10px">
+                                <use xlink:href="#check-4"></use>
+                            </svg></span><span><!-- Text --></span></label>
+                            <svg class="inline-svg">
+                                <symbol id="check-4" viewbox="0 0 12 10">
+                                    <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+                                </symbol>
+                            </svg>
                         </div>
                     </div>
                     @empty
-                    <span class="empty_message">В кооперативе нет гаражных блоков</span>
+                    <span class="empty_message">В кооперативе нет участников</span>
                     @endforelse
+                </div>
+            </div>
+            <div class="flex_container_right_block_garages">
+                <div class="right_head_block_garages">
+                    <div class="span_text_garages">
+                        <span>Список гаражей:</span>
+                    </div>
+                    <div class="overflow_block_garages">
+                        @forelse($blocksWithGarages as $numberBlock => $garages)
+                        <div class="number_garage_block">
+                            <span>Гаражный блок №{{ $numberBlock }}</span>
+                            <div class="flex_container_garages">
+                                @foreach($garages as $garage)
+                                <div class="number_garage">
+                                    <button>{{ $garage->number_garage }}</button>
+                                    <input type="hidden" name="table_user_number_garage" value="{{ $garage->garage_id }}">
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @empty
+                        <span class="empty_message">В кооперативе нет гаражных блоков</span>
+                        @endforelse
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    <div class="text_description">
+        <div class="coop-payments">
+            <h2>Виды оплат для участников гаражного кооператива</h2>
+            <p>
+                Участники гаражного кооператива могут вносить различные платежи, которые необходимы для поддержания работы и развития кооператива. 
+                Важно отметить, что эти виды оплат не являются обязательными для всех кооперативов. Структура и необходимость взносов зависят от конкретных решений вашего кооператива и его устава.
+            </p>
+            <div class="payment-type">
+                <h3>Членские взносы (Общий сбор)</h3>
+                <p>Это регулярные платежи, которые направлены на покрытие общих расходов кооператива: административные расходы, оплата труда сотрудников и содержание инфраструктуры.</p>
+            </div>
+            <div class="payment-type">
+                <h3>Целевые взносы</h3>
+                <p>Средства, собираемые на определенные проекты или улучшения, такие как строительство новых объектов, ремонт дорог или установка освещения.</p>
+            </div>
+            <div class="payment-type">
+                <h3>Оплата за воду</h3>
+                <p>В ближайшем будущем вода станет важной статьей расходов, подобно оплате за электричество. Это особенно актуально для кооперативов, где предусмотрено водоснабжение для хозяйственных нужд, таких как мойка автомобилей. Подробности и условия будут установлены кооперативом в ближайшее время.</p>
+            </div>
+            <div class="payment-type">
+                <h3>Оплата за охрану</h3>
+                <p>Взносы, направленные на обеспечение безопасности: оплата работы охраны, установка систем видеонаблюдения и других мер по защите территории кооператива.</p>
+            </div>
+            <div class="payment-type">
+                <h3>Оплата за уборку и содержание территории</h3>
+                <p>Платежи, покрывающие регулярные работы по поддержанию чистоты и порядка: уборка территории, вывоз мусора, расчистка снега и благоустройство.</p>
+            </div>
+            <div class="payment-type">
+                <h3>Оплата за ремонт и техническое обслуживание</h3>
+                <p>Средства на капитальный и текущий ремонт инфраструктуры, включая дороги, освещение и ограждения.</p>
+            </div>
+            <div class="payment-type">
+                <h3>Оплата на хозяйственные нужды</h3>
+                <p>Платежи, которые идут на поддержание общего имущества кооператива и удовлетворение хозяйственных нужд. Это могут быть расходы на закупку инвентаря, материалы для уборки, поддержание работы инженерных систем и прочие потребности, связанные с повседневной эксплуатацией территории и объектов кооператива.</p>
+            </div>
+            <div class="payment-type">
+                <h3>Платежи за землю</h3>
+                <p>В некоторых кооперативах может взиматься оплата за аренду или выкуп земли, на которой располагаются гаражи.</p>
+            </div>
+            <div class="payment-type">
+                <h3>Строительные взносы</h3>
+                <p>Взносы на строительство новых объектов, например, дополнительных гаражей или складов, утвержденные кооперативом.</p>
+            </div>
+            <div class="payment-type">
+                <h3>Фонд резервного капитала</h3>
+                <p>Резервный фонд создается для покрытия непредвиденных расходов, таких как аварийные ремонты или чрезвычайные ситуации, что обеспечивает финансовую стабильность кооператива.</p>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
     $(document).ready(function () {
+        let dataIdTypePayment = 2;
         let currentPage = 1;
         let usersPerPage = 8;
         let selectedId = "rbx-1";
@@ -445,13 +505,14 @@
             let months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
             let numberMonths = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 
-            function sendAjaxRequestPayment(currentYearInput, idMonth) {
+            function sendAjaxRequestPayment(currentYearInput, idMonth, dataIdTypePayment) {
                 $.ajax({
-                    url: '{{ route('ChairmanMyCoopPayment.index', ['idCoop' => $idCoop]) }}',
+                    url: '{{route('ChairmanMyCoopPaymentOther.index', ['idCoop' => $idCoop])}}',
                     type: "GET",
                     data: {
                         id_year: currentYearInput,
                         id_month_number: idMonth,
+                        type_payment: dataIdTypePayment,
                         _token: '{{ csrf_token() }}',
                     },
                     success: function (response) {
@@ -459,7 +520,6 @@
                         // Блокируем новую кнопку
                         $('.id_month').prop("disabled", false);
                         let currentButton = $(`.id_month[data-month='${response.monthNow}']`).prop("disabled", true);
-
                         currentButton.css({
                             backgroundColor: '#1C82E7',
                             color: 'white',
@@ -521,14 +581,14 @@
                         $('.body_table_block').html(`<span style="font-size: 23px">${textError}</span>`);
                     }
                 });
-}
+            }
 
 $('.last_year, .next_year').click(function (e) {
     let currentTime = new Date().getTime();
     let timeDifference = currentTime - lastClickTime;
     currentYearInput = parseInt($('.year').text());
     $('.body_table_block').empty();
-    $('.body_table_block').html('Подождите, запрос выполняется...');
+    $('.body_table_block').html('<span style="font-size: 23px">Подождите, запрос выполняется...</span>');
     if (timeDifference < 2000 && clickCount > 5) {
                     // Отображаем сообщение об ошибке
         $(".body_table_block").text("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
@@ -549,7 +609,7 @@ $('.last_year, .next_year').click(function (e) {
                 $('.next_year').prop("disabled", false);
             }
 
-            sendAjaxRequestPayment(currentYearInput, idMonth);
+            sendAjaxRequestPayment(currentYearInput, idMonth, dataIdTypePayment);
         }, 3000);
         clickCount = 0;
     } else {
@@ -562,7 +622,7 @@ $('.last_year, .next_year').click(function (e) {
                         // Если нажата кнопка "last_year"
                         currentYear = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
                         currentYearInput = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
-                        sendAjaxRequestPayment(currentYearInput, idMonth);
+                        sendAjaxRequestPayment(currentYearInput, idMonth, dataIdTypePayment);
                         if (currentYearInput === 2023) {
                             $('.last_year').prop("disabled", true);
                         } else {
@@ -574,7 +634,7 @@ $('.last_year, .next_year').click(function (e) {
                         // Если нажата кнопка "next_year"
                         currentYear = currentYearInput + 1;
                         currentYearInput = currentYearInput + 1;
-                        sendAjaxRequestPayment(currentYearInput, idMonth);
+                        sendAjaxRequestPayment(currentYearInput, idMonth, dataIdTypePayment);
                         if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
                             $('.next_year').prop("disabled", true);
                         } else {
@@ -588,7 +648,13 @@ $('.last_year, .next_year').click(function (e) {
                 }
             });
 
-
+$('#paymentType').on('change', function() {
+    let selectedOption = $(this).find('option:selected');
+    dataIdTypePayment = selectedOption.data('id');
+    $('.body_table_block').empty();
+    $('.body_table_block').html('<span style="font-size: 23px">Подождите, запрос выполняется...</span>');
+    sendAjaxRequestPayment(currentYearInput, idMonth, dataIdTypePayment);
+});
 $('.id_month').click(function (e) {
     e.preventDefault();
     $('.id_month').css({
@@ -599,17 +665,17 @@ $('.id_month').click(function (e) {
         backgroundColor: '#1C82E7',
         color: 'white'
     });
-    $('.last_year, .next_year, .id_month').prop("disabled", true);
+    $('.id_month').prop("disabled", true);
     idMonth = $(this).data('month');
     isSubmitMyBlock = true;
     $('.body_table_block').empty();
-    $('.body_table_block').html('Подождите, запрос выполняется...');
+    $('.body_table_block').html('<span style="font-size: 23px">Подождите, запрос выполняется...</span>');
     let currentTime = new Date().getTime();
     let timeDifference = currentTime - lastClickTime;
                 // Если прошло менее 1 секунд с предыдущего нажатия и количество нажатий больше 3
     if (timeDifference < 2000 && clickCount > 5) {
                     // Отображаем сообщение об ошибке
-        $(".body_table_block").append("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
+        $(".body_table_block").html(`<span style="font-size: 23px">Ошибка: Слишком много запросов. Пожалуйста, подождите.</span>`);
                     // Блокируем кнопки на 3 секунды
         $('.last_year, .next_year, .id_month').prop("disabled", true);
 
@@ -620,7 +686,7 @@ $('.id_month').click(function (e) {
             } else {
                 $('.last_year').prop("disabled", false);
             }
-            sendAjaxRequestPayment(currentYearInput, idMonth);
+            sendAjaxRequestPayment(currentYearInput, idMonth, dataIdTypePayment);
             clickCount = 0;
 
         }, 3000);
@@ -636,7 +702,7 @@ $('.id_month').click(function (e) {
         }
 
         if (isSubmitMyBlock === true) {
-            sendAjaxRequestPayment(currentYearInput, idMonth);
+            sendAjaxRequestPayment(currentYearInput, idMonth, dataIdTypePayment);
         }
     }
 });
@@ -661,9 +727,9 @@ function messageBlock(text, form, bool) {
     }
 }
 
-function sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idMonth, form, id_number_garage) {
+function sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idMonth, form, id_number_garage, dataIdTypePayment) {
     $.ajax({
-        url: '{{ route('ChairmanMyCoopPaymentPost.store', ['idCoop' => $idCoop]) }}',
+        url: '{{route('ChairmanMyCoopPaymentOtherPost.store', ['idCoop' => $idCoop])}}',
         type: "POST",
         data: {
             id_user: numbers,
@@ -671,6 +737,7 @@ function sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idM
             payment_value: paymentValue,
             id_year: currentYearInput,
             id_month_number: idMonth,
+            type_payment: dataIdTypePayment,
             _token: '{{ csrf_token() }}',
         },
         success: function (response) {
@@ -682,7 +749,9 @@ function sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idM
             searchPaymentValue();
         },
         error: function (error) {
-            $('.body_table_block').text('Что-то пошло не так, повторите попытку позже');
+            let errorText = error.responseJSON.error
+            $('.body_table_block').html(`<span style="font-size: 23px">Что-то пошло не так, повторите попытку позже. ${errorText}</span>`);
+            
         }
     });
 }
@@ -711,7 +780,7 @@ $(document).on('submit', '.form_payment', function (e) {
     }
 
 
-    sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idMonth, form, id_number_garage);
+    sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idMonth, form, id_number_garage, dataIdTypePayment);
                 /*
                         isSubmitMyBlock = true;
                         $('.body_table_block').empty();

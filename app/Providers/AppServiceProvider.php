@@ -22,6 +22,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Date::setLocale('ru');
-        View::composer('layouts.profileChairman', PendingApplicationsComposer::class);
+        View::composer('layouts.mainChairman', PendingApplicationsComposer::class);
     }
 }

@@ -29,5 +29,12 @@ class Garages extends Model
     public function garageUser() {
         return $this->belongsTo(User::class, 'id_user', 'id');
     }
+    // В модели Garages
+    public function metersReadings()
+    {
+        return $this->hasMany(MeterReadings::class, 'id_garage');
+    }
+
+
 
 }

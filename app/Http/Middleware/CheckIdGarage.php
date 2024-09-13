@@ -29,6 +29,6 @@ class CheckIdGarage
         }
 
         // Если пользователь не имеет доступа, перенаправляем его на предыдущую страницу
-        return Redirect::back();
+        return \redirect()->route('ChairmanGarage.index');
     }
 }

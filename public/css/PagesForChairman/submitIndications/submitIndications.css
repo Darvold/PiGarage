@@ -5,7 +5,6 @@
 }
 .main_body_create_garage {
 	width: 100%;
-	justify-content: center;
 	display: flex;
 }
 .flex_block_main {
@@ -26,7 +25,7 @@
 
 /*Ниже остальной CSS принадлежащий содержание страницы*/
 .form_block {
-	width: 710px;
+	width: 670px;
 	height: 400px;
 	display: block;
 	margin: 20px;
@@ -52,20 +51,21 @@
 	background-color: #1C82E7;
 }
 .file_img {
-	font-size: 18px;
+	font-size: 17px;
 	width: 300px;
+	padding-left: 10px;
 	margin-top: 5px;
 }
 input {
-	width: 300px;
+	width: 290px;
 	border-radius: 4px;
-	font-size: 28px;
+	font-size: 24px;
 	float: right;
 	transition: background-color 0.4s ease;
 	outline: none;
 }
 label {
-	font-size: 28px;
+	font-size: 24px;
 }
 
 input:valid {
@@ -136,4 +136,7 @@ margin: 0;
 	float: right;
 	font-size: 23px;
 	width: 320px;
+}
+.text_memo {
+	margin: 10px;
 }

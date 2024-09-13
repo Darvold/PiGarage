@@ -1,6 +1,9 @@
-@extends('layouts.profileChairman', ['MessagesMetersStyles' => ['messagesMeters.css', 'scroll.css']])
+@extends('layouts.mainChairman', ['MessagesMetersStyles' => ['messagesMeters.css', 'scroll.css']])
 
 @section('profile')
+@php($months = ['01' => 'Январь', '02' => 'Февраль', '03' => 'Март', '04' => 'Апрель',
+'05' => 'Май', '06' => 'Июнь', '07' => 'Июль', '08' => 'Август', '09' => 'Сентябрь',
+'10' => 'Октябрь', '11' => 'Ноябрь', '12' => 'Декабрь'])
     <div class="main_block">
         <div class="main_head">
             <a href="{{route('ChairmanMyCoop.index')}}">Мои кооперативы</a>
@@ -10,72 +13,209 @@
         <div class="main_body">
             <div class="right_two_block">
                 <div class="top_block">
-                    <div class="left_block_svg">
-                        <img class="svg" onclick="leftScroll()" src="{{asset('icons/user/buttonLeft.svg')}}"
-                             alt="Влево">
+                    <div class="button_form_ajax">
+                        <div class="block_1">
+                            <button class="last_year"><</button>
+                            <span class="year">{{$year}}</span>
+                            <button class="next_year">></button>
+                        </div>
                     </div>
                     <div class="scroll_garage">
                         @forelse($blocks as $block)
-                            <button class="button_number_garage" data-id-block={{$block->id_block}}>Гаражный блок
-                                №{{$block->number_block}}</button>
+                        <button class="button_number_garage" data-id-block={{$block->id_block}}>
+                            Гаражный блок №{{$block->number_block}} 
+                            @if($block->meter_readings_count > 0)
+                            ({{$block->meter_readings_count}})
+                            @endif
+                        </button>
                         @empty
-                            <span>Вам необходимо создать гаражный блок!</span>
+                        <span>Вам необходимо создать гаражный блок!</span>
                         @endforelse
                     </div>
-                    <div class="right_block_svg">
-                        <img class="svg" onclick="rightScroll()" src="{{asset('icons/user/buttonRight.svg')}}"
-                             alt="Вправо">
-                    </div>
                 </div>
-
                 <div class="flex_block_2">
                     <div class="right_block">
+                        <span class="text_error_year">Выберите гаражый блок и месяц для получения показаний</span>
+                    </div>
+                    <div class="container_mouth">
+                        @foreach ($months as $month => $key)
+                        <button class="id_month" data-month="{{$month}}">{{$key}}</button>
+                        @endforeach
                     </div>
                 </div>
 
             </div>
         </div>
     </div>
-    <script>
-        function leftScroll() {
-            const left = $(".scroll_garage");
-            left.animate({scrollLeft: '-=300'}, 300);
-        }
-
-        function rightScroll() {
-            const right = $(".scroll_garage");
-            right.animate({scrollLeft: '+=300'}, 300);
-        }
-
-        var buttonCount = $('.scroll_garage button[data-id-block]').length;
-        if (buttonCount <= 6) {
-            $('.svg, .left_block_svg, .right_block_svg').css({
-                'display': 'none',
-            });
-        } else {
-            $('.svg, .left_block_svg, .right_block_svg').css({
-                'display': 'block',
-            });
-        }
-
+    <script type="text/javascript">
         $(document).ready(function () {
+            $('.last_year, .next_year').click(function (e) {
+                if (!isSubmitMyBlock) {
+                    $('.right_block').empty().html(`<span class="text_error_year">Выберите гаражый блок и месяц для получения показаний</span>`);
+                    return false;
+                }
+                let currentTime = new Date().getTime();
+                let timeDifference = currentTime - lastClickTime;
+                currentYearInput = parseInt($('.year').text());
+            $('.right_block').empty();
+            $('.right_block').html('Подождите, запрос выполняется...');
+            if (timeDifference < 2000 && clickCount > 5) {
+                    // Отображаем сообщение об ошибке
+                $(".right_block").text("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
+
+                    // Блокируем кнопки на 3 секунды
+                $('.last_year, .next_year, .id_month').prop("disabled", true);
+
+                setTimeout(function () {
+                    $('.next_year').prop("disabled", false);
+                    if (currentYearInput === 2023) {
+                        $('.last_year').prop("disabled", true);
+                    } else {
+                        $('.last_year').prop("disabled", false);
+                    }
+                    if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
+                        $('.next_year').prop("disabled", true);
+                    } else {
+                        $('.next_year').prop("disabled", false);
+                    }
+
+                    sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                }, 3000);
+                clickCount = 0;
+            } else {
+        // Сбрасываем счетчик, если прошло более 1 секунды с предыдущего нажатия
+                if (timeDifference >= 500) {
+                    clickCount = 0;
+                }
+                clickCount++;
+                if ($(this).hasClass('last_year')) {
+                        // Если нажата кнопка "last_year"
+                        currentYear = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
+                        currentYearInput = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
+                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                        if (currentYearInput === 2023) {
+                            $('.last_year').prop("disabled", true);
+                        } else {
+                            $('.last_year').prop("disabled", false);
+                        }
+                        $('.next_year').prop("disabled", false);
+                    } else {
+                        $('.last_year').prop("disabled", false);
+                        // Если нажата кнопка "next_year"
+                        currentYear = currentYearInput + 1;
+                        currentYearInput = currentYearInput + 1;
+                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                        if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
+                            $('.next_year').prop("disabled", true);
+                        } else {
+                            $('.next_year').prop("disabled", false);
+                        }
+                        $('.last_year').prop("disabled", false);
+
+                    }
+                    return $('.year').text(currentYear) + currentYearInput;
+
+                }
+            });
+        $('.id_month').click(function (e) {
+            e.preventDefault();
+            $('.container_mouth button').css({
+                backgroundColor: 'white',
+                color: 'black'
+            });
+            $(this).css({
+                backgroundColor: '#1C82E7',
+                color: 'white'
+            });
+            $('.last_year, .next_year, .id_month').prop("disabled", true);
+            idMonth = $(this).data('month');
+            $('.right_block').empty();
+            $('.right_block').html('Подождите, запрос выполняется...');
+            let currentTime = new Date().getTime();
+            let timeDifference = currentTime - lastClickTime;
+                        // Если прошло менее 1 секунд с предыдущего нажатия и количество нажатий больше 3
+            if (timeDifference < 2000 && clickCount > 5) {
+                            // Отображаем сообщение об ошибке
+                $(".right_block").append("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
+                            // Блокируем кнопки на 3 секунды
+                $('.last_year, .next_year, .id_month').prop("disabled", true);
+
+                setTimeout(function () {
+                    $('.last_year, .next_year, .id_month').prop("disabled", false);
+                    if (currentYearInput === 2023) {
+                        $('.last_year').prop("disabled", true);
+                    } else {
+                        $('.last_year').prop("disabled", false);
+                    }
+                    if (!isSubmitMyBlock) {
+                        $('.right_block').empty().html(`<span class="text_error_year">Выберите гаражый блок и месяц для получения показаний</span>`);
+                        return false;
+                    }
+                    sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+
+                    clickCount = 0;
+
+                }, 3000);
+
+            } else {
+                $('.last_year, .next_year, .id_month').prop("disabled", false);
+                // Сбрасываем счетчик, если прошло более 1 секунд с предыдущего нажатия
+                if (timeDifference >= 1000) {
+                    clickCount = 0;
+                }
+                // Снимаем блокировку с предыдущей кнопки, если она существует
+                if (previousButton) {
+                    previousButtonMouth.prop("disabled", false);
+                }
+
+                if (!isSubmitMyBlock) {
+                    $('.right_block').empty().html(`<span class="text_error_year">Выберите гаражый блок и месяц для получения показаний</span>`);
+                    return false;
+                }
+                sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                
+            }
+        });
+
+        $('.id_month[data-month={{$currentMonth}}]').css({
+            backgroundColor: '#1C82E7',
+            color: 'white',
+        });
             let isSubmitMyBlock = false;
+            let isSubmitMonth = true;
             let previousButton; // Переменная для хранения предыдущей кнопки
             let lastClickTime = 0; // Переменная для хранения времени последнего нажатия
             let clickCount = 0; // Счетчик нажатий
             let idBlockValue;
+            let currentMonth = {{$currentMonth}};
+            let idMonth = currentMonth < 10 ? '0' + currentMonth : currentMonth.toString();
+            let currentButtonMonth;
+            let previousButtonMouth;
+            let currentYearInput = {{$year}};
 // Глобальный объект для хранения оригинальных значений форм
             let originalMeterValues = [];
-
-            function sendAjaxRequestBlockKw(idBlockValue) {
+            function sendAjaxRequestBlockKw(idBlockValue, year, idMonth) {
+                let month = idMonth ? idMonth : {{$currentMonth}};
+                if (month.toString().length === 1) {
+                    month = '0' + month;
+                }
                 $.ajax({
                     url: '{{ route('MessagesMeters.index', ['idCoop' => $idCoop]) }}',
-                    type: "GET",
-                    data: {
-                        id_block: idBlockValue,
-                        _token: '{{ csrf_token() }}',
-                    },
+                        type: "GET",
+                        data: {
+                            id_block: idBlockValue,
+                            year: year ? year : {{$year}},  
+                            month: month,                   
+                            _token: '{{ csrf_token() }}',   
+                        },
                     success: function (response) {
+                        $('.id_month').prop("disabled", false);
+                        currentButtonMonth = $(`.id_month[data-month='${idMonth}']`).prop("disabled", true);
+                        currentButtonMonth.css({
+                            backgroundColor: '#1C82E7',
+                            color: 'white',
+                        });
+                        previousButtonMouth = currentButtonMonth;
                         let error = response.error;
                         if (error) {
                             $('.right_block').html(error);
@@ -96,8 +236,9 @@
                         clickCount++;
 
                         let blockMessages = response.metersReadings;
-                        let blockPath = response.folderPaths;
-
+                        console.log(blockMessages);
+                        const currentFolderPaths = response.folderPaths.current; // Пути к фотографиям текущих показаний
+                        const oldFolderPaths = response.folderPaths.old; // Пути к фотографиям прошлых показаний
                         if (blockMessages.length <= 0) {
                             $('.right_block').html("На данный момент показаний от участников нет");
                             $('.right_block').css({
@@ -105,17 +246,14 @@
                             });
                             return;
                         }
-
                         blockMessages.forEach((reading, index) => {
                             // Проверяем наличие гаража и пользователя перед обращением к свойствам
-                            // FIO пользователя гаража
                             const fio = reading.garages[0].user.fio;
                             const metersReadings = reading.kw_meter;
                             const sendDate = reading.send_date;
                             const idReading = reading.id_reading;
-                            // Номер гаража
                             const garageNumber = reading.garages[0].number_garage;
-// Форматирование даты с использованием словесного представления месяца
+                            // Форматирование даты с использованием словесного представления месяца
                             const formattedDate = moment(sendDate).locale('ru').format('D MMMM YYYY HH:mm:ss');
                             let readingData = {
                                 fio: fio,
@@ -123,63 +261,86 @@
                                 formattedDate: formattedDate,
                                 idReading: idReading,
                                 garageNumber: garageNumber,
-                                image: garageNumber,
-                                // Добавьте другие свойства, если необходимо
                             };
-                            // Далее вы можете использовать полученные значения fio и garageNumber по вашему усмотрению
+
+                            // Генерация HTML-кода для отображения текущих и прошлых показаний
                             var html = `<div class="block_applications" data-value-id="${idReading}">
-
-    <div class="img_center_right">
-        <img src="{{asset('image/user/DefaultUser.jpg')}}" alt="Пользователь">
-    </div>
-    <div class="right_text_right_block">
-        <div style="display: flex;">
-            <div class="text_right_span">
-                <form method="POST" action="" class="form_input">
-                    @csrf
-                            <input type="hidden" name="idMessage" value="0">
-                <div class="flex_head_block">
-                    <div class="left_block_span">
-                        <span class="fio">${fio}</span>
-                            <span>Номер гаража: ${garageNumber}</span>
-                            <div class="span_div_flex">
-                                <span>Показатели (кВт):</span>
-                                <input type="number" class="input_numbers" name="inputNumbers" id="numberMeter" value="${metersReadings}" inputmode="none">
-                            </div>
-                        </div>
-                        <div class="img_meter">
-                            ${blockPath[index]}
-                        </div>
-                    </div>
-                    <div class="display_flex_button">
-                        <button type="submit" data-title="Фото счётчика" id="lightbox-image-${index}" data-lightbox="image-${index}" data-index="${index}" class="button_img">Смотреть фото</button>
-                        <button type="submit" class="button_green" id="button_green">Принять</button>
-                    </div>
-                </form>
-                <div class="flex_bottom_block">
-                    <form method="POST" action="" class="form_delete">
-                        @csrf
-                            <input type="hidden" name="idMessage" value="1">
-                    <button type="submit" class="button_red" id="button_red">Отклонить</button>
-                </form>
-                <span class="formattedDate">${formattedDate}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-   <div class="block_message">
-   <div class="error-message" style="display: none;"></div>
-   </div>
-</div>
-`; // ваш HTML код
-
+                                <div class="head_block">
+                                    <div class="img_center_right">
+                                        <img src="{{asset('image/user/DefaultUser.jpg')}}" alt="Пользователь">
+                                    </div>
+                                    <div class="right_text_right_block">
+                                        <div style="display: flex;">
+                                            <div class="text_right_span">
+                                                <form method="POST" action="" class="form_input">
+                                                    @csrf
+                                                    <input type="hidden" name="idMessage" value="0">
+                                                    <div class="flex_head_block">
+                                                        <div class="left_block_span">
+                                                            <span class="fio">${fio}</span>
+                                                            <span>Номер гаража: ${garageNumber}</span>
+                                                            <div class="span_div_flex">
+                                                                <span>Показания (кВт):</span>
+                                                                <input type="number" class="input_numbers" name="inputNumbers" id="numberMeter" value="${metersReadings}" inputmode="none">
+                                                            </div>
+                                                        </div>
+                                                        <div class="img_meter">
+                                                            ${currentFolderPaths[index]} <!-- Текущее фото -->
+                                                        </div>
+                                                    </div>
+                                                    <div class="display_flex_button">
+                                                        <button type="submit" data-title="Фото счётчика" id="lightbox-image-${index}" data-lightbox="image-${index}" data-index="${index}" class="button_img">Смотреть текущее фото</button>
+                                                        <button type="submit" class="button_green" id="button_green-${index}">Принять</button>
+                                                    </div>
+                                                </form>
+                                                <div class="flex_bottom_block">
+                                                    <form method="POST" action="" class="form_delete">
+                                                        @csrf
+                                                        <input type="hidden" name="idMessage" value="1">
+                                                        <button type="submit" class="button_red" id="button_red-${index}">Отклонить</button>
+                                                    </form>
+                                                    <span class="formattedDate">${formattedDate}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="old_inf">`
+                                if (oldFolderPaths[index] == null) {
+                                html += `<div class="old_inf_block">
+                                        <span>Прошлых показаний нет или не найдено</span>
+                                    </div>`
+                                } else {
+                                    html += `<div class="old_inf_block">
+                                        <span>Прошлое принятое показание: <span class="old_time_text"></span></span>
+                                        <span>Показания (кВт): <span class="old_kw_meter"></span></span>
+                                    </div>
+                                     <div class="img_meter_old old">
+                                        ${oldFolderPaths[index]}
+                                    </div>`  
+                                }
+                                html += `</div>
+                                <div class="block_message">
+                                    <div class="error-message" style="display: none;"></div>
+                                </div>
+                            </div>`;
+                            // Добавляем HTML-код на страницу
                             $('.right_block').append(html);
+                            const dateOld = $(`.block_applications[data-value-id="${idReading}"] .img_meter_old a[data-date]`).data('date');
+                            const kwMeterOld = $(`.block_applications[data-value-id="${idReading}"] .img_meter_old a[data-kw-meter]`).data('kw-meter');
+                            if (dateOld && kwMeterOld) {
+                                const formattedOldDate = moment(dateOld).locale('ru').format('D MMMM YYYY');
+                                $(`.block_applications[data-value-id="${idReading}"]`).find('.old_time_text').text(`${formattedOldDate}`);
+                                $(`.block_applications[data-value-id="${idReading}"]`).find('.old_kw_meter').text(`${kwMeterOld}`);
+                            }
+                            // Обновляем данные для текущих и прошлых показаний
                             originalMeterValues.push(readingData);
+
                         });
-                        console.log(originalMeterValues);
                     },
                     error: function (error) {
-                        $('.right_block').text('Что-то пошло не так, повторите попытку позже');
+                        let textError = error.responseJSON.error;
+                        $('.right_block').text(textError);
                         $('.right_block').css({
                             fontSize: '25px',
                         });
@@ -216,7 +377,7 @@
                     setTimeout(function () {
                         $('.button_number_garage').prop("disabled", false);
 
-                        sendAjaxRequestBlockKw(idBlockValue);
+                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
                         clickCount = 0;
                     }, 3000);
 
@@ -232,7 +393,7 @@
                     e.preventDefault();
 
                     if (isSubmitMyBlock === true) {
-                        sendAjaxRequestBlockKw(idBlockValue);
+                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
                     }
                 }
             });
@@ -243,6 +404,7 @@
                     return item.idReading == idReading && item.fio == fio && item.formattedDate == formattedDate;
                 })[0]; // Возвращает первый найденный объект или undefined, если ничего не найдено
             }
+
             function messageBlock(text, form) {
                 // Отображаем уведомление
                 form.closest('.block_applications').find('.error-message').html(text).slideDown(500);
@@ -251,6 +413,7 @@
                     form.closest('.block_applications').find('.error-message').slideUp(500);
                 }, 4000);
             }
+
             $(document).on('submit', '.form_input, .form_delete', function (e) {
                 e.preventDefault();
                 $('.button_green, .button_red').prop("disabled", true);
@@ -358,7 +521,7 @@
                         setTimeout(function () {
                             // Разблокировка кнопок
                             $('.button_green, .button_red').prop("disabled", false);
-                        }, 500);
+                        }, 4000);
                         $(`.block_applications[data-value-id="${blockMessages}"]`).fadeOut(500, function () {
                             $(this).remove();
                         });
@@ -381,3 +544,32 @@
         });
     </script>
 @endsection
+<!-- success: function (response) {
+                    let blockMessages = response.response;
+                    let idBlockValue = response.idBlock; // ID блока, в котором было принято сообщение
+                    let updatedCount = response.updatedCount; // Обновленное количество сообщений в блоке
+                    
+                    $('.button_green, .button_red').prop("disabled", true);
+                    
+                    if (blockMessages == 'error') {
+                        messageBlock("Произошла ошибка на сервере. Повторите попытку позже", form);
+                        setTimeout(function () {
+                            $('.button_green, .button_red').prop("disabled", false);
+                        }, 4000);
+                    } else {
+                        // Убираем сообщение с экрана
+                        $(`.block_applications[data-value-id="${blockMessages}"]`).fadeOut(500, function () {
+                            $(this).remove();
+                        });
+
+                        // Обновляем количество сообщений на кнопке блока
+                        let button = $(`.button_number_garage[data-id-block='${idBlockValue}']`);
+                        let buttonText = button.text().trim();
+                        
+                        // Извлекаем текст кнопки и обновляем счетчик сообщений
+                        if (updatedCount > 0) {
+                            button.text(`Гаражный блок №${idBlockValue} (${updatedCount})`);
+                        } else {
+                            button.text(`Гаражный блок №${idBlockValue}`);
+                        }
+                    } -->

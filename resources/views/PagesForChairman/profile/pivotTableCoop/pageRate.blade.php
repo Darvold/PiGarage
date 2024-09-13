@@ -1,4 +1,4 @@
-@extends('layouts.profileChairman', ['ProfileCoopRate' => ['rate.css', 'scroll.css']])
+@extends('layouts.mainChairman', ['ProfileCoopRate' => ['rate.css', 'scroll.css']])
 
 @section('profile')
     @php
@@ -42,10 +42,13 @@
                                 $monthName = $months[$monthNumber];
                                 $formId = 'form_month_' . $i;
                             @endphp
-                            <form method="post" action="{{ route('ChairmanMyCoopRatePost.store', ['idCoop' => $idCoop]) }}" class="form_month" id="{{ $formId }}">
+                            <form method="post"
+                                  action="{{ route('ChairmanMyCoopRatePost.store', ['idCoop' => $idCoop]) }}"
+                                  class="form_month" id="{{ $formId }}">
                                 @csrf
                                 <input type="hidden" class="id_year" name="id_year" value="{{$year}}">
-                                <input type="hidden" class="id_month_number" name="id_month_number" value="{{ $monthNumber }}">
+                                <input type="hidden" class="id_month_number" name="id_month_number"
+                                       value="{{ $monthNumber }}">
 
                                 @if (isset($groupedByMonth[$monthNumber]))
                                     @foreach ($groupedByMonth[$monthNumber] as $valueRate)
@@ -53,7 +56,8 @@
                                             <span>{{ $monthName }}</span>
                                         </div>
                                         <div>
-                                            <input type="text" pattern="[0-9]*[.]?[0-9]+" name="tariff_value" id="tariff_value"
+                                            <input type="text" pattern="[0-9]*[.]?[0-9]+" name="tariff_value"
+                                                   id="tariff_value"
                                                    maxlength="10" oninput="this.value=this.value.replace(/[^\d.,]/g,'')"
                                                    value="{{ $valueRate['tariff_value'] }}">
                                             <span>руб.</span>
@@ -65,7 +69,8 @@
                                         <span>{{ $monthName }}</span>
                                     </div>
                                     <div>
-                                        <input type="text" pattern="[0-9]*[.]?[0-9]+" name="tariff_value" id="tariff_value"
+                                        <input type="text" pattern="[0-9]*[.]?[0-9]+" name="tariff_value"
+                                               id="tariff_value"
                                                maxlength="10" oninput="this.value=this.value.replace(/[^\d.,]/g,'')"
                                                value="">
                                         <span>руб.</span>
@@ -183,70 +188,70 @@
 
             $('.last_year, .next_year').click(function (e) {
 
-                    let currentTime = new Date().getTime();
-                    let timeDifference = currentTime - lastClickTime;
-                    currentYear = parseInt($('.year').text());
+                let currentTime = new Date().getTime();
+                let timeDifference = currentTime - lastClickTime;
+                currentYear = parseInt($('.year').text());
+                $('.main_block_table').empty();
+                $('.main_block_table').html('Подождите, запрос выполняется...').css({
+                    'font-size': '22px',
+                });
+                if (timeDifference < 2000 && clickCount > 5) {
                     $('.main_block_table').empty();
-                    $('.main_block_table').html('Подождите, запрос выполняется...').css({
-                        'font-size': '22px',
-                    });
-                    if (timeDifference < 2000 && clickCount > 5) {
-                        $('.main_block_table').empty();
-                        // Отображаем сообщение об ошибке
-                        $(".main_block_table").text("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
+                    // Отображаем сообщение об ошибке
+                    $(".main_block_table").text("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
 
-                        // Блокируем кнопки на 3 секунды
-                        $('.last_year, .next_year').prop("disabled", true);
+                    // Блокируем кнопки на 3 секунды
+                    $('.last_year, .next_year').prop("disabled", true);
 
-                        setTimeout(function () {
-                            $('.next_year').prop("disabled", false);
-                            if (currentYearInput === 2023) {
-                                $('.last_year').prop("disabled", true);
-                            } else {
-                                $('.last_year').prop("disabled", false);
-                            }
-                            if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
-                                $('.next_year').prop("disabled", true);
-                            } else {
-                                $('.next_year').prop("disabled", false);
-                            }
-                            sendAjaxRequestBlockKw(currentYearInput);
-                        }, 3000);
-                        clickCount = 0;
-                    } else {
-                        // Сбрасываем счетчик, если прошло более 1 секунды с предыдущего нажатия
-                        if (timeDifference >= 500) {
-                            clickCount = 0;
-                        }
-                        clickCount++;
-                        if ($(this).hasClass('last_year')) {
-                            // Если нажата кнопка "last_year"
-                            currentYear = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
-                            currentYearInput = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
-                            sendAjaxRequestBlockKw(currentYearInput);
-                            if (currentYearInput === 2023) {
-                                $('.last_year').prop("disabled", true);
-                            } else {
-                                $('.last_year').prop("disabled", false);
-                            }
-                            $('.next_year').prop("disabled", false);
+                    setTimeout(function () {
+                        $('.next_year').prop("disabled", false);
+                        if (currentYearInput === 2023) {
+                            $('.last_year').prop("disabled", true);
                         } else {
                             $('.last_year').prop("disabled", false);
-                            // Если нажата кнопка "next_year"
-                            currentYear = currentYearInput + 1;
-                            currentYearInput = currentYearInput + 1;
-                            sendAjaxRequestBlockKw(currentYearInput, blockNumber);
-                            if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
-                                $('.next_year').prop("disabled", true);
-                            } else {
-                                $('.next_year').prop("disabled", false);
-                            }
-                            $('.last_year').prop("disabled", false);
-
                         }
-
-                        return $('.year').text(currentYear) + currentYearInput;
+                        if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
+                            $('.next_year').prop("disabled", true);
+                        } else {
+                            $('.next_year').prop("disabled", false);
+                        }
+                        sendAjaxRequestBlockKw(currentYearInput);
+                    }, 3000);
+                    clickCount = 0;
+                } else {
+                    // Сбрасываем счетчик, если прошло более 1 секунды с предыдущего нажатия
+                    if (timeDifference >= 500) {
+                        clickCount = 0;
                     }
+                    clickCount++;
+                    if ($(this).hasClass('last_year')) {
+                        // Если нажата кнопка "last_year"
+                        currentYear = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
+                        currentYearInput = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
+                        sendAjaxRequestBlockKw(currentYearInput);
+                        if (currentYearInput === 2023) {
+                            $('.last_year').prop("disabled", true);
+                        } else {
+                            $('.last_year').prop("disabled", false);
+                        }
+                        $('.next_year').prop("disabled", false);
+                    } else {
+                        $('.last_year').prop("disabled", false);
+                        // Если нажата кнопка "next_year"
+                        currentYear = currentYearInput + 1;
+                        currentYearInput = currentYearInput + 1;
+                        sendAjaxRequestBlockKw(currentYearInput, blockNumber);
+                        if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
+                            $('.next_year').prop("disabled", true);
+                        } else {
+                            $('.next_year').prop("disabled", false);
+                        }
+                        $('.last_year').prop("disabled", false);
+
+                    }
+
+                    return $('.year').text(currentYear) + currentYearInput;
+                }
             });
         });
     </script>

@@ -97,6 +97,7 @@
 	border: 1px solid black;
 	height: 100%;
 	display: flex;
+	position: relative;
 	width: 100%;
 }
 .img_center_left {
@@ -128,6 +129,9 @@
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+}
+.right_text_garage span {
+	margin-top: 10px;
 }
 .inline_span {
 	margin-top: 5px;
@@ -181,8 +185,7 @@
 	margin-left: 10px;
 	font-size: 25px;
 }
-.block_applications_garage span {
-	margin-top: 20px;
+.block_applications_garage span:not(.text_message, .text_error_message, .text_resumed_message) {
 	display: flex;
 	margin-left: 10px;
 	font-size: 25px;
@@ -278,7 +281,18 @@
 .success-message {
 	position: absolute;
 	left: 40px;
-	top: 20px;
+	top: 10px;
+	background-color: white;
+	border: 3px solid #62BD41FF;
+	border-radius: 4px;
+	width: 200px;
+	height: 50px;
+	box-shadow: 0px 4px 7px 5px hsla(0, 0%, 0%, 0.7);
+	z-index: 140;
+}
+.success-message-garage {
+	position: absolute;
+	left: 160px;
 	background-color: white;
 	border: 3px solid #62BD41FF;
 	border-radius: 4px;
@@ -297,7 +311,7 @@
 .error-message {
 	position: absolute;
 	left: 40px;
-	top: 20px;
+	top: 10px;
 	background-color: white;
 	border: 3px solid red;
 	border-radius: 4px;
@@ -318,6 +332,26 @@
 	box-shadow: 0px 4px 7px 5px hsla(0, 0%, 0%, 0.7);
 	z-index: 140;
 }
+.block_message {
+	position: absolute;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	margin-top: 20px;
+}
+.error-post-message-garage {
+	background-color: white;
+	border: 3px solid red;
+	border-radius: 4px;
+	max-width: 450px;
+	position: absolute;
+	width: auto;
+	padding: 5px 10px 5px 10px;
+	min-height: 50px;
+	height: auto;
+	box-shadow: 0px 4px 7px 5px hsla(0, 0%, 0%, 0.7);
+	z-index: 150;
+}
 .text_message {
 	width: 100%;
 	height: 100%;
@@ -333,6 +367,11 @@
 	align-items: center;
 	justify-content: center;
 	display: flex;
+}
+.block_garages_not_found {
+	font-size: 23px;
+	margin-left: 20px;
+	margin-bottom: 10px;
 }
 .block_garage_inf span:not(.text_message, .absolute_span_number_garage) {
 	margin-top: 5px;

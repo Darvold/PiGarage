@@ -502,10 +502,11 @@
 
     $('#save-marker-btn').click(async function (e) {
         e.preventDefault(); // Предотвращаем отправку формы
-        var nameField = $('input[name="name"]');
-        var numberMeterField = $('input[name="number_meter"]');
+        let nameField = $('input[name="name"]');
+        let numberGarageField = $('input[name="number_garage_blocks"]');
+        let numberMeterField = $('input[name="number_meter"]');
 
-        if (!nameField.val() || !numberMeterField.val()) {
+        if (!nameField.val() || !numberMeterField.val() || !numberGarageField.val()) {
             // Устанавливаем сообщение об ошибке
             $('#coordinates2').html('Заполните все обязательные поля.').hide().fadeIn(200);
 
@@ -519,6 +520,18 @@
                 }, 3500, function () {
                     nameField.removeAttr('placeholder').hide().fadeIn(200);
                     nameField.css({
+                        border: '',
+                    });
+                    addressCityText();
+                });
+            }
+            if (!numberGarageField.val()) {
+                numberGarageField.css({
+                    border: '2px solid red',
+                }).animate({
+                    borderColor: ''
+                }, 3500, function () {
+                    numberGarageField.css({
                         border: '',
                     });
                     addressCityText();

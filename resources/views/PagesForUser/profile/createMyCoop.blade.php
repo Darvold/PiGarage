@@ -1,4 +1,4 @@
-@extends('layouts.profileChairman', ['ProfileCreateCoopStyles' => ['createCoop.css', 'map_marker.css']])
+@extends('layouts.mainChairman', ['ProfileCreateCoopStyles' => ['createCoop.css', 'map_marker.css']])
 
 @section('profile')
     <script

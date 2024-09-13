@@ -16,6 +16,7 @@
     'ProfileSettingsChairman' => 'PagesForChairman/settingsChairman/',
 
     'ProfileGarageStyles' => 'PagesForChairman/garage/',
+    'ProfileGarageStylesMeters' => 'PagesForChairman/garageMeters/',
     'ProfileCreateGarageStyles' => 'PagesForChairman/createGarage/',
     'myGaragePivotTableStyles' => 'PagesForChairman/myGaragePivotTable/',
 
@@ -27,6 +28,7 @@
     'ProfileCoopBlocksStyles' => 'PagesForChairman/pageBlocks/',
     'ProfileCoopRate' => 'PagesForChairman/rate/',
     'ProfileCoopPayment' => 'PagesForChairman/payment/',
+    'ProfileCoopPaymentOther' => 'PagesForChairman/paymentOther/',
     'ProfileCoopLosses' => 'PagesForChairman/pageLossesCoop/',
 
     'ParticipantsCoopStyles' => 'PagesForChairman/participantsCoop/',
@@ -47,12 +49,11 @@
     @endforeach
     @endif
     @endforeach
+    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
 </head>
 <body>
-    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('js/moment-with-locales.js') }}"></script>
     <script src="{{ asset('js/lightbox/dist/js/lightbox.js') }}"></script>
-
     <div class="form-msg">
         @if (session('success'))
         <div class="notification-content">
@@ -68,8 +69,6 @@
         </div>
         @endif
     </div>
-
-
     <script>
         $(document).ready(function() {
         $(".notification").css('top', '-100px'); // Скрываем уведомление за пределами видимой области

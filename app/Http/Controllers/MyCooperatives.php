@@ -9,7 +9,8 @@ use App\Models\CooperativeBlocks;
 use App\Models\Cooperatives;
 use App\Models\CooperativesBlocksLossesKw;
 use App\Models\coopLosses;
-use App\Models\MetersReadings;
+use App\Models\Garages;
+use App\Models\MeterReadings;
 use App\Models\PayMents;
 use App\Models\Rates;
 use App\Models\UserAndCoop;
@@ -20,12 +21,14 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Jenssegers\Date\Date;
 use Mockery\Exception;
 use App\Rules\NoNegativeNumbers;
 use GuzzleHttp\Client;
+use function Laravel\Prompts\select;
 
 class MyCooperatives extends Controller
 {
@@ -44,15 +47,7 @@ class MyCooperatives extends Controller
     //Контроллер для страницы создание кооператива
     protected function ChairmanCreateMyCoop()
     {
-        $cooperatives = Cooperatives::select('cooperatives.*', 'users.*')
-            ->leftJoin('users', 'cooperatives.user_id', '=', 'users.id')
-            ->where('users.id_al', 2)
-            ->get();
-        $applicationStatus = ApplicationsForAccessions::where('user_id', Auth::id())
-            ->get();
-
-        return view('PagesForChairman.profile.createMyCoop',
-            compact('cooperatives', 'applicationStatus'));
+        return view('PagesForChairman.profile.createMyCoop');
 
     }
 
@@ -66,7 +61,7 @@ class MyCooperatives extends Controller
                     'max:250',
                     // Регулярное выражение для запрета тэгов < и > и других символов, которые могут использоваться в инъекциях
                     //'regex:/^[^<>]+$/' - проверка на < >
-                    'regex:/^[a-zA-Z0-9\s\-]+$/u' // Разрешает только буквы, цифры, пробелы и дефисы
+                    'regex:/^[а-яА-Я0-9\s\-№]+$/u'// Разрешает только буквы, цифры, пробелы и дефисы и №
                 ],
                 'number_meter' => 'required|integer|digits_between:1,19',
                 'city' => 'required',
@@ -79,7 +74,7 @@ class MyCooperatives extends Controller
         } catch (ValidationException $e) {
             $errors = $e->validator->errors();
             if ($errors->has('name')) {
-                return redirect()->back()->with(['error' => 'Название кооператива должно состоять минимум из 3-х символов до 250'])->withInput();
+                return redirect()->back()->with(['error' => "Название кооператива должно состоять минимум из 3-х символов до 250, русскими буквами"])->withInput();
             }
             if ($errors->has('number_meter')) {
                 return redirect()->back()->with(['error' => 'Недопустимое количество цифр в номере счётчика – макс. 19'])->withInput();
@@ -94,10 +89,11 @@ class MyCooperatives extends Controller
         try {
             // Проверяем координаты и страну, город
             $test = $this->getCountryFromCoordinates($data['city'], $data['address'], $data['latitude'], $data['longitude']);
-            if ($test === true) {
+            //Старая версия кода
+            /* if ($test === true) {
                 // Координаты принадлежат России
                 $data['id_point'] = $data['latitude'] . ',' . $data['longitude'];
-            }
+            }*/
             if ($test === '[1]') {
                 return redirect()->back()->with(['error' => 'Что-то пошло не так, возможно метка указано вне города/посёлка/село'])->withInput();
             }
@@ -117,7 +113,8 @@ class MyCooperatives extends Controller
                 'number_meter' => $data['number_meter'],
                 'status' => 'pending',
                 'number_garage_blocks' => $data['number_garage_blocks'],
-                'id_point' => $data['id_point'],
+                'latitude' => $data['latitude'],
+                'longitude' => $data['longitude'],
 
             ]);
             return redirect()->back()->with('success', 'Заявка успешно отправлена!');
@@ -136,7 +133,11 @@ class MyCooperatives extends Controller
                 $nameCoop = $request->input("nameCoop");
                 $selectedRegion = $request->input("selectedRegion");
                 $selectedCity = $request->input("selectedCity");
-                $location = '%' . $selectedRegion . ', ' . $selectedCity . '%';
+                if ($selectedRegion == $selectedCity) {
+                    $location = '%' . $selectedRegion . '%';
+                } else {
+                    $location = '%' . $selectedRegion . ', ' . $selectedCity . '%';
+                }
                 $nameCoopLike = '%' . $nameCoop . '%';
                 $offset = $request->input('offset', 0);
 
@@ -162,109 +163,201 @@ class MyCooperatives extends Controller
             }
             return response()->json(['error' => "Что-то пошло не так"], 500);
         }
-        $cooperatives = Cooperatives::select('cooperatives.*', 'users.*')
-            ->leftJoin('users', 'cooperatives.user_id', '=', 'users.id')
-            ->withCount('amountGarageBlock')
-            ->where('users.id_al', 2)
-            ->get();
-        $applicationStatus = ApplicationsForAccessions::where('user_id', Auth::id())
-            ->get();
-        return view('PagesForChairman.profile.connectCoop',
-            compact('cooperatives', 'applicationStatus'));
+
+        return view('PagesForChairman.profile.connectCoop');
 
     }
 
     protected function ChairmanConnectCoopPost()
     {
         $id_message = request()->input('id_message');
+        if (!$id_message) {
+            return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку позже');
+        }
         try {
             if ($id_message == 1) {
-                $data = request()->validate([
-                    'id_coop' => 'required|numeric|min:0',
-                    'garageData' => ['required', new NoNegativeNumbers],
-                ]);
-
+                if (request()->input('notGarage') === 'false') {
+                    $data = request()->validate([
+                        'id_coop' => 'required|integer|min:1',
+                        'garageData' => ['required', new NoNegativeNumbers],
+                    ]);
+                } elseif (request()->input('notGarage') === 'true') {
+                    $data = request()->validate([
+                        'id_coop' => 'required|integer|min:1',
+                    ]);
+                } else {
+                    throw ValidationException::withMessages([
+                        'notGarage' => 'Некорректное значение notGarage.'
+                    ]);
+                }
             } else {
                 $data = request()->validate([
-                    'id_coop' => 'required|numeric|min:0',
+                    'id_coop' => 'required|integer|min:1',
                 ]);
             }
-        } catch (ValidationException  $e) {
+        } catch (ValidationException|\Exception  $e) {
             $garageData = request()->input('garageData', null);
             $garagesDataJson = json_decode($garageData, true);
             return redirect()->back()
-                ->with(['error' => 'Что-то пошло не так, возможно установлено отрицательное значение'])
+                ->with(['error' => "Что-то пошло не так, ошибка валидации"])
                 ->with('garageData', $garagesDataJson);
         }
+        $coopUser = Cooperatives::where('id_coop', $data['id_coop'])->first();
+        if ($coopUser['user_id'] == Auth::id()) {
+            return redirect()->back()->with('error', 'Нельзя отправить заявку в свой же кооператив');
+        }
+        $Application = ApplicationsForAccessions::withTrashed()
+            ->where('user_id', Auth::id())
+            ->where('id_coop', $data['id_coop'])
+            ->where(function ($query) {
+                $query->where('status', 'rejected')
+                    ->orWhere('status', 'pending')
+                    ->orWhere('status', 'delete');
+            })
+            ->first();
+        if ($Application) {
+            switch ($Application->status) {
+                case 'rejected':
+                    if ($id_message == 1) {
+                        return redirect()->back()->with('error', 'Заявка отклонена председателем!');
+                    }
+                    break;
+                case 'pending':
+                    if ($id_message == 1) {
+                        return redirect()->back()->with('error', 'Заявка уже отправлена!');
+                    }
+                    break;
+                case 'delete':
+                    if ($id_message == 2) {
+                        return redirect()->back()->with('error', 'Заявка уже отменена!');
+                    }
+                    break;
+            }
+        } elseif ($id_message == 2) {
+            return redirect()->back()->with('error', 'Невозможно удалить то чего нет!');
+        }
         if ($id_message == 1) {
-            $garagesData = json_decode($data['garageData'], true);
-            $countGarageBlock = count(CooperativeBlocks::where('id_coop', $data['id_coop'])->get());
-            foreach ($garagesData as $gData) {
-                if ($gData['number_block'] > $countGarageBlock) {
-                    return redirect()->back()
-                        ->with(['error' => "Не правильно указан номер блока. В кооперативе доступно всего $countGarageBlock гаражных блоков"])
-                        ->with('garageData', $garagesData);
+            if (request()->input('notGarage') === 'true') {
+                try {
+                    $restoreApplication = ApplicationsForAccessions::where('user_id', Auth::id())
+                        ->where('id_coop', $data['id_coop'])
+                        ->where('status', 'delete')
+                        ->first();
+                    ApplicationsGarageToCoop::where('user_id', Auth::id())
+                        ->where('id_coop', $data['id_coop'])
+                        ->update([
+                            'active' => 0,
+                        ]);
+                    if ($restoreApplication) {
+                        $restoreApplication->update(['status' => 'pending', 'send_date' => Date::now(), 'amount_garages' => 0]);
+                        return redirect()->back()->with('success', 'Заявка успешно отправлена!');
+                    }
+                    ApplicationsForAccessions::create([
+                        'user_id' => Auth::id(),
+                        'id_coop' => $data['id_coop'],
+                        'status' => 'pending',
+                        'amount_garages' => 0,
+                        'send_date' => Date::now(),
+                    ]);
+                    return redirect()->back()->with('success', 'Заявка успешно отправлена!');
+                } catch (\Exception $e) {
+                    return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку позже');
                 }
             }
-            $restoreApplication = ApplicationsForAccessions::where('user_id', Auth::id())
-                ->where('id_coop', $data['id_coop'])
-                ->where('status', 'delete')
-                ->first();
-            if ($restoreApplication) {
-                $restoreApplication->update(['status' => 'pending', 'send_date' => Date::now()]);
+            try {
+                $garagesData = json_decode($data['garageData'], true);
+                $countGarageBlock = count(CooperativeBlocks::where('id_coop', $data['id_coop'])->get());
                 foreach ($garagesData as $gData) {
-                    //dd($garagesData);
-                    ApplicationsGarageToCoop::updateOrCreate(
+                    if ($gData['number_block'] > $countGarageBlock) {
+                        return redirect()->back()
+                            ->with(['error' => "Не правильно указан номер блока. В кооперативе доступно всего $countGarageBlock гаражных блоков"])
+                            ->with('garageData', $garagesData);
+                    }
+                }
+                $restoreApplication = ApplicationsForAccessions::where('user_id', Auth::id())
+                    ->where('id_coop', $data['id_coop'])
+                    ->where('status', 'delete')
+                    ->first();
+                $amount_garages = count($garagesData);
+                if ($restoreApplication) {
+                    $restoreApplication->update(['status' => 'pending', 'send_date' => Date::now(), 'amount_garages' => $amount_garages]);
+                    ApplicationsGarageToCoop::where('user_id', Auth::id())
+                        ->where('id_coop', $data['id_coop'])
+                        ->update(['active' => 0]);
+                    foreach ($garagesData as $gData) {
+                        // Проверяем наличие гаража с нужными параметрами
+                        $garage = ApplicationsGarageToCoop::where('user_id', Auth::id())
+                            ->where('id_coop', $data['id_coop'])
+                            ->where('status', 'delete')
+                            ->first();
+
+                        if ($garage) {
+                            // Обновляем только найденную запись
+                            $garage->update([
+                                'number_garage' => $gData['number_garage'],
+                                'number_block' => $gData['number_block'],
+                                'number_meter' => $gData['number_meter'],
+                                'status' => 'pending',
+                                'active' => 1,
+                                'date_received' => Date::now()
+                            ]);
+                        } else {
+                            // Создаём новую запись, если не нашли подходящую
+                            ApplicationsGarageToCoop::create([
+                                'user_id' => Auth::id(),
+                                'id_coop' => $data['id_coop'],
+                                'number_garage' => $gData['number_garage'],
+                                'number_block' => $gData['number_block'],
+                                'number_meter' => $gData['number_meter'],
+                                'status' => 'pending',
+                                'active' => 1,
+                                'date_received' => Date::now(),
+                            ]);
+                        }
+                    }
+
+                    return redirect()->back()->with('success', 'Заявка успешно отправлена!');
+                }
+
+                ApplicationsForAccessions::create([
+                    'user_id' => Auth::id(),
+                    'id_coop' => $data['id_coop'],
+                    'status' => 'pending',
+                    'amount_garages' => $amount_garages,
+                    'send_date' => Date::now(),
+                ]);
+                foreach ($garagesData as $gData) {
+                    ApplicationsGarageToCoop::create(
                         [
                             'user_id' => Auth::id(),
                             'id_block' => null,
                             'id_coop' => $data['id_coop'],
-                            'status' => 'delete',
-                        ],
-                        [
                             'number_garage' => $gData['number_garage'],
                             'number_block' => $gData['number_block'],
                             'number_meter' => $gData['number_meter'],
                             'status' => 'pending',
                             'date_received' => Date::now()
-                        ]
-                    );
+                        ]);
                 }
-                return redirect()->back()->with('success', 'Заявка успешно отправлена!');
+                return redirect()->back()->with('success', 'Заявка успешно отправлена!')->with('garageData', $garagesData);
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', "Что-то пошло не так, повторите попытку позже");
             }
-
-            ApplicationsForAccessions::create([
-                'user_id' => Auth::id(),
-                'id_coop' => $data['id_coop'],
-                'status' => 'pending',
-                'send_date' => Date::now(),
-            ]);
-            foreach ($garagesData as $gData) {
-                ApplicationsGarageToCoop::create(
-                    [
-                        'user_id' => Auth::id(),
-                        'id_block' => null,
-                        'id_coop' => $data['id_coop'],
-                        'number_garage' => $gData['number_garage'],
-                        'number_block' => $gData['number_block'],
-                        'number_meter' => $gData['number_meter'],
-                        'status' => 'pending',
-                        'date_received' => Date::now()
-                    ]);
-            }
-            return redirect()->back()->with('success', 'Заявка успешно отправлена!');
         }
         if ($id_message == 2) {
-            ApplicationsForAccessions::where('user_id', Auth::id())
-                ->where('id_coop', $data['id_coop'])
-                ->where('status', 'pending')->update(['status' => 'delete']);
-            ApplicationsGarageToCoop::where('user_id', Auth::id())
-                ->where('id_coop', $data['id_coop'])
-                ->where('status', 'pending')->update(['status' => 'delete']);
-            return redirect()->back()->with('success', 'Заявка успешно отменена!');
+            try {
+                ApplicationsForAccessions::where('user_id', Auth::id())
+                    ->where('id_coop', $data['id_coop'])
+                    ->where('status', 'pending')->update(['status' => 'delete']);
+                ApplicationsGarageToCoop::where('user_id', Auth::id())
+                    ->where('id_coop', $data['id_coop'])
+                    ->where('status', 'pending')->update(['status' => 'delete']);
+                return redirect()->back()->with('success', 'Заявка успешно отменена!');
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку позже');
+            }
         }
         return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку позже');
-
     }
 
 
@@ -317,6 +410,7 @@ class MyCooperatives extends Controller
                     CooperativeBlocks::create([
                         'id_coop' => $idCoop,
                         'number_block' => $new_number_block,
+                        'default_kw' => null
                     ]);
                     return back()->with('success', "Гаражный блок успешно создан $new_number_block/10");
                 } else {
@@ -390,77 +484,172 @@ class MyCooperatives extends Controller
     protected function MessagesMeters(Request $request, $idCoop)
     {
         if ($request->ajax()) {
-            $id_block = $request->input('id_block');
-            $meters_readings = MetersReadings::with('garages.user', 'cooperative')
-                ->where('id_block', $id_block)
-                ->where('id_coop', $idCoop)
-                ->where('status', 'pending')
-                ->get();
-            $folderPaths = [];
-            foreach ($meters_readings as $index => $file_url) {
-                $fio = $file_url->garages[0]->user->fio;
-                $nameCoop = $file_url->cooperative->name;
-                $regionFolder = explode(',', $file_url->cooperative->address);
-                $cityFolder = explode(',', $file_url->cooperative->city);
-                $nameAddress = trim($regionFolder[0]);
-                $nameCity = trim($cityFolder[0]);
-                $nameFile = $file_url->img_meter;
-                $folderPath = '../../StoragePiGarage/CoopMeters/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . $fio . '/' . $nameFile;
-
-                // Проверяем существование файла перед чтением
-                if (file_exists($folderPath) && is_readable($folderPath)) {
-                    // Читаем содержимое файла
-                    $fileContent = file_get_contents($folderPath);
-
-                    // Проверяем, удалось ли прочитать файл
-                    if ($fileContent !== false) {
-                        $base64Image = base64_encode($fileContent);
-                        $imgHtml = '<a id="lightbox-image-' . $index . '" href="data:image/jpg/jpeg/png;base64,' . $base64Image .
-                            '"data-title="Фото счётчика" data-lightbox="image-' . $index . '">' .
-                            '<img src="data:image/jpg/jpeg/png;base64,' . $base64Image . '" alt="Фото счётчика"></a>';
-                        $folderPaths[] = $imgHtml;
-                    } else {
-                        // Обработка ошибки чтения файла
-                        $folderPaths[] = '<span style="color: red;">Ошибка чтения файла</span>';
-                    }
-                } else {
-                    // Обработка отсутствия файла
-                    $folderPaths[] = '<span style="color: red;">Файл не существует или не доступен для чтения</span>';
-                }
+            try {
+                $data = $request->validate([
+                    'id_block' => 'required|integer|min:1',
+                    'year' => 'required|integer|min:1',
+                    'month' => 'required|numeric|min:0',
+                ]);
+            } catch (ValidationException|\Exception $e) {
+                return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
             }
+            try {
+                if (($data['year'] < 2023 || $data['year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['month'])) {
+                    return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже']);
+                }
+                $meters_readings = MeterReadings::with([
+                    'garages.user' => function($query) {
+                        $query->select('id', 'fio'); // Выбираем только id и fio из таблицы users
+                    },
+                    'cooperative' => function($query) {
+                        $query->select('id_coop', 'name', 'address', 'city'); // Выбираем нужные поля из cooperative, если необходимо
+                    }
+                ])
+                    ->where('id_block', $data['id_block'])
+                    ->where('id_coop', $idCoop)
+                    ->whereYear('send_date', $data['year'])
+                    ->whereMonth('send_date', $data['month'])
+                    ->where('status', 'pending')
+                    ->orderBy('id_reading', 'desc')
+                    ->get();
 
-            return response()->json([
-                'id_block' => $id_block,
-                'metersReadings' => $meters_readings,
-                'folderPaths' => $folderPaths
-            ]);
+                $meters_readings_old = MeterReadings::with([
+                    'garages.user' => function($query) {
+                        // Выбираем только id и fio из users
+                        $query->select('id', 'fio');
+                    },
+                    'cooperative' => function($query) {
+                        // Выбираем необходимые поля из cooperative
+                        $query->select('id_coop', 'name', 'address', 'city');
+                    }
+                ])
+                    ->where('meter_readings.id_block', $data['id_block'])
+                    ->where('meter_readings.id_coop', $idCoop)
+                    ->whereIn('meter_readings.status', ['accepted'])
+                    ->where('meter_readings.send_date', '<', Date::now())
+                    ->orderBy('meter_readings.id_reading', 'desc')
+                    ->get();
+
+                $folderPaths = [];
+                $folderPathsOld = [];
+                foreach ($meters_readings as $index => $file_url) {
+                    $fio = $file_url->garages[0]->user->fio;
+                    $nameCoop = $file_url->cooperative->name;
+                    $regionFolder = explode(',', $file_url->cooperative->address);
+                    $cityFolder = explode(',', $file_url->cooperative->city);
+                    $nameAddress = trim($regionFolder[0]);
+                    $nameCity = trim($cityFolder[0]);
+                    $nameFile = $file_url->img_meter;
+                    $date = $file_url->send_date;
+                    $folderPath = '../../StoragePiGarage/CoopMeters/' . $data['year'] . '/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . $fio . '/' . $nameFile;
+
+                    // Проверяем существование файла перед чтением
+                    if (file_exists($folderPath) && is_readable($folderPath)) {
+                        // Читаем содержимое файла
+                        $fileContent = file_get_contents($folderPath);
+
+                        // Проверяем, удалось ли прочитать файл
+                        if ($fileContent !== false) {
+                            $base64Image = base64_encode($fileContent);
+                            $imgHtml = '<a data-date="' . $date . '" id="lightbox-image-' . $index . '" href="data:image/jpg/jpeg/png;base64,' . $base64Image .
+                                '"data-title="Фото счётчика" data-lightbox="image-' . $index . '">' .
+                                '<img src="data:image/jpg/jpeg/png;base64,' . $base64Image . '" alt="Фото счётчика"></a>';
+                            $folderPaths[] = $imgHtml;
+                        } else {
+                            // Обработка ошибки чтения файла
+                            $folderPaths[] = '<span style="color: red;" data-date="' . $date . '">Ошибка чтения файла</span>';
+                        }
+                    } else {
+                        // Обработка отсутствия файла
+                        $folderPaths[] = '<span style="color: red;" data-date="' . $date . '">Файл не существует или не доступен для чтения</span>';
+                    }
+                }
+                foreach ($meters_readings_old as $index => $file_url) {
+                    $fio = $file_url->garages[0]->user->fio;
+                    $nameCoop = $file_url->cooperative->name;
+                    $regionFolder = explode(',', $file_url->cooperative->address);
+                    $cityFolder = explode(',', $file_url->cooperative->city);
+                    $nameAddress = trim($regionFolder[0]);
+                    $nameCity = trim($cityFolder[0]);
+                    $nameFile = $file_url->img_meter;
+                    $date = $file_url->send_date;
+                    $oldKw_meter = $file_url->kw_meter;
+                    $folderPath = '../../StoragePiGarage/CoopMeters/' . $data['year'] . '/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . $fio . '/' . $nameFile;
+
+                    // Проверяем существование файла перед чтением
+                    if (file_exists($folderPath) && is_readable($folderPath)) {
+                        // Читаем содержимое файла
+                        $fileContent = file_get_contents($folderPath);
+
+                        // Проверяем, удалось ли прочитать файл
+                        if ($fileContent !== false) {
+                            $base64Image = base64_encode($fileContent);
+                            $imgHtml = '<a data-date="' . $date . '" data-kw-meter="'.$oldKw_meter.'" id="lightbox-image-' . $index . '" href="data:image/jpg/jpeg/png;base64,' . $base64Image .
+                                '"data-title="Фото счётчика" data-lightbox="image-' . $index . '">' .
+                                '<img src="data:image/jpg/jpeg/png;base64,' . $base64Image . '" alt="Фото счётчика"></a>';
+                            $folderPathsOld[] = $imgHtml;
+                        } else {
+                            // Обработка ошибки чтения файла
+                            $folderPathsOld[] = '<span style="color: red;" data-date="' . $date . '">Ошибка чтения файла</span>';
+                        }
+                    } else {
+                        // Обработка отсутствия файла
+                        $folderPathsOld[] = '<span style="color: red;" data-date="' . $date . '">Файл не существует или не доступен</span>';
+                    }
+                }
+                return response()->json([
+                    'id_block' => $data['id_block'],
+                    'metersReadings' => $meters_readings,
+                    'folderPaths' => [
+                        'current' => $folderPaths, // Пути к фотографиям текущих показаний
+                        'old' => $folderPathsOld, // Пути к фотографиям прошлых показаний
+                    ],
+                    'monthNow' => $data['month']
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
         }
+        $year = Date::now()->format('Y');
+        $currentMonth = Date::now()->format('m');
         $coopData = Cooperatives::where('id_coop', $idCoop)->first();
-        $blocks = CooperativeBlocks::where('id_coop', $idCoop)->get();
+        $blocks = CooperativeBlocks::where('id_coop', $idCoop)
+            ->withCount(['meterReadings' => function ($query) {
+                $query->where('status', 'pending');
+            }])
+            ->get();
+
         return view('PagesForChairman.communication.messagesMeters',
-            compact('blocks', 'coopData', 'idCoop'));
+            compact('blocks', 'coopData', 'idCoop', 'year', 'currentMonth'));
 
     }
 
     protected function MessagesMetersPost(Request $request)
     {
-        $idMessage = $request->input('idMessage');
-        $numberMeter = $request->input('numberMeter');
-        $idReading = $request->input('idReading');
-        $metersReadings = MetersReadings::where('id_reading', $idReading);
-        if ($idMessage == 0) {
+        try {
+            $data = $request->validate([
+                'idMessage' => 'required|integer|min:0',
+                'numberMeter' => 'required|integer|min:0',
+                'idReading' => 'required|integer|min:1',
+            ]);
+        } catch (ValidationException|\Exception $e) {
+            return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
+        }
+        return response()->json(['response' => 'error']);
+        $metersReadings = MeterReadings::where('id_reading', $data['idReading']);
+        if ($data['idMessage'] == 0) {
             $metersReadings->update([
                 'status' => 'accepted',
-                'kw_meter' => $numberMeter
+                'kw_meter' => $data['numberMeter']
             ]);
-        } elseif ($idMessage == 1) {
+        } elseif ($data['idMessage'] == 1) {
             $metersReadings->update(['status' => 'canceled']);
         } else {
             return response()->json(['response' => 'error']);
         }
 
         if ($metersReadings->get()) {
-            return response()->json(['response' => $idReading]);
+            return response()->json(['response' => $data['idReading']]);
         }
 
         return response()->json(['response' => 'error']);
@@ -588,40 +777,84 @@ class MyCooperatives extends Controller
     protected function ChairmanMyCoopPayment(Request $request, $idCoop)
     {
         if ($request->ajax()) {
-            $data = request()->validate([
-                'id_year' => 'required|numeric|min:0',
-                'id_month_number' => 'required|numeric|min:0',
-            ]);
-            if (($data['id_year'] < 2023 || $data['id_year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['id_month_number'])) {
-                return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже']);
+            try {
+                $data = request()->validate([
+                    'id_year' => 'required|numeric|min:0',
+                    'id_month_number' => 'required|numeric|min:0',
+                ]);
+            } catch (ValidationException|\Exception $e) {
+                return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
             }
-            $valuePayMents = UserAndCoop::leftJoin('users', 'user_and_coop.user_id', '=', 'users.id')
-                ->leftJoin('payments', function ($join) use ($idCoop, $data) {
-                    $join->on('payments.user_id', '=', 'users.id')
-                        ->where('payments.id_coop', $idCoop)
-                        ->whereYear('payments.date_indication', $data['id_year'])
-                        ->whereMonth('payments.date_indication', $data['id_month_number']);
-                })
-                ->where('user_and_coop.id_coop', $idCoop)
-                ->orderByRaw('users.fio')
-                ->get();
-            return response()->json(['blockMessages' => $valuePayMents, 'year' => $data['id_year'], 'monthNow' => $data['id_month_number']]);
+            try {
+                if (($data['id_year'] < 2023 || $data['id_year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['id_month_number'])) {
+                    return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже']);
+                }
+                $valuePayMents = UserAndCoop::leftJoin('users', 'user_and_coop.user_id', '=', 'users.id')
+                    ->leftJoin('garages', function ($join) use ($idCoop) {
+                        $join->on('garages.user_id', '=', 'users.id')
+                            ->where('garages.id_coop', $idCoop);
+                    })
+                    ->leftJoin('payments', function ($join) use ($idCoop, $data) {
+                        $join->on('payments.id_garage', '=', 'garages.id_garage')
+                            ->where('payments.id_coop', $idCoop)
+                            ->where('payments.type_payment', 0)
+                            ->whereColumn('payments.id_garage', 'garages.id_garage')
+                            ->whereYear('payments.date_indication', $data['id_year'])
+                            ->whereMonth('payments.date_indication', $data['id_month_number']);
+                    })
+                    ->where('user_and_coop.id_coop', $idCoop)
+                    ->orderBy('users.fio')
+                    ->select(
+                        'users.id',
+                        'users.fio',
+                        'garages.id_garage as garage_id',  // Альтернативное имя для избежания коллизии
+                        'garages.number_garage',
+                        'garages.number_block',
+                        'payments.*'
+                    )
+                    ->get();
+                return response()->json(['blockMessages' => $valuePayMents, 'year' => $data['id_year'], 'monthNow' => $data['id_month_number']]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
+            }
         }
         $year = Date::now()->format('Y');
         $monthNow = Date::now()->format('m');
         $coopData = Cooperatives::where('id_coop', $idCoop)->first();
         $usersCoop = UserAndCoop::leftJoin('users', 'user_and_coop.user_id', '=', 'users.id')
+            ->leftJoin('garages', function ($join) use ($idCoop) {
+                $join->on('garages.user_id', '=', 'users.id')
+                    ->where('garages.id_coop', $idCoop);
+            })
             ->leftJoin('payments', function ($join) use ($idCoop, $year, $monthNow) {
-                $join->on('payments.user_id', '=', 'users.id')
+                $join->on('payments.id_garage', '=', 'garages.id_garage')
                     ->where('payments.id_coop', $idCoop)
+                    ->where('payments.type_payment', 0)
+                    ->whereColumn('payments.id_garage', 'garages.id_garage')
                     ->whereYear('payments.date_indication', $year)
                     ->whereMonth('payments.date_indication', $monthNow);
             })
             ->where('user_and_coop.id_coop', $idCoop)
-            ->orderByRaw('users.fio')
+            ->orderBy('users.fio')
+            ->select(
+                'users.id',
+                'users.fio',
+                'garages.id_garage as garage_id',  // Альтернативное имя для избежания коллизии
+                'garages.number_garage',
+                'garages.number_block',
+                'payments.*'
+            )
             ->get();
 
-        return view('PagesForChairman.profile.pivotTableCoop.pagePayment', compact('year', 'coopData', 'idCoop', 'usersCoop', 'monthNow'));
+        $blocksWithGarages = Garages::where('id_coop', $idCoop)
+            ->leftJoin('users', 'garages.user_id', '=', 'users.id')
+            ->orderBy('garages.number_block')
+            ->orderBy('garages.number_garage')
+            ->select('garages.*', 'garages.id_garage as garage_id')
+            ->get()
+            ->groupBy('number_block');
+
+        return view('PagesForChairman.profile.pivotTableCoop.pagePayment', compact('year', 'coopData', 'idCoop', 'usersCoop', 'blocksWithGarages', 'monthNow'));
     }
 
     protected function ChairmanMyCoopPaymentPost(Request $request, $idCoop)
@@ -629,6 +862,7 @@ class MyCooperatives extends Controller
         try {
             $data = request()->validate([
                 'id_user' => 'required|numeric|min:0',
+                'id_garage' => 'required|numeric|min:0',
                 'payment_value' => [
                     'nullable',
                     'numeric',
@@ -639,39 +873,182 @@ class MyCooperatives extends Controller
                 'id_month_number' => 'required|numeric|min:0',
             ]);
             if (($data['id_year'] < 2023 || $data['id_year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['id_month_number'])) {
-                return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже']);
+                return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже'], 500);
             }
             $selectUser = UserAndCoop::where('id_coop', $idCoop)
-                ->where('user_id', $data['id_user'])->first();
-            if (!$selectUser) {
-                return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже']);
-            }
-            $payMents = PayMents::where('id_coop', $idCoop)
                 ->where('user_id', $data['id_user'])
+                ->whereHas('garages', function ($query) use ($data, $idCoop) {
+                    $query->where('id_coop', $idCoop)
+                        ->where('id_garage', $data['id_garage']);
+                })->first();
+
+            if (!$selectUser) {
+                return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже'], 500);
+            }
+
+            $payMents = PayMents::where('id_coop', $idCoop)
+                ->where('id_garage', $data['id_garage'])
                 ->whereYear('date_indication', $data['id_year'])
                 ->whereMonth('date_indication', $data['id_month_number'])
                 ->first();
             if ($payMents) {
                 $paymentValue = ($data['payment_value'] === '0' || $data['payment_value'] === null) ? null : $data['payment_value'];
                 $payMents->update(['payment_value' => $paymentValue]);
-                $message = "Сохранено";
             } else {
                 if ($data['payment_value'] !== '0' && $data['payment_value'] !== null) {
                     PayMents::create([
                         'id_coop' => $idCoop,
-                        'user_id' => $data['id_user'],
+                        'id_garage' => $data['id_garage'],
                         'payment_value' => $data['payment_value'],
+                        'type_payment' => 0,
                         'date_indication' => $data['id_year'] . '-' . $data['id_month_number'] . '-' . Date::now()->format('d'),
                     ]);
                 }
-                $message = "Сохранено";
             }
+            $message = "Сохранено";
             return response()->json(['success' => $message]);
         } catch (\Exception $e) {
-            return response()->json(['error' => "Что-то пошло не так, повторите попытку позже"]);
+            return response()->json(['error' => "Что-то пошло не так, повторите попытку позже"], 500);
         }
     }
 
+    protected function ChairmanMyCoopPaymentOther(Request $request, $idCoop) {
+        if ($request->ajax()) {
+            try {
+                $data = request()->validate([
+                    'id_year' => 'required|numeric|min:0',
+                    'id_month_number' => 'required|numeric|min:0',
+                    'type_payment' => 'required|numeric|min:2',
+                ]);
+            } catch (ValidationException|\Exception $e) {
+                return response()->json(['error' => 'Ошибка валидации'], 500);
+            }
+            try {
+                if (($data['id_year'] < 2023 || $data['id_year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['id_month_number'])) {
+                    return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже']);
+                }
+                $valuePayMents = UserAndCoop::leftJoin('users', 'user_and_coop.user_id', '=', 'users.id')
+                    ->leftJoin('garages', function ($join) use ($idCoop) {
+                        $join->on('garages.user_id', '=', 'users.id')
+                            ->where('garages.id_coop', $idCoop);
+                    })
+                    ->leftJoin('payments', function ($join) use ($idCoop, $data) {
+                        $join->on('payments.id_garage', '=', 'garages.id_garage')
+                            ->where('payments.id_coop', $idCoop)
+                            ->where('payments.type_payment', $data['type_payment'])
+                            ->whereColumn('payments.id_garage', 'garages.id_garage')
+                            ->whereYear('payments.date_indication', $data['id_year'])
+                            ->whereMonth('payments.date_indication', $data['id_month_number']);
+                    })
+                    ->where('user_and_coop.id_coop', $idCoop)
+                    ->orderBy('users.fio')
+                    ->select(
+                        'users.id',
+                        'users.fio',
+                        'garages.id_garage as garage_id',  // Альтернативное имя для избежания коллизии
+                        'garages.number_garage',
+                        'garages.number_block',
+                        'payments.*'
+                    )
+                    ->get();
+                return response()->json(['blockMessages' => $valuePayMents, 'year' => $data['id_year'], 'monthNow' => $data['id_month_number']]);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
+            }
+        }
+        $year = Date::now()->format('Y');
+        $monthNow = Date::now()->format('m');
+        $coopData = Cooperatives::where('id_coop', $idCoop)->first();
+        $usersCoop = UserAndCoop::leftJoin('users', 'user_and_coop.user_id', '=', 'users.id')
+            ->leftJoin('garages', function ($join) use ($idCoop) {
+                $join->on('garages.user_id', '=', 'users.id')
+                    ->where('garages.id_coop', $idCoop);
+            })
+            ->leftJoin('payments', function ($join) use ($idCoop, $year, $monthNow) {
+                $join->on('payments.id_garage', '=', 'garages.id_garage')
+                    ->where('payments.id_coop', $idCoop)
+                    ->where('payments.type_payment', 2)
+                    ->whereColumn('payments.id_garage', 'garages.id_garage')
+                    ->whereYear('payments.date_indication', $year)
+                    ->whereMonth('payments.date_indication', $monthNow);
+            })
+            ->where('user_and_coop.id_coop', $idCoop)
+            ->orderBy('users.fio')
+            ->select(
+                'users.id',
+                'users.fio',
+                'garages.id_garage as garage_id',  // Альтернативное имя для избежания коллизии
+                'garages.number_garage',
+                'garages.number_block',
+                'payments.*'
+            )
+            ->get();
+
+        $blocksWithGarages = Garages::where('id_coop', $idCoop)
+            ->leftJoin('users', 'garages.user_id', '=', 'users.id')
+            ->orderBy('garages.number_block')
+            ->orderBy('garages.number_garage')
+            ->select('garages.*', 'garages.id_garage as garage_id')
+            ->get()
+            ->groupBy('number_block');
+
+        return view('PagesForChairman.profile.pivotTableCoop.pagePaymentOther', compact('year', 'coopData', 'idCoop', 'usersCoop', 'blocksWithGarages', 'monthNow'));
+    }
+    protected function ChairmanMyCoopPaymentOtherPost(Request $request, $idCoop) {
+        try {
+            $data = request()->validate([
+                'id_user' => 'required|numeric|min:0',
+                'id_garage' => 'required|numeric|min:0',
+                'payment_value' => [
+                    'nullable',
+                    'numeric',
+                    'min:0',
+                    Rule::notIn([-1]),
+                ],
+                'id_year' => 'required|numeric|min:0',
+                'id_month_number' => 'required|numeric|min:0',
+                'type_payment' => 'required|numeric|min:2'
+            ]);
+            if (($data['id_year'] < 2023 || $data['id_year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['id_month_number'])) {
+                return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже'], 500);
+            }
+            $selectUser = UserAndCoop::where('id_coop', $idCoop)
+                ->where('user_id', $data['id_user'])
+                ->whereHas('garages', function ($query) use ($data, $idCoop) {
+                    $query->where('id_coop', $idCoop)
+                        ->where('id_garage', $data['id_garage']);
+                })->first();
+
+            if (!$selectUser) {
+                return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже'], 500);
+            }
+
+            $payMents = PayMents::where('id_coop', $idCoop)
+                ->where('id_garage', $data['id_garage'])
+                ->where('type_payment', $data['type_payment'])
+                ->whereYear('date_indication', $data['id_year'])
+                ->whereMonth('date_indication', $data['id_month_number'])
+                ->first();
+            if ($payMents) {
+                $paymentValue = ($data['payment_value'] === '0' || $data['payment_value'] === null) ? null : $data['payment_value'];
+                $payMents->update(['payment_value' => $paymentValue]);
+            } else {
+                if ($data['payment_value'] !== '0' && $data['payment_value'] !== null) {
+                    PayMents::create([
+                        'id_coop' => $idCoop,
+                        'id_garage' => $data['id_garage'],
+                        'payment_value' => $data['payment_value'],
+                        'type_payment' => $data['type_payment'],
+                        'date_indication' => $data['id_year'] . '-' . $data['id_month_number'] . '-' . Date::now()->format('d'),
+                    ]);
+                }
+            }
+            $message = "Сохранено";
+            return response()->json(['success' => $message]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 
     //Участники кооператива
     protected function ParticipantsCoop(Request $request, $idCoop)
@@ -698,7 +1075,8 @@ class MyCooperatives extends Controller
             ->orderBy('users.fio')
             ->get();
 
-        $usersGroupedByBlocks = $dataUsers->groupBy('number_block')->map(function ($users) {
+        // Группируем пользователей по номеру блока, для тех у кого есть гараж
+        $usersGroupedByBlocks = $dataUsers->whereNotNull('number_garage')->groupBy('number_block')->map(function ($users) {
             return $users->groupBy('id')->map(function ($userGarages) {
                 $userData = $userGarages->first();
                 $garages = $userGarages->map(function ($garage) {
@@ -716,15 +1094,25 @@ class MyCooperatives extends Controller
             })->values();
         });
 
-        $emptyBlocks = $garageBlocks->filter(function($block) use ($usersGroupedByBlocks) {
+        // Получаем пользователей без гаража
+        $notGarageArrayUsers = $dataUsers->whereNull('number_garage')->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'fio' => $user->fio,
+                'phone' => $user->phone,
+                'second_phone' => $user->second_phone,
+                'home_phone' => $user->home_phone,
+                'email' => $user->email,
+                'garages' => [] // Пустой массив, так как гаражей нет
+            ];
+        });
+
+        $emptyBlocks = $garageBlocks->filter(function ($block) use ($usersGroupedByBlocks) {
             return !isset($usersGroupedByBlocks[$block->number_block]);
         });
 
-        return view('PagesForChairman.profile.pivotTableCoop.participantsCoop', compact('coopData', 'idCoop', 'usersGroupedByBlocks', 'garageBlocks', 'emptyBlocks'));
+        return view('PagesForChairman.profile.pivotTableCoop.participantsCoop', compact('coopData', 'idCoop', 'usersGroupedByBlocks', 'garageBlocks', 'emptyBlocks', 'notGarageArrayUsers'));
     }
-
-
-
 
 
     //Функция для проверки соответствия координат от пользователя
@@ -781,5 +1169,50 @@ class MyCooperatives extends Controller
 
         // Если все ключи исчерпаны и запрос не удался
         return false;
+    }
+
+    protected function ChairmanSelectCoopsAJAX(Request $request)
+    {
+        if ($request->ajax()) {
+            $key = 'ChairmanSelectCoopsAJAX|' . $request->ip(); // Уникальный ключ для IP-адреса
+
+            if (RateLimiter::tooManyAttempts($key, 30)) { // Максимум 30 запросов
+                return response()->json(['error' => 'Слишком много запросов. Пожалуйста, подождите.'], 429);
+            }
+
+            RateLimiter::hit($key, 60); // Запрос считается в течение 60 секунд
+            $coordinates = $request->input('bounds');
+            if (!$coordinates) {
+                return response()->json(['error' => 'Ошибка получения данных'], 500);
+            }
+            try {
+                $minLatitude = number_format($coordinates[0][0], 6, '.', '');
+                $maxLatitude = number_format($coordinates[1][0], 6, '.', '');
+                $minLongitude = number_format($coordinates[0][1], 6, '.', '');
+                $maxLongitude = number_format($coordinates[1][1], 6, '.', '');
+
+                $cooperatives = Cooperatives::select('cooperatives.*', 'users.fio')
+                    ->leftJoin('users', 'cooperatives.user_id', '=', 'users.id')
+                    ->withCount('amountGarageBlock')
+                    ->where('users.id_al', 2)
+                    ->whereBetween('cooperatives.latitude', [$minLatitude, $maxLatitude])
+                    ->whereBetween('cooperatives.longitude', [$minLongitude, $maxLongitude])
+                    ->get();
+
+                $applicationStatus = ApplicationsForAccessions::withTrashed()
+                    ->where('user_id', Auth::id())
+                    ->get();
+
+                $response = [
+                    'cooperatives' => $cooperatives,
+                    'applicationStatus' => $applicationStatus,
+                ];
+
+                return response()->json($response);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Ошибка получения данных'], 500);
+            }
+        }
+        return redirect()->back();
     }
 }

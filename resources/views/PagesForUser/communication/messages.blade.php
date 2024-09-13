@@ -1,17 +1,19 @@
-@extends('layouts.profileChairman', ['MessagesStyles' => ['messages.css', 'scroll.css']])
+@extends('layouts.mainChairman', ['MessagesStyles' => ['messages.css', 'scroll.css']])
 
 @section('profile')
-<div class="main_block">
-    <div class="main_head">
-        <a href="{{route('Messages.index', ['id' => Auth::id()])}}" class="active">Сообщения</a>
-    </div>
-    <div class="main_body">
-        <span style="font-size: 35px;">Страница находится в разработке</span>
-       <!--  <div class="left_block">
-            <?php for ($i=0; $i < 10; $i++) { ?>
-                <div class="block_coop">
-                    <div class="img_center_left">
-                        <img src="{{asset('image/user/defaultGarage.jpg')}}" alt="кооператив">
+    <div class="main_block">
+        <div class="main_head">
+            <a href="{{route('Messages.index', ['id' => Auth::id()])}}" class="active">Сообщения</a>
+        </div>
+        <div class="main_body">
+            <span style="font-size: 35px;">Страница находится в разработке</span>
+            <!--  <div class="left_block">
+            <?php for ($i = 0;
+                       $i < 10;
+                       $i++) { ?>
+                    <div class="block_coop">
+                        <div class="img_center_left">
+                            <img src="{{asset('image/user/defaultGarage.jpg')}}" alt="кооператив">
                     </div>
                     <div class="right_text">
                         <span>
@@ -20,12 +22,14 @@
                     </div>
                 </div>
             <?php } ?>
-        </div>
-        <div class="right_block">
-           <?php for ($i=0; $i < 10; $i++) { ?>
-            <div class="block_applications">
-                <div class="img_center_left">
-                    <img src="{{asset('image/user/DefaultUser.jpg')}}" alt="кооператив">
+                    </div>
+                    <div class="right_block">
+<?php for ($i = 0;
+                      $i < 10;
+                      $i++) { ?>
+                    <div class="block_applications">
+                        <div class="img_center_left">
+                            <img src="{{asset('image/user/DefaultUser.jpg')}}" alt="кооператив">
                 </div>
                 <div class="right_text">
                     <span>
@@ -42,7 +46,7 @@
                 </div>
             </div>
         <?php } ?>
-    </div> -->
-</div>
-</div>
+                    </div> -->
+        </div>
+    </div>
 @endsection

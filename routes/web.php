@@ -9,6 +9,8 @@ use App\Http\Middleware\CheckChairmanAccess;
 Route::get('/', 'MasterController@index')
     ->name('welcome.index');
 
+//Очистка Laravel. Очень важное!!!
+//Без него невозможно добавить новый route адрес
 Route::get('/cc', function () {
     Artisan::call('config:clear');
     Artisan::call('view:clear');
@@ -46,19 +48,26 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
 
     // Главные страницы гаража
     Route::middleware([CheckIdGarage::class])->group(function () {
+        //Главаная таблица (сводная) гаража
         Route::get('/Chairman/Garage/{idGarage}/PivotTable/', 'PageProfileController@myGaragePivotTable')
             ->name('myGaragePivotTable.index');
+
+        //Отправка показаний счётчка председателю
         Route::get('/Chairman/Garage/{idGarage}/SubmitIndications/{numberGarage}', 'PageProfileController@ChairmanSubmitIndicationsGarage')
             ->name('ChairmanSubmitIndicationsGarage.index');
         Route::post('/Chairman/Garage/{idGarage}/SubmitIndications/{numberGarage}/Request', 'PageProfileController@ChairmanSubmitIndicationsPostGarage')
             ->name('ChairmanSubmitIndicationsPostGarage.store');
+
+        //Список номеров счётчиков гаража/изменение счётчика гаража/добавление нового счётчика
+        Route::get('/Chairman/Garage/{idGarage}/PivotTable/meters', 'PageProfileController@garageMeters')->name('garageMeters.index');
+        Route::post('/Chairman/Garage/{idGarage}/PivotTable/meters', 'PageProfileController@garageMetersPost')->name('garageMeters.store');
     });
 
     // Создание гаража
     Route::get('/Chairman/Garage/CreateGarage/', 'PageProfileController@ChairmanCreateGarage')
         ->name('ChairmanCreateGarage.index');
-    Route::post('/Chairman/Garage/CreateGarage/', 'PageProfileController@ChairmanCreatingGarage')
-            ->name('ChairmanCreatingGarage.store');
+    Route::post('/Chairman/Garage/CreateGarage/', 'PageProfileController@ChairmanCreateGaragePost')
+            ->name('ChairmanCreateGaragePost.store');
 
     // Список кооператив председателя
     Route::get('/Chairman/MyCoop/', 'MyCooperatives@ChairmanMyCoop')
@@ -92,6 +101,12 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
         Route::post('/Chairman/MyCoop/PivotTable/{idCoop}/Payment', 'MyCooperatives@ChairmanMyCoopPaymentPost')
             ->name('ChairmanMyCoopPaymentPost.store');
 
+        // Установить оплату, таблица сборов
+        Route::get('/Chairman/MyCoop/PivotTable/{idCoop}/PaymentOther', 'MyCooperatives@ChairmanMyCoopPaymentOther')
+            ->name('ChairmanMyCoopPaymentOther.index');
+        Route::post('/Chairman/MyCoop/PivotTable/{idCoop}/PaymentOther', 'MyCooperatives@ChairmanMyCoopPaymentOtherPost')
+            ->name('ChairmanMyCoopPaymentOtherPost.store');
+
         // гаражные блоки кооператива
         Route::get('/Chairman/MyCoop/{idCoop}/Blocks', 'MyCooperatives@ChairmanMyCoopBlocks')
             ->name('ChairmanMyCoopBlocks.index');
@@ -113,6 +128,10 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
     Route::post('/Chairman/MyCoop/CreateMyCoop/', 'MyCooperatives@ChairmanCreateMyCoopPost')
         ->name('ChairmanSendingDataCreateCoop.store');
 
+    // Возвращает кооперативы по координатам через AJAX
+    Route::get('/Chairman/MyCoop/SelectCoopsAJAX/', 'MyCooperatives@ChairmanSelectCoopsAJAX')
+        ->name('ChairmanSelectCoopsAJAX.index')->middleware('throttle:30,1');
+
     // Присоединение к кооперативу
     Route::get('/Chairman/MyCoop/ConnectMyCoop/', 'MyCooperatives@ChairmanConnectCoop')
         ->name('ChairmanConnectCoop.index');
@@ -122,6 +141,8 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
     // Заявки самого пользователя на присоединения к кооперативу
     Route::get('/Chairman/MyCoop/MyApplicationToCoop/', 'CommunicationController@MyApplicationToCoop')
         ->name('MyApplicationToCoop.index');
+    Route::post('/Chairman/MyCoop/MyApplicationToCoop/', 'CommunicationController@MyApplicationToCoopPost')
+        ->name('MyApplicationToCoopPost.store');
 
     // Заявки других пользователей на присоединение к кооперативу
     Route::get('/Chairman/Communication/Applications/', 'CommunicationController@Applications')

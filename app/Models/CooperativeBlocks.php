@@ -14,4 +14,8 @@ class CooperativeBlocks extends Model
     protected $table = 'cooperative_blocks';
     protected $guarded = [];
     protected $primaryKey = 'id_block';
+    public function meterReadings()
+    {
+        return $this->hasMany(MeterReadings::class, 'id_block', 'id_block');
+    }
 }

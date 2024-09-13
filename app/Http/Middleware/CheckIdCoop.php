@@ -29,6 +29,6 @@ class CheckIdCoop
         }
 
         // Если пользователь не имеет доступа, перенаправляем его на предыдущую страницу
-        return Redirect::back();
+        return \redirect()->route('ChairmanMyCoop.index');
     }
 }

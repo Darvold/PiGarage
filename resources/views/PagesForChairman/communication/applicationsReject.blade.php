@@ -1,4 +1,4 @@
-@extends('layouts.profileChairman', ['ApplicationsStyles' => ['applications.css', 'scroll_coop.css']])
+@extends('layouts.mainChairman', ['ApplicationsStyles' => ['applications.css', 'scroll_coop.css']])
 
 @section('profile')
     <div class="main_block">
@@ -6,46 +6,47 @@
             <a href="{{route('Applications.index')}}">Заявки</a>
             <a href="{{route('ApplicationsReject.index')}}" class="active">Отклонённые заявки</a>
         </div>
-   <div class="main_body">
-        <div class="left_block">
-            <span class="my_coop">Мои кооперативы</span>
-            <div class="list_my_coop">
-            @foreach($coops as $coop)
-            <form class="myForm" data-id-coop="{{$coop->id_coop}}" method="GET" action="">
-                @csrf
-                <button type="submit" class="button_coop_array" data-id-coop="{{$coop->id_coop}}">
-                    <div class="block_coop">
-                        <div class="img_center_left_icon">
-                            <img src="{{asset('image/user/defaultGarage.jpg')}}" alt="кооператив">
-                        </div>
-                        <div class="right_text_left_column">
+        <div class="main_body">
+            <div class="left_block">
+                <span class="my_coop">Мои кооперативы</span>
+                <div class="list_my_coop">
+                    @foreach($coops as $coop)
+                        <form class="myForm" data-id-coop="{{$coop->id_coop}}" method="GET" action="">
+                            @csrf
+                            <button type="submit" class="button_coop_array" data-id-coop="{{$coop->id_coop}}">
+                                <div class="block_coop">
+                                    <div class="img_center_left_icon">
+                                        <img src="{{asset('image/user/defaultGarage.jpg')}}" alt="кооператив">
+                                    </div>
+                                    <div class="right_text_left_column">
                             <span>
                                 {{$coop -> name}}
                             </span>
-                        <p class="count_garage_block">Количество гаражных блоков: {{$coop->amount_garage_block_count}}</p>
-                        </div>
-                        <span class="active_click" data-coop-id="{{$coop->id_coop}}"></span>
-                    </div>
-                </button>
-            </form>
-            @endforeach
-          </div>
-        </div>
-        <div class="right_two_contains">
-            <div class="buttons_ajax">
-                <button class="buttons_ajax_user" data-type="user">Заявки от пользователей</button>
-                <button class="buttons_ajax_participant" data-type="participant">Запросы от участников</button>
-            </div>
-            <div class="right_block">
-                <div class="messageArray">
-
+                                        <p class="count_garage_block">Количество гаражных
+                                            блоков: {{$coop->amount_garage_block_count}}</p>
+                                    </div>
+                                    <span class="active_click" data-coop-id="{{$coop->id_coop}}"></span>
+                                </div>
+                            </button>
+                        </form>
+                    @endforeach
                 </div>
-                <span class="messages_container">Нажмите на нужный кооператив, а после выбор запроса: <br> <br>
+            </div>
+            <div class="right_two_contains">
+                <div class="buttons_ajax">
+                    <button class="buttons_ajax_user" data-type="user">Заявки от пользователей</button>
+                    <button class="buttons_ajax_participant" data-type="participant">Запросы от участников</button>
+                </div>
+                <div class="right_block">
+                    <div class="messageArray">
+
+                    </div>
+                    <span class="messages_container">Нажмите на нужный кооператив, а после выбор запроса: <br> <br>
                     1) "Заявки от пользователей" – те, кто желает присоединиться к вашему кооперативу; <br> <br>
                 2) "Запросы от участников" – запросы от своих участников кооператива, которые желают присоединить свой гараж, к вашему кооперативу.</span>
+                </div>
             </div>
         </div>
-    </div>
     </div>
     <script>
         $(document).ready(function () {
@@ -93,7 +94,7 @@
                                         <!-- Принять заявку -->
                                         <form id="formAddUser_${coopMessage.user_id}" class="myFormAddUser" method="POST" action="">
                                             @csrf
-                                            <input type="hidden" name="user_id" value="${coopMessage.user_id}">
+                                <input type="hidden" name="user_id" value="${coopMessage.user_id}">
                                             <input type="hidden" name="coop_id" value="${idCoopValue}">
                                             <input type="hidden" name="ip_massage" value="1">
                                             <button type="submit" class="button_green">Принять</button>
@@ -101,7 +102,7 @@
                                         <!-- Удалить заявку -->
                                         <form id="formRejectUser_${coopMessage.user_id}" class="myFormRejectUser" method="POST" action="">
                                             @csrf
-                                            <input type="hidden" name="user_id" value="${coopMessage.user_id}">
+                                <input type="hidden" name="user_id" value="${coopMessage.user_id}">
                                             <input type="hidden" name="coop_id" value="${idCoopValue}">
                                             <input type="hidden" name="ip_massage" value="2">
                                             <button type="submit" class="button_red">Удалить</button>
@@ -355,45 +356,45 @@
                     }
                 });
             });
-                $(document).on('submit', '.myFormAddGarage', function (e) {
-                    e.preventDefault();
-                    let userIdValue = $(this).find('input[name="user_id"]').val();
-                    let idCoopValue = $(this).find('input[name="coop_id"]').val();
-                    let ipMessage = $(this).find('input[name="ip_massage"]').val();
+            $(document).on('submit', '.myFormAddGarage', function (e) {
+                e.preventDefault();
+                let userIdValue = $(this).find('input[name="user_id"]').val();
+                let idCoopValue = $(this).find('input[name="coop_id"]').val();
+                let ipMessage = $(this).find('input[name="ip_massage"]').val();
 
-                    let numberGarage = $(this).find('input[name="number_garage"]').val();
-                    let numberBlock = $(this).find('input[name="number_block"]').val();
-                    let numberMeter = $(this).find('input[name="number_meter"]').val();
+                let numberGarage = $(this).find('input[name="number_garage"]').val();
+                let numberBlock = $(this).find('input[name="number_block"]').val();
+                let numberMeter = $(this).find('input[name="number_meter"]').val();
 
-                    $.ajax({
-                        url: "{{ route('ApplicationsRejectPost.store', ['id' => Auth::id()])}}",
-                        type: "POST",
-                        data: {
-                            idUser: userIdValue,
-                            idCoop: idCoopValue,
-                            ipMessage: ipMessage,
-                            numberGarage: numberGarage,
-                            numberBlock: numberBlock,
-                            numberMeter: numberMeter,
-                            _token: '{{ csrf_token() }}',
-                        },
-                        success: function (response) {
-                            /*           console.log('Пользователь ID:' + response.idUser);
-                                       console.log('Кооператив ID:' + response.idCoop);
-                                       console.log('Заявка номер 1');*/
-                            // Скрываем все формы для данного пользователя
-                            $(`#formMessageGarage_${response.idUser}`).fadeOut(500, function () {
-                                $(this).remove();
-                            });
-                        },
-                        error: function (error) {
-                            console.log('ошибка');
-                            console.log('номер счётчика ' + error.numberMeter);
-                            console.log('ID пользователя ' + error.user_id);
-                            console.log('ID сообщения ' + error.ip_message);
-                        }
-                    });
+                $.ajax({
+                    url: "{{ route('ApplicationsRejectPost.store', ['id' => Auth::id()])}}",
+                    type: "POST",
+                    data: {
+                        idUser: userIdValue,
+                        idCoop: idCoopValue,
+                        ipMessage: ipMessage,
+                        numberGarage: numberGarage,
+                        numberBlock: numberBlock,
+                        numberMeter: numberMeter,
+                        _token: '{{ csrf_token() }}',
+                    },
+                    success: function (response) {
+                        /*           console.log('Пользователь ID:' + response.idUser);
+                                   console.log('Кооператив ID:' + response.idCoop);
+                                   console.log('Заявка номер 1');*/
+                        // Скрываем все формы для данного пользователя
+                        $(`#formMessageGarage_${response.idUser}`).fadeOut(500, function () {
+                            $(this).remove();
+                        });
+                    },
+                    error: function (error) {
+                        console.log('ошибка');
+                        console.log('номер счётчика ' + error.numberMeter);
+                        console.log('ID пользователя ' + error.user_id);
+                        console.log('ID сообщения ' + error.ip_message);
+                    }
                 });
+            });
 
 
             $(document).on('submit', '.myFormRejectGarage', function (e) {
