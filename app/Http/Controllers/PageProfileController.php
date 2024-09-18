@@ -210,10 +210,10 @@ class PageProfileController extends Controller
                 'img_meter' => 'required|image|mimes:jpeg,png,jpg|max:50000',
             ]);
             $data['kw_meter'] = ltrim($data['kw_meter'], '0');
-            $coopURL = Garages::select('garages.*', 'meter_numbers.id_meter_number')
-                ->join('meter_numbers', 'meter_numbers.id_garage', '=', 'garages.id_garage')
+            $coopURL = Garages::select('garages.*', 'meter_numbers_garages.id_meter_number')
+                ->join('meter_numbers_garages', 'meter_numbers_garages.id_garage', '=', 'garages.id_garage')
                 ->where('garages.id_garage', $idGarage)
-                ->where('meter_numbers.active', 1)
+                ->where('meter_numbers_garages.active', 1)
                 ->with(['cooperative', 'user'])
                 ->first();
             if (!$coopURL) {
