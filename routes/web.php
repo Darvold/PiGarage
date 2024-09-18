@@ -120,6 +120,12 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
             ->name('MessagesMeters.index');
         Route::post('/Chairman/MyCoop/{idCoop}/MetersUser/', 'MyCooperatives@MessagesMetersPost')
             ->name('MessagesMetersPost.store');
+
+        //Список номеров счётчиков гаража/изменение счётчика гаража/добавление нового счётчика
+        Route::get('/Chairman/MyCoop/{idCoop}/PivotTable/meters', 'MyCooperatives@coopMeters')
+            ->name('coopMeters.index');
+        Route::post('/Chairman/MyCoop/{idCoop}/PivotTable/meters', 'MyCooperatives@coopMetersPost')
+            ->name('coopMeters.store');
     });
 
     // Создание кооператива

@@ -10,6 +10,7 @@ use App\Models\Cooperatives;
 use App\Models\CooperativesBlocksLossesKw;
 use App\Models\coopLosses;
 use App\Models\Garages;
+use App\Models\MeterNumbersGarages;
 use App\Models\MeterReadings;
 use App\Models\PayMents;
 use App\Models\Rates;
@@ -1112,6 +1113,79 @@ class MyCooperatives extends Controller
         });
 
         return view('PagesForChairman.profile.pivotTableCoop.participantsCoop', compact('coopData', 'idCoop', 'usersGroupedByBlocks', 'garageBlocks', 'emptyBlocks', 'notGarageArrayUsers'));
+    }
+
+
+    protected function coopMeters(Request $request, $idGarage)
+    {
+        $garage = Garages::select('garages.*')
+            ->where('garages.id_garage', $idGarage)->first();
+        $meters = MeterNumbersGarages::where('id_garage', $idGarage)
+            ->orderBy('id_meter_number', 'desc')
+            ->get();
+        return view('PagesForChairman.profile.pageGarage.garageMeters', compact(['garage', 'meters']));
+    }
+
+    protected function coopMetersPost(Request $request, $idGarage)
+    {
+        try {
+            $data = $request->validate([
+                'meter_number' => 'required|integer|min:0',
+                'number_id' => 'integer|min:1',
+                'idPost' => 'required|integer|min:0',
+            ]);
+
+            if ($data['idPost'] == 0) {
+                $meter_readings = MeterReadings::leftJoin('garages', 'garages.id_garage', '=', 'meter_readings.id_garage')
+                    ->where('meter_readings.id_garage', $idGarage)
+                    ->where('meter_readings.status', 'pending')
+                    ->whereColumn('garages.id_coop', 'meter_readings.id_coop') // сравнение двух столбцов
+                    ->first();
+                if ($meter_readings) {
+                    return redirect()->back()->with('error', 'Нельзя добавить счётчик, пока ваши показания находятся в ожидании');
+                }
+                $number_meter = MeterNumbersGarages::where('id_garage', $idGarage)
+                    ->whereYear('creation_date', Date::now('Y'))->get();
+                if (count($number_meter) > 3) {
+                    return redirect()->back()->with('error', 'Нельзя добавить больше 3 счётчиков в год');
+                }
+                MeterNumbersGarages::where('id_garage', $idGarage)
+                    ->whereYear('creation_date', Date::now('Y'))->update(['active' => 0]);
+                MeterNumbersGarages::create([
+                    'id_garage' => $idGarage,
+                    'meter_number' => $data['meter_number'],
+                    'active' => 1,
+                    'creation_date' => Date::now(),
+                ]);
+                return redirect()->back()->with('success', 'Счётчик успешно добавлен!');
+            }
+
+            // Обработка для idPost == 1
+            if ($data['idPost'] == 1) {
+                $number_meter = MeterNumbersGarages::where('id_garage', $idGarage)
+                    ->where('id_meter_number', $data['number_id'])
+                    ->where('active', 1)->first();
+
+                if ($number_meter) {
+                    // Обновление данных
+                    $number_meter->update(['meter_number' => $data['meter_number']]);
+                    return redirect()->back()->with('success', 'Номер успешно изменён!');
+                }
+
+                // Случай, когда номер не найден
+                return redirect()->back()->with('error', 'Не удалось найти счётчик или он является не активным.');
+            }
+
+            // Если idPost не равен 1
+            return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку позже');
+
+        } catch (ValidationException $e) {
+            // Обработка исключений валидации
+            return redirect()->back()->with('error', 'Ошибка валидации данных');
+        } catch (\Exception $e) {
+            // Общая обработка исключений
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
 

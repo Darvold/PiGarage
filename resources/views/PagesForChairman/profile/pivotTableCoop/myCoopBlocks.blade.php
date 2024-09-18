@@ -17,7 +17,7 @@
                                 <input type="hidden" name="block_number" value="{{$block->number_block}}">
                                 <button type="submit" class="button_block" data-id-button="{{$block->id_block}}">
                                     <span class="span_number_block">Гаражный блок №{{$block->number_block}}</span>
-                                    <span class="span_users_block">Количество участников: 34</span>
+                                    <span class="span_users_block"> <img src="{{asset('icons/user/users.svg')}}" alt="Пользователи" class="users" id="users">: 34</span>
                                 </button>
                             </form>
                         @endforeach

@@ -8,7 +8,7 @@ use App\Models\ApplicationsGarageToCoop;
 use App\Models\CooperativeBlocks;
 use App\Models\CooperativesBlocksLossesKw;
 use App\Models\Garages;
-use App\Models\MeterNumbers;
+use App\Models\MeterNumbersGarages;
 use App\Models\MeterReadings;
 use App\Models\User;
 use App\Models\UserAndCoop;
@@ -293,7 +293,7 @@ class PageProfileController extends Controller
     {
         $garage = Garages::select('garages.*')
             ->where('garages.id_garage', $idGarage)->first();
-        $meters = MeterNumbers::where('id_garage', $idGarage)
+        $meters = MeterNumbersGarages::where('id_garage', $idGarage)
             ->orderBy('id_meter_number', 'desc')
             ->get();
         return view('PagesForChairman.profile.pageGarage.garageMeters', compact(['garage', 'meters']));
@@ -317,14 +317,14 @@ class PageProfileController extends Controller
                 if ($meter_readings) {
                     return redirect()->back()->with('error', 'Нельзя добавить счётчик, пока ваши показания находятся в ожидании');
                 }
-                $number_meter = MeterNumbers::where('id_garage', $idGarage)
+                $number_meter = MeterNumbersGarages::where('id_garage', $idGarage)
                     ->whereYear('creation_date', Date::now('Y'))->get();
                 if (count($number_meter) > 3) {
                     return redirect()->back()->with('error', 'Нельзя добавить больше 3 счётчиков в год');
                 }
-                MeterNumbers::where('id_garage', $idGarage)
+                MeterNumbersGarages::where('id_garage', $idGarage)
                     ->whereYear('creation_date', Date::now('Y'))->update(['active' => 0]);
-                MeterNumbers::create([
+                MeterNumbersGarages::create([
                     'id_garage' => $idGarage,
                     'meter_number' => $data['meter_number'],
                     'active' => 1,
@@ -335,7 +335,7 @@ class PageProfileController extends Controller
 
             // Обработка для idPost == 1
             if ($data['idPost'] == 1) {
-                $number_meter = MeterNumbers::where('id_garage', $idGarage)
+                $number_meter = MeterNumbersGarages::where('id_garage', $idGarage)
                     ->where('id_meter_number', $data['number_id'])
                     ->where('active', 1)->first();
 

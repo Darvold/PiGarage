@@ -6,7 +6,7 @@ use App\Models\ApplicationsForAccessions;
 use App\Models\ApplicationsGarageToCoop;
 use App\Models\CooperativeBlocks;
 use App\Models\Garages;
-use App\Models\MeterNumbers;
+use App\Models\MeterNumbersGarages;
 use App\Models\MeterReadings;
 use App\Models\UserAndCoop;
 use App\Models\Users;
@@ -172,7 +172,7 @@ class CommunicationController extends Controller
                                     ->first();
                                 if ($existingGarage) {
                                     $existingGarage->restore();
-                                    MeterNumbers::where('id_garage', $existingGarage->id_garage)->update(['meter_number' => $gData['number_meter']]);
+                                    MeterNumbersGarages::where('id_garage', $existingGarage->id_garage)->update(['meter_number' => $gData['number_meter']]);
                                     $existingGarage->update([
                                         'id_block' => $coopBlockCount->id_block,
                                         'number_garage' => $gData['number_garage'],
@@ -189,7 +189,7 @@ class CommunicationController extends Controller
                                         'number_block' => $gData['number_block'],
                                         'id_meter_number' => null
                                     ]);
-                                    $meter_number = MeterNumbers::create([
+                                    $meter_number = MeterNumbersGarages::create([
                                         'id_garage' => $newGarage->id_garage,
                                         'meter_number' => $gData['number_meter'],
                                         'active' => 1,

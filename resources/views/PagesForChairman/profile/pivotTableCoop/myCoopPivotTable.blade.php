@@ -8,11 +8,11 @@
     </div>
     <div class="main_head_tools">
         <div class="block_information_link">
-            <a>История замена счётчиков</a>
+            <a href="{{route('coopMeters.index', ['idCoop' => $coopData -> id_coop])}}">История/замена счётчика</a>
             <a href="{{route('ChairmanMyCoopParticipants.index', ['idCoop' => $coopData -> id_coop])}}">Все
             участники</a>
             <a href="{{route('MessagesMeters.index', ['idCoop' => $coopData -> id_coop])}}">Показания участников</a>
-            <a href="{{route('ChairmanMyCoopBlocks.index', ['idCoop' => $idCoop])}}">Гаражные блоки / потери</a>
+            <a href="{{route('ChairmanMyCoopBlocks.index', ['idCoop' => $idCoop])}}">Гаражные блоки/потери</a>
         </div>
         <button class="Button_right">Настройки кооператива</button>
     </div>

@@ -39,26 +39,32 @@
 	font-size: 26px;
 }
 .span_users_block {
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	font-size: 21px;
-	display: block;
-	position: absolute;
-	bottom: 0px;
-	margin: 5px;
+	height: 100%;
 }
 .span_number_block {
-	display: flex;
 	height: 100%;
+	display: flex;
 	justify-content: center;
-	margin-top: 20px;
-	font-size: 25px;
+	align-items: center;
+	margin-left: 10px;
+	font-size: 22px;
 }
 .button_block {
 	background-color: white;
 	position: relative;
 	width: 330px;
-	height: 90px;
+	height: 40px;
+	gap: 10px;
 	transition: .1s ease;
+	display: flex;
 	margin-bottom: 5px;
+}
+.users {
+	width: 33px;
 }
 .main_garages_block {
 	width: 380px;
@@ -82,7 +88,7 @@
 }
 .button_new_block {
 	width: 330px;
-	height: 90px;
+	height: 40px;
 	background-color: white;
 	border: 1px solid black;
 	position: relative;
@@ -93,7 +99,7 @@
 	height: 100%;
 	justify-content: center;
 	align-items: center;
-	font-size: 24px;
+	font-size: 21px;
 }
 .flex_container {
 	margin-top: 10px;
@@ -113,7 +119,7 @@
 }
 .default_form_kw button {
 	background-color: white;
-	font-size: 25px;
+	font-size: 21px;
 	padding: 2px;
 }
 .default_form_kw button:hover {
@@ -121,7 +127,7 @@
 }
 .default_form_kw span {
 	margin: 5px;
-	font-size: 26px;
+	font-size: 25px;
 }
 .default_form_kw span:first-child {
 	font-size: 26px;
@@ -129,9 +135,9 @@
 	
 }
 .default_form_kw input {
-	font-size: 25px;
+	font-size: 23px;
 	width: 60px;
-	height: 40px;
+	height: 35px;
 	padding: 1px;
 	text-align: center;
 }
@@ -166,7 +172,7 @@
 	height: 100%;
 	display: flex;
 	align-items: center;
-	font-size: 30px;
+	font-size: 26px;
 	padding-left: 10px;
 	padding-right: 10px;
 }
@@ -177,18 +183,19 @@
 }
 .block_2 span {
 	margin-left: 10px;
-	font-size: 30px;
+	font-size: 25px;
 }
 .month {
 	width: 140px;
 }
 .form_month {
 	display: flex;
+	justify-content: center;
 	margin-top: 10px;
 	width: 100%;
 }
 .form_month span {
-	font-size: 28px;
+	font-size: 26px;
 	margin: 10px;
 }
 .form_month input {
@@ -199,7 +206,7 @@
 }
 .form_month button {
 	background-color: white;
-	font-size: 26px;
+	font-size: 24px;
 	padding: 2px;
 }
 .form_month button:hover {
