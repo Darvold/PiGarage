@@ -23,9 +23,9 @@
                     <div class="scroll_garage">
                         @forelse($blocks as $block)
                         <button class="button_number_garage" data-id-block={{$block->id_block}}>
-                            Гаражный блок №{{$block->number_block}} 
-                            @if($block->meter_readings_count > 0)
-                            ({{$block->meter_readings_count}})
+                            Гаражный ряд №{{$block->number_block}}
+                            @if($block->meter_readings_users_count > 0)
+                            ({{$block->meter_readings_users_count}})
                             @endif
                         </button>
                         @empty
@@ -173,7 +173,7 @@
                     return false;
                 }
                 sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
-                
+
             }
         });
 
@@ -204,9 +204,9 @@
                         type: "GET",
                         data: {
                             id_block: idBlockValue,
-                            year: year ? year : {{$year}},  
-                            month: month,                   
-                            _token: '{{ csrf_token() }}',   
+                            year: year ? year : {{$year}},
+                            month: month,
+                            _token: '{{ csrf_token() }}',
                         },
                     success: function (response) {
                         $('.id_month').prop("disabled", false);
@@ -317,7 +317,7 @@
                                     </div>
                                      <div class="img_meter_old old">
                                         ${oldFolderPaths[index]}
-                                    </div>`  
+                                    </div>`
                                 }
                                 html += `</div>
                                 <div class="block_message">
@@ -548,9 +548,9 @@
                     let blockMessages = response.response;
                     let idBlockValue = response.idBlock; // ID блока, в котором было принято сообщение
                     let updatedCount = response.updatedCount; // Обновленное количество сообщений в блоке
-                    
+
                     $('.button_green, .button_red').prop("disabled", true);
-                    
+
                     if (blockMessages == 'error') {
                         messageBlock("Произошла ошибка на сервере. Повторите попытку позже", form);
                         setTimeout(function () {
@@ -565,7 +565,7 @@
                         // Обновляем количество сообщений на кнопке блока
                         let button = $(`.button_number_garage[data-id-block='${idBlockValue}']`);
                         let buttonText = button.text().trim();
-                        
+
                         // Извлекаем текст кнопки и обновляем счетчик сообщений
                         if (updatedCount > 0) {
                             button.text(`Гаражный блок №${idBlockValue} (${updatedCount})`);

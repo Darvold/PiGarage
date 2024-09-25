@@ -7,7 +7,7 @@ use App\Models\ApplicationsGarageToCoop;
 use App\Models\CooperativeBlocks;
 use App\Models\Garages;
 use App\Models\MeterNumbersGarages;
-use App\Models\MeterReadings;
+use App\Models\MeterReadingsUsers;
 use App\Models\UserAndCoop;
 use App\Models\Users;
 use App\Models\Cooperatives;
@@ -120,7 +120,7 @@ class CommunicationController extends Controller
                     ->where('id_coop', $data['idCoop'])
                     ->first();
                 if (!$coopUser) {
-                    return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
+                    return response()->json(['error' => 'Произошла ошибка, кооператив не найден'], 500);
                 }
                 $amount_garages = count($data['garageData']);
                 $ApplicationsForAccessionsSelect_amount_garages = ApplicationsForAccessions::withTrashed()
@@ -145,7 +145,7 @@ class CommunicationController extends Controller
                             $coopBlockCount = CooperativeBlocks::where('id_coop', $data['idCoop'])
                                 ->where('number_block', $gData['number_block'])->first();
                             if (!$coopBlockCount && $gData['checked'] === 'true') {
-                                return response()->json(['error' => 'Не совпадает количество гаражных блоков, добавьте ещё гаражных блоков'], 500);
+                                return response()->json(['error' => 'Не совпадает количество гаражных рядов, добавьте ещё гаражных рядов'], 500);
                             }
                             $ApplicationsGarageToCoop = ApplicationsGarageToCoop::where('id_application', $gData['id_application'])
                                 ->where('user_id', $data['idUser'])
@@ -324,7 +324,7 @@ class CommunicationController extends Controller
                 $selectGarages = Garages::withTrashed()
                     ->where('id_application', $data['idApp'])
                     ->first();
-                $selectMeters = MeterReadings::where('id_garage', $selectGarages->id_garage)
+                $selectMeters = MeterReadingsUsers::where('id_garage', $selectGarages->id_garage)
                     ->first();
                 if ($selectMeters) {
                     return response()->json(['error' => "Похоже, пользователь уже отправил показания, невозможно отменить"], 500);

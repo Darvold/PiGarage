@@ -32,7 +32,7 @@
                         </select>
                     </div>
                     <div class="right_block_input">
-                        <label>Номер блока:</label>
+                        <label>Номер ряда:</label>
                         <select id="blocks" class="cooperative_list" name="id_block" required>
                             <option value="">Выберите сначала кооп.</option>
                         </select>
@@ -62,7 +62,7 @@
                         let coopMessages = response.blocksForGarage;
                         // Очищаем предыдущие option
                         $blocksSelect.empty();
-                        var html = `<option value="">Выберите номер блока</option>`;
+                        var html = `<option value="">Выберите номер ряда</option>`;
                         // Перебираем массив и обновляем содержимое на странице
                         if (coopMessages !== null && coopMessages.length > 0) {
                             coopMessages.forEach(function (coopMessage) {

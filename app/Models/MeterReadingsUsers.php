@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MeterReadings extends Model
+class MeterReadingsUsers extends Model
 {
     use HasFactory;
-    protected $table = 'meter_readings';
+    protected $table = 'meter_readings_users';
     protected $primaryKey = 'id_reading';
     public $timestamps = false;
     protected $guarded = [];

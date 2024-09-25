@@ -59,8 +59,10 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
             ->name('ChairmanSubmitIndicationsPostGarage.store');
 
         //Список номеров счётчиков гаража/изменение счётчика гаража/добавление нового счётчика
-        Route::get('/Chairman/Garage/{idGarage}/PivotTable/meters', 'PageProfileController@garageMeters')->name('garageMeters.index');
-        Route::post('/Chairman/Garage/{idGarage}/PivotTable/meters', 'PageProfileController@garageMetersPost')->name('garageMeters.store');
+        Route::get('/Chairman/Garage/{idGarage}/PivotTable/meters', 'PageProfileController@garageMeters')
+            ->name('garageMeters.index');
+        Route::post('/Chairman/Garage/{idGarage}/PivotTable/meters', 'PageProfileController@garageMetersPost')
+            ->name('garageMetersPost.store');
     });
 
     // Создание гаража
@@ -125,7 +127,7 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
         Route::get('/Chairman/MyCoop/{idCoop}/PivotTable/meters', 'MyCooperatives@coopMeters')
             ->name('coopMeters.index');
         Route::post('/Chairman/MyCoop/{idCoop}/PivotTable/meters', 'MyCooperatives@coopMetersPost')
-            ->name('coopMeters.store');
+            ->name('coopMetersPost.store');
     });
 
     // Создание кооператива

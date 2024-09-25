@@ -24,7 +24,7 @@
                     </div>
                 </div>
                 <div class="block_input">
-                    <label>Номер блока</label>
+                    <label>Номер ряда</label>
                     <div>
                         <input type="tel" pattern="[0-9]{1,10}" title="Только цифры" name="number_garage_blocks"
                                maxlength="2" max="10" oninput="this.value=this.value.replace(/\D/g,'')" value=""
@@ -57,7 +57,7 @@
                         <th>Номер телефона</th>
                         <th>Второй номер телефона</th>
                         <th>Домашний телефон</th>
-                        <th>Номер блока</th>
+                        <th>Номер ряда</th>
                         <th>Почта</th>
                         <th>Гаражи</th>
                     </tr>
@@ -105,7 +105,7 @@
                     <div class="table_block_users">
                         @if(isset($usersGroupedByBlocks[$block->number_block]) && count($usersGroupedByBlocks[$block->number_block]) > 0)
                             <div class="nubmer_block_center">
-                                <span>Гаражный блок №{{ $block->number_block }}</span>
+                                <span>Гаражный ряд №{{ $block->number_block }}</span>
                             </div>
                             <table class="table">
                                 <thead>

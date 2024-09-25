@@ -49,7 +49,7 @@
                             <button class="garage-btn" data-garage="1">Гараж №1<span class="delete_garage"><img
                                         src="{{asset('icons/user/cross.svg')}}"></span></button>
                         @endif
-                        @if(!(count($garageData) == 3)) 
+                        @if(!(count($garageData) == 3))
                             <button id="addGarageBtn">Добавить</button>
                         @endif
                     </div>
@@ -69,7 +69,7 @@
                                            value="{{ $gData['number_garage'] }}">
                                 </div>
                                 <div class="right_block_input">
-                                    <label>Номер блока:</label>
+                                    <label>Номер ряда:</label>
                                     <input type="tel" pattern="[0-9]{1,10}" title="Только цифры" name="number_block"
                                            required maxlength="20" oninput="this.value=this.value.replace(/\D/g,'')"
                                            value="{{ $gData['number_block'] }}">
@@ -103,7 +103,7 @@
                             value="">
                         </div>
                         <div class="right_block_input">
-                            <label>Номер блока:</label>
+                            <label>Номер ряда:</label>
                             <input type="tel" pattern="[0-9]{1,10}" title="Только цифры" name="number_block"
                             required maxlength="20" oninput="this.value=this.value.replace(/\D/g,'')"
                             value="">
@@ -332,7 +332,7 @@
                         <input type="number" name="number_garage" required inputmode="none">
                         </div>
                         <div class="right_block_input">
-                        <label>Номер блока:</label>
+                        <label>Номер ряда:</label>
                         <input type="number" name="number_block" required inputmode="none">
                         </div>
                         </div>

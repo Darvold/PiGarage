@@ -9,7 +9,7 @@ use App\Models\CooperativeBlocks;
 use App\Models\CooperativesBlocksLossesKw;
 use App\Models\Garages;
 use App\Models\MeterNumbersGarages;
-use App\Models\MeterReadings;
+use App\Models\MeterReadingsUsers;
 use App\Models\User;
 use App\Models\UserAndCoop;
 use App\Models\Cooperatives;
@@ -195,12 +195,12 @@ class PageProfileController extends Controller
             $currentYear = Date::now()->year;
             $previousMonth = $date->subMonth(); // Прошлый месяц от текущей даты и времени
 
-            $reading = MeterReadings::leftJoin('garages', 'garages.id_garage', '=', 'meter_readings.id_garage')
-                ->where('meter_readings.id_garage', $idGarage)
-                ->whereColumn('garages.id_coop', '=', 'meter_readings.id_coop')
-                ->whereIn('meter_readings.status', ['pending', 'accepted'])
-                ->whereMonth('meter_readings.send_date', $currentMonth)
-                ->whereYear('meter_readings.send_date', $currentYear)
+            $reading = MeterReadingsUsers::leftJoin('garages', 'garages.id_garage', '=', 'meter_readings_users.id_garage')
+                ->where('meter_readings_users.id_garage', $idGarage)
+                ->whereColumn('garages.id_coop', '=', 'meter_readings_users.id_coop')
+                ->whereIn('meter_readings_users.status', ['pending', 'accepted'])
+                ->whereMonth('meter_readings_users.send_date', $currentMonth)
+                ->whereYear('meter_readings_users.send_date', $currentYear)
                 ->first();
             if ($reading) {
                 return redirect()->back()->with('info', 'В этом месяце вы уже отправили показания');
@@ -223,12 +223,12 @@ class PageProfileController extends Controller
             // Генерируем хэш изображения для текущей загруженной фотографии
             $imageHash = hash_file('sha256', $image->getRealPath());
             // Проверяем предыдущие показания
-            $previousReading = MeterReadings::leftJoin('garages', 'garages.id_garage', '=', 'meter_readings.id_garage')
-                ->where('meter_readings.id_garage', $idGarage)
-                ->whereColumn('garages.id_coop', '=', 'meter_readings.id_coop')
-                ->whereIn('meter_readings.status', ['canceled', 'accepted'])
-                ->whereMonth('meter_readings.send_date', $previousMonth)
-                ->whereYear('meter_readings.send_date', $currentYear)
+            $previousReading = MeterReadingsUsers::leftJoin('garages', 'garages.id_garage', '=', 'meter_readings_users.id_garage')
+                ->where('meter_readings_users.id_garage', $idGarage)
+                ->whereColumn('garages.id_coop', '=', 'meter_readings_users.id_coop')
+                ->whereIn('meter_readings_users.status', ['canceled', 'accepted'])
+                ->whereMonth('meter_readings_users.send_date', $previousMonth)
+                ->whereYear('meter_readings_users.send_date', $currentYear)
                 ->first();
 
             if ($previousReading) {
@@ -254,7 +254,7 @@ class PageProfileController extends Controller
             $imageName = $userFIO . '_' . now()->format('Y-m-d_H-i-s');
             $imageNameWithExtension = $imageName . '.' . $imageExtension;
             // Определите путь куда сохранить файл в storage/app/public
-            $folderPath = '../../StoragePiGarage/CoopMeters/' . $currentYear . '/' . $region . '/' . $city . '/' . $name . '/' . $userFIO;
+            $folderPath = '../../StoragePiGarage/CoopMeters/' . $currentYear . '/' . $region . '/' . $city . '/' . $name . '/' . 'Участники' .  '/' . $userFIO;
 
             if (!File::exists($folderPath)) {
                 File::makeDirectory($folderPath, 0755, true, true);
@@ -264,7 +264,7 @@ class PageProfileController extends Controller
             // Сохраняем сжатое изображение
             $compressedImage->save($folderPath . '/' . $imageNameWithExtension);
 
-            MeterReadings::create([
+            MeterReadingsUsers::create([
                 'id_garage' => $idGarage,
                 'id_block' => $coopURL->id_block,
                 'id_coop' => $coopURL->id_coop,
@@ -309,12 +309,12 @@ class PageProfileController extends Controller
             ]);
 
             if ($data['idPost'] == 0) {
-                $meter_readings = MeterReadings::leftJoin('garages', 'garages.id_garage', '=', 'meter_readings.id_garage')
-                    ->where('meter_readings.id_garage', $idGarage)
-                    ->where('meter_readings.status', 'pending')
-                    ->whereColumn('garages.id_coop', 'meter_readings.id_coop') // сравнение двух столбцов
+                $meter_readings_users = MeterReadingsUsers::leftJoin('garages', 'garages.id_garage', '=', 'meter_readings_users.id_garage')
+                    ->where('meter_readings_users.id_garage', $idGarage)
+                    ->where('meter_readings_users.status', 'pending')
+                    ->whereColumn('garages.id_coop', 'meter_readings_users.id_coop') // сравнение двух столбцов
                     ->first();
-                if ($meter_readings) {
+                if ($meter_readings_users) {
                     return redirect()->back()->with('error', 'Нельзя добавить счётчик, пока ваши показания находятся в ожидании');
                 }
                 $number_meter = MeterNumbersGarages::where('id_garage', $idGarage)
@@ -322,8 +322,7 @@ class PageProfileController extends Controller
                 if (count($number_meter) > 3) {
                     return redirect()->back()->with('error', 'Нельзя добавить больше 3 счётчиков в год');
                 }
-                MeterNumbersGarages::where('id_garage', $idGarage)
-                    ->whereYear('creation_date', Date::now('Y'))->update(['active' => 0]);
+                MeterNumbersGarages::where('id_garage', $idGarage)->update(['active' => 0]);
                 MeterNumbersGarages::create([
                     'id_garage' => $idGarage,
                     'meter_number' => $data['meter_number'],

@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('meter_numbers', function (Blueprint $table) {
+        Schema::create('meter_numbers_garages', function (Blueprint $table) {
             $table->id('id_meter_number');
             $table->bigInteger('id_garage');
             $table->bigInteger('meter_number');
+            $table->bigInteger('initially_kw');
             $table->bigInteger('active');
             $table->date('creation_date');
         });

@@ -41,7 +41,7 @@
                         <label for="cooperative">Номер гаража: {{ $garageCoop->number_garage }}</label>
                     </div>
                     <div class="right_block_input">
-                        <label for="cooperative">Номер блока: {{ $garageCoop->number_block }}</label>
+                        <label for="cooperative">Номер ряда: {{ $garageCoop->number_block }}</label>
                     </div>
                     <div style="width: 100%; display: flex; justify-content: center;">
                         <a href="{{ route('myGaragePivotTable.index', ['idGarage' => $idGarage]) }}"

@@ -89,7 +89,7 @@
                                             <input type="tel" pattern="[0-9]{1,10}" title="Только цифры" name="number_garage" required maxlength="20" value="{{$garage['number_garage']}}">
                                         </div>
                                         <div class="right_block_input">
-                                            <label>Номер блока:</label>
+                                            <label>Номер ряда:</label>
                                             <input type="tel" pattern="[0-9]{1,10}" title="Только цифры" name="number_block" required maxlength="20" value="{{$garage['number_block']}}">
                                         </div>
                                     </div>

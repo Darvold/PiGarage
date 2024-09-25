@@ -32,7 +32,7 @@ class Garages extends Model
     // В модели Garages
     public function metersReadings()
     {
-        return $this->hasMany(MeterReadings::class, 'id_garage');
+        return $this->hasMany(MeterReadingsUsers::class, 'id_garage');
     }
 
 

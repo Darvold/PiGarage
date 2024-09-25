@@ -3,13 +3,13 @@
 <div class="main_block">
     <div class="main_head">
         <a href="{{route('ChairmanGarage.index')}}">Мои гаражи</a>
-        <a href="{{route('myGaragePivotTable.index', ['idGarage' => $garage->id_garage])}}">Номергаража: {{$garage->number_garage}}</a>
+        <a href="{{route('myGaragePivotTable.index', ['idGarage' => $garage->id_garage])}}">Номер гаража: {{$garage->number_garage}}</a>
         <a href="{{route('garageMeters.index', ['idGarage' => $garage->id_garage])}}" class="active">Счётчики</a>
     </div>
     <div class="main_body">
         <div class="flex_column">
             <div style="margin-bottom: 10px;">
-                <form method="post" action="{{route('garageMeters.store', ['idGarage' => $garage->id_garage])}}" class="create_new_meter">
+                <form method="post" action="{{route('garageMetersPost.store', ['idGarage' => $garage->id_garage])}}" class="create_new_meter">
                     <div class="input_block">
                         @csrf
                         <span>Номер счётчика: </span>
@@ -40,7 +40,7 @@
                         <span>Дата создания: {{$meter->creation_date}}</span>
                     </div>
                     <div class="body_meter">
-                        <form method="post" action="{{route('garageMeters.store', ['idGarage' => $garage->id_garage])}}" class="form_update">
+                        <form method="post" action="{{route('garageMetersPost.store', ['idGarage' => $garage->id_garage])}}" class="form_update">
                             @csrf
                             <input type="hidden" name="meter_number" value="">
                             <input type="hidden" name="idPost" value="1">
@@ -50,7 +50,7 @@
                     </div>
                 </div>
                 @empty
-                <span>Добавьте номер счётчика</span>
+                    <span style="font-size: 22px">Добавьте номер счётчика</span>
                 @endforelse
             </div>
         </div>
@@ -58,7 +58,7 @@
             <span style="font-size: 23px;">Памятка (обязательно к ознакомлению!)</span>
             <br>
             <span style="font-size: 23px;">
-                Для отправки показаний необходимо, чтобы у гаража был указан свой номер счётчика. 
+                Для отправки показаний необходимо, чтобы у гаража был указан свой номер счётчика.
                 В противном случае, показания не удастся отправить председателю гаражного кооператива.
                 <br><br>
                 Все показания привязываются к вашему номеру счётчика. Если вы добавляете новый номер счётчика, последующие показания будут привязываться к новому номеру (статус станет "активный"). Добавляйте новый номер счётчика только в случае замены счётчика в вашем гараже, чтобы новые показания начинались с 0 кВт.

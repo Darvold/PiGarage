@@ -30,6 +30,7 @@
     'ProfileCoopPayment' => 'PagesForChairman/payment/',
     'ProfileCoopPaymentOther' => 'PagesForChairman/paymentOther/',
     'ProfileCoopLosses' => 'PagesForChairman/pageLossesCoop/',
+    'ProfileCoopStylesMeters' => 'PagesForChairman/coopMeters/',
 
     'ParticipantsCoopStyles' => 'PagesForChairman/participantsCoop/',
 

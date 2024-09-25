@@ -156,6 +156,15 @@
 .block_1 {
 	margin-top: 10px;
 	display: flex;
+	align-items: center;
+}
+.meter_indication .block_1 {
+	width: 100%;
+	justify-content: center;
+	height: 40px;
+	margin-top: 5px;
+	display: flex;
+	align-items: center;
 }
 .block_1 button {
 	font-size: 39px;
@@ -185,6 +194,11 @@
 	margin-left: 10px;
 	font-size: 25px;
 }
+.meter_indication .block_2 {
+	width: 100%;
+	display: flex;
+	justify-content: center;
+}
 .month {
 	width: 140px;
 }
@@ -211,4 +225,113 @@
 }
 .form_month button:hover {
 	background-color: #EEE;
+}
+
+.meter_indication {
+	margin-left: 20px;
+	border: 1px solid black;
+	width: auto;
+	padding: 5px;
+	height: 200px;
+}
+.head_indication {
+	border-bottom: 1px solid black;
+	padding-bottom: 5px;
+	display: flex;
+	align-items: center;
+	gap: 20px;
+}
+select {
+	width: 140px;
+	height: 33px;
+	padding: 5px 25px 5px 5px;
+	font-size: 19px;
+	border-radius: 5px;
+	background-color: #f9f9f9;
+	color: black;
+	appearance: none; /* Убираем стрелку по умолчанию */
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path fill="none" stroke="%23333" stroke-width="2" d="M1 3 L5 7 L9 3"/></svg>');
+	background-repeat: no-repeat;
+	background-position: right 10px center;
+	background-size: 10px;
+	cursor: pointer;
+}
+/* Стиль при наведении */
+select:hover {
+	border-color: #0073e6;
+}
+
+/* Стиль для опций */
+select option {
+	text-align: center;
+	padding: 10px;
+	font-size: 19px;
+	color: black;
+}
+
+/* Стиль для активной и выбранной опции */
+select option:checked {
+	background-color: #0073e6;
+	color: #fff;
+}
+
+.body_indication {
+	padding: 5px;
+}
+.block_indication {
+	width: 100%;
+	height: 100%;
+}
+.head_block_indication {
+	padding: 5px;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+.head_block_indication span {
+	font-size: 22px;
+}
+.head_block_indication input {
+	border-radius: 4px;
+	padding: 2px 4px 2px 4px;
+	display: block;
+	height: 35px;
+	font-size: 23px;
+	width: 240px;
+	outline: none;
+	transition: background-color 0.4s ease;
+}
+.head_block_indication input:focus {
+	border: 1px solid #4180BDFF;
+	border-color: #4180BDFF;
+	box-shadow: 0px 0px 0px 2px #4180BDFF;
+	z-index: 99;
+	transition: 0.3s ease;
+}
+.img_block button {
+	margin: 5px 5px 5px 0px;
+	display: block;
+	border-radius: 4px;
+	padding: 2px;
+	font-size: 21px;
+	transition: 0.3s ease;
+	background-color:white;
+	color: black;
+	text-decoration: none;
+	border: 2px solid rgb(19, 105, 192);
+}
+.img_block button:hover {
+	background-color: #EEE;
+}
+.file_img {
+	font-size: 17px;
+}
+.img_block img {
+	margin: 10px;
+	border: 2px solid black;
+	width: 90px;
+	height: 90px;
+	float: right;
+	border-radius: 10px;
+	object-fit: cover;
 }

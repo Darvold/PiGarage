@@ -22,7 +22,7 @@
                                     {{$coop -> name}}
                                 </span>
                                 <p class="count_garage_block">Количество гаражных
-                                    блоков: {{$coop->amount_garage_block_count}}</p>
+                                    рядов: {{$coop->amount_garage_block_count}}</p>
                                 </div>
                                 <span class="active_click" data-coop-id="{{$coop->id_coop}}"></span>
                             </div>
@@ -111,7 +111,7 @@
                                                     <span class="absolute_span_number_garage">Гараж  ${index + 1}:</span>
                                                     <span name="number_meter">Номер счётчика: ${garageMessage.number_meter}</span>
                                                     <span>Номер гаража: <input type="tel" pattern="[0-9]{1,10}" title="Только цифры" name="number_garage" id="tariff_value" maxlength="20" oninput="this.value=this.value.replace(/\\D/g,'')" value="${garageMessage.number_garage}"></span>
-                                                    <span>Номер блока: <input type="tel" pattern="[0-9]{1,10}" title="Только цифры" name="number_block" id="tariff_value" maxlength="20" oninput="this.value=this.value.replace(/\\D/g,'')" value="${garageMessage.number_block}"></span>
+                                                    <span>Номер ряда: <input type="tel" pattern="[0-9]{1,10}" title="Только цифры" name="number_block" id="tariff_value" maxlength="20" oninput="this.value=this.value.replace(/\\D/g,'')" value="${garageMessage.number_block}"></span>
                                                     <div class="checkbox-wrapper-13">
                                                         <label for="c1-13">Принять</label>
                                                         <input id="c1-13" type="checkbox" checked="checked">
@@ -211,9 +211,9 @@
                                     <span>${coopMessage.user_fio}</span>
                                     <div class="inline_span"></div>
                                     <div class="right_bottom_text">
-                                        <span>Номер блока: ${coopMessage.user_number_meter}</span>
+                                        <span>Номер счётчика: ${coopMessage.user_number_meter}</span>
                                         <span>Номер гаража: ${coopMessage.user_number_garage}</span>
-                                        <span>Номер блока: ${coopMessage.user_number_block}</span>
+                                        <span>Номер ряда: ${coopMessage.user_number_block}</span>
                                     </div>
                                     <div class="display_form_garage">
                                         <input type="hidden" name="user_id" value="${coopMessage.user_id}">

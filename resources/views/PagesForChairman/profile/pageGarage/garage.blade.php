@@ -22,7 +22,7 @@
                                     <div class="block_information_garage">
                                         <div class="block_text_garage">
                                             <span>Номер гаража: {{$garage->number_garage}}</span>
-                                            <span>Номер блока: {{$garage->number_block}}</span>
+                                            <span>Номер ряда: {{$garage->number_block}}</span>
                                             @if (strpos($garage->coop_city, ',') !== false)
                                                     <?php $cityParts = explode(',', $garage->coop_city); ?>
                                                 <span>Город: {{ trim($cityParts[0]) }}</span>
