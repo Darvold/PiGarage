@@ -253,7 +253,7 @@ class PageProfileController extends Controller
             $imageExtension = $data['img_meter']->getClientOriginalExtension();
             $imageName = $userFIO . '_' . now()->format('Y-m-d_H-i-s');
             $imageNameWithExtension = $imageName . '.' . $imageExtension;
-            // Определите путь куда сохранить файл в storage/app/public
+
             $folderPath = '../../StoragePiGarage/CoopMeters/' . $currentYear . '/' . $region . '/' . $city . '/' . $name . '/' . 'Участники' .  '/' . $userFIO;
 
             if (!File::exists($folderPath)) {

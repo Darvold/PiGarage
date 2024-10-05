@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('meter_readings_blocks', function (Blueprint $table) {
-            $table->id('id_reading');
+        Schema::create('meter_numbers_blocks', function (Blueprint $table) {
+            $table->id('id_meter_number');
             $table->bigInteger('id_block');
-            $table->bigInteger('id_coop');
-            $table->bigInteger('kw_meter');
-            $table->string('img_meter');
-            $table->datetime('save_day');
-            $table->softDeletes();
+            $table->bigInteger('meter_number');
+            $table->bigInteger('initially_kw');
+            $table->bigInteger('active');
+            $table->date('creation_date');
         });
     }
 
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('meter_readings_blocks');
+        Schema::dropIfExists('meter_numbers_blocks');
     }
 };

@@ -535,16 +535,10 @@
                     }
                 });
             });
-            lightbox.option({
-                'resizeDuration': 100,
-                'wrapAround': true,
-                'fadeDuration': 300,
-                'imageFadeDuration': 300,
-            })
         });
     </script>
 @endsection
-<!-- success: function (response) {
+{{-- success: function (response) {
                     let blockMessages = response.response;
                     let idBlockValue = response.idBlock; // ID блока, в котором было принято сообщение
                     let updatedCount = response.updatedCount; // Обновленное количество сообщений в блоке
@@ -572,4 +566,4 @@
                         } else {
                             button.text(`Гаражный блок №${idBlockValue}`);
                         }
-                    } -->
+                    } --}}

@@ -12,20 +12,24 @@ use App\Models\coopLosses;
 use App\Models\Garages;
 use App\Models\MeterNumbersCoops;
 use App\Models\MeterNumbersGarages;
+use App\Models\MeterReadingsBlocks;
 use App\Models\MeterReadingsUsers;
 use App\Models\PayMents;
 use App\Models\Rates;
 use App\Models\UserAndCoop;
+use Carbon\Carbon;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Intervention\Image\Laravel\Facades\Image;
 use Jenssegers\Date\Date;
 use Mockery\Exception;
 use App\Rules\NoNegativeNumbers;
@@ -377,13 +381,67 @@ class MyCooperatives extends Controller
         if ($request->ajax()) {
             $numberYear = $request->input('numberYear');
             $id_block = $request->input('id_block');
-            $blockDefaultKw = CooperativeBlocks::where('id_block', $id_block)->first();
-            $blocksKW = CooperativesBlocksLossesKw::where('id_block', $id_block)
-                ->whereYear('date_indication', $numberYear)
-                ->orderByRaw('MONTH(date_indication)')
-                ->get();
+            $month = $request->input('month');
+            try {
+                if ($request->input('id_message') == 2 && $month) {
+                    $readings_meter_img = MeterReadingsBlocks::where('id_block', $id_block)
+                        ->where('id_coop', $idCoop)
+                        ->whereMonth('save_day', $month)
+                        ->whereYear('save_day', $numberYear)
+                        ->with(['Cooperative' => function ($query) {
+                            $query->select('id_coop', 'name', 'address', 'city');
+                        }])->first();
 
-            return response()->json(['blockMessages' => $blocksKW, 'id_block' => $id_block, 'defaultKW' => $blockDefaultKw]);
+                    if (!$readings_meter_img) {
+                        return response()->json(['blockMessages' => false]);
+                    }
+                    $imgHtml = '<span style="color: forestgreen; font-size: 22px;">Без файла</span>';
+                    $kw_meter = $readings_meter_img->kw_meter;
+                    if ($readings_meter_img->img_meter != null) {
+                        $nameCoop = $readings_meter_img->Cooperative->name;
+                        $regionFolder = explode(',', $readings_meter_img->Cooperative->address);
+                        $cityFolder = explode(',', $readings_meter_img->Cooperative->city);
+                        $nameAddress = trim($regionFolder[0]);
+                        $nameCity = trim($cityFolder[0]);
+                        $nameFile = $readings_meter_img->img_meter;
+                        $date = $readings_meter_img->save_day;
+                        $folderPath = '../../StoragePiGarage/CoopMeters/' . $numberYear . '/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . 'Показания рядов' . '/' . $id_block . '/' . $nameFile;
+                        if (file_exists($folderPath) && is_readable($folderPath)) {
+                            // Читаем содержимое файла
+                            $fileContent = file_get_contents($folderPath);
+                            // Проверяем, удалось ли прочитать файл
+                            if ($fileContent !== false) {
+                                $base64Image = base64_encode($fileContent);
+                                $imgHtml = '<a data-date="' . $date . '" id="lightbox-image" href="data:image/jpg/jpeg/png;base64,' . $base64Image .
+                                    '"data-title="Фото счётчика" data-lightbox="image">' .
+                                    '<img src="data:image/jpg/jpeg/png;base64,' . $base64Image . '" alt="Фото счётчика"></a>';
+                            } else {
+                                // Обработка ошибки чтения файла
+                                $imgHtml = '<span style="color: red;" data-date="' . $date . '">Ошибка чтения файла</span>';
+                            }
+                        } else {
+                            // Обработка отсутствия файла
+                            $imgHtml = '<span style="color: red; font-size: 21px;" data-date="' . $date . '">Файл не существует или удалён</span>';
+                        }
+                    }
+                    return response()->json(['kw_meter' => $kw_meter, 'imgHtml' => $imgHtml]);
+
+                }
+                if ($request->input('id_message') == 1) {
+                    $blockDefaultKw = CooperativeBlocks::where('id_block', $id_block)
+                        ->where('id_coop', $idCoop)->first();
+                    if (!$blockDefaultKw) {
+                        return response()->json(['error' => 'Ошибка, повторите попытку позже'], 500);
+                    }
+                    $blocksKW = CooperativesBlocksLossesKw::where('id_block', $id_block)
+                        ->whereYear('date_indication', $numberYear)
+                        ->orderByRaw('MONTH(date_indication)')
+                        ->get();
+                    return response()->json(['blockMessages' => $blocksKW, 'id_block' => $id_block, 'defaultKW' => $blockDefaultKw]);
+                }
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
         }
         $blocks = CooperativeBlocks::leftJoin('garages', 'garages.id_block', '=', 'cooperative_blocks.id_block')
             ->where('cooperative_blocks.id_coop', $idCoop)
@@ -458,6 +516,7 @@ class MyCooperatives extends Controller
                 if (($year < 2023 || $year > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $month)) {
                     return back()->with('error', "Что-то пошло не так, повторите попытку позже");
                 }
+
                 $datetime = now()->setMonth($month)->setYear($year)->format('Y-m-d H:i:s');
                 $existingRecord = CooperativesBlocksLossesKw::where('id_block', $mouthKW['id_block'])
                     ->whereYear('date_indication', $year)
@@ -483,7 +542,100 @@ class MyCooperatives extends Controller
             } catch (\Exception $e) {
                 return back()->with('error', "Что-то пошло не так, повторите попытку позже");
             }
+        }
+        if ($id_message == 4) {
+            try {
+                $meter = request()->validate([
+                    'kw_meter' => 'required|integer|digits_between:0,19',
+                    'img_meter' => 'nullable|image|mimes:jpeg,png,jpg|max:50000',
+                    'id_block' => 'required|numeric|min:0',
+                    'id_year' => 'required|numeric|min:0',
+                    'id_month_number' => 'required|numeric|min:0|max:12',
+                ]);
+                $returnData = [
+                    'id_block' => $meter['id_block'],
+                    'id_year' => $meter['id_year'],
+                    'id_month_number' => $meter['id_month_number']
+                ];
+                $readings_meter_img = Cooperatives::with(['meterReadingsBlocks' => function ($query) use ($meter, $idCoop) {
+                    $query->where('id_block', $meter['id_block'])
+                        ->where('id_coop', $idCoop)
+                        ->whereYear('save_day', $meter['id_year'])
+                        ->whereMonth('save_day', $meter['id_month_number'])
+                        ->withTrashed();
+                }])->where('id_coop', $idCoop)
+                    ->where('user_id', Auth::id())->first();
+                if (!$readings_meter_img) {
+                    return back()->with(['error', "Не найден кооператив"] + $returnData);
+                }
 
+                $nameCoop = $readings_meter_img->name;
+                $regionFolder = explode(',', $readings_meter_img->address);
+                $cityFolder = explode(',', $readings_meter_img->city);
+                $nameAddress = trim($regionFolder[0]);
+                $nameCity = trim($cityFolder[0]);
+
+                if ($meter['kw_meter'] == 0) {
+                    MeterReadingsBlocks::where('id_block', $meter['id_block'])
+                        ->where('id_coop', $idCoop)
+                        ->whereYear('save_day', $meter['id_year'])
+                        ->whereMonth('save_day', $meter['id_month_number'])->delete();
+
+                    $this->deleteOldImage($readings_meter_img, $meter, $nameAddress, $nameCity, $nameCoop);
+                    return back()->with(['success' => 'Успешно удалено'] + $returnData);
+                }
+                $saveDay = Carbon::create($meter['id_year'], $meter['id_month_number'], now()->day)
+                    ->setTime(now()->hour, now()->minute, now()->second);
+                $saveDay = $saveDay->format('Y-m-d_H-i-s');
+
+                $imageNameWithExtension = null;
+                if (isset($meter['img_meter'])) {
+                    // Удаляем старую фотографию, если она существует
+                    $this->deleteOldImage($readings_meter_img, $meter, $nameAddress, $nameCity, $nameCoop);
+                    // Загрузка нового изображения
+                    $imageExtension = $meter['img_meter']->getClientOriginalExtension();
+                    $imageName = 'фото_счётчика' . '_' . $saveDay;
+                    $imageNameWithExtension = $imageName . '.' . $imageExtension;
+                    $folderPath = '../../StoragePiGarage/CoopMeters/' . $meter['id_year'] . '/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . 'Показания рядов' . '/' . $meter['id_block'];
+
+                    if (!File::exists($folderPath)) {
+                        File::makeDirectory($folderPath, 0755, true, true);
+                    }
+
+                    $compressedImage = Image::read($meter['img_meter']->getRealPath())
+                        ->resize(600, 800);
+                    $compressedImage->save($folderPath . '/' . $imageNameWithExtension);
+                }
+
+                // Обновляем или создаем запись
+                if ($readings_meter_img->meterReadingsBlocks->isNotEmpty()) {
+                    // Обновляем существующую запись
+                    $meterReading = $readings_meter_img->meterReadingsBlocks->first();
+
+                    if ($meterReading->trashed()) {
+                        $meterReading->restore();
+                    }
+
+                    $meterReading->update([
+                        'kw_meter' => $meter['kw_meter'],
+                        'img_meter' => $imageNameWithExtension ?? $meterReading->img_meter, // Сохраняем старое имя, если новое не задано
+                        'save_day' => $saveDay,
+                    ]);
+                } else {
+                    // Создаем новую запись
+                    MeterReadingsBlocks::create([
+                        'id_block' => $meter['id_block'],
+                        'id_coop' => $idCoop,
+                        'kw_meter' => $meter['kw_meter'],
+                        'img_meter' => $imageNameWithExtension ?? null,
+                        'save_day' => $saveDay,
+                    ]);
+                }
+
+                return back()->with(['success' => "Успешно сохранено"] + $returnData);
+            } catch (\Exception $e) {
+                return back()->with(['error' => $e->getMessage()] + $returnData);
+            }
         }
         return back()->with('error', 'Что-то пошло не так, повторите запрос позже');
     }
@@ -506,10 +658,10 @@ class MyCooperatives extends Controller
                     return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже']);
                 }
                 $meters_readings = MeterReadingsUsers::with([
-                    'garages.user' => function($query) {
+                    'garages.user' => function ($query) {
                         $query->select('id', 'fio'); // Выбираем только id и fio из таблицы users
                     },
-                    'cooperative' => function($query) {
+                    'cooperative' => function ($query) {
                         $query->select('id_coop', 'name', 'address', 'city'); // Выбираем нужные поля из cooperative, если необходимо
                     }
                 ])
@@ -522,11 +674,11 @@ class MyCooperatives extends Controller
                     ->get();
 
                 $meters_readings_old = MeterReadingsUsers::with([
-                    'garages.user' => function($query) {
+                    'garages.user' => function ($query) {
                         // Выбираем только id и fio из users
                         $query->select('id', 'fio');
                     },
-                    'cooperative' => function($query) {
+                    'cooperative' => function ($query) {
                         // Выбираем необходимые поля из cooperative
                         $query->select('id_coop', 'name', 'address', 'city');
                     }
@@ -592,7 +744,7 @@ class MyCooperatives extends Controller
                         // Проверяем, удалось ли прочитать файл
                         if ($fileContent !== false) {
                             $base64Image = base64_encode($fileContent);
-                            $imgHtml = '<a data-date="' . $date . '" data-kw-meter="'.$oldKw_meter.'" id="lightbox-image-' . $index . '" href="data:image/jpg/jpeg/png;base64,' . $base64Image .
+                            $imgHtml = '<a data-date="' . $date . '" data-kw-meter="' . $oldKw_meter . '" id="lightbox-image-' . $index . '" href="data:image/jpg/jpeg/png;base64,' . $base64Image .
                                 '"data-title="Фото счётчика" data-lightbox="image-' . $index . '">' .
                                 '<img src="data:image/jpg/jpeg/png;base64,' . $base64Image . '" alt="Фото счётчика"></a>';
                             $folderPathsOld[] = $imgHtml;
@@ -643,7 +795,17 @@ class MyCooperatives extends Controller
         } catch (ValidationException|\Exception $e) {
             return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
         }
+        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //То что ниже
         return response()->json(['response' => 'error']);
+        //То что сверху
+        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         $metersReadings = MeterReadingsUsers::where('id_reading', $data['idReading']);
         if ($data['idMessage'] == 0) {
             $metersReadings->update([
@@ -920,7 +1082,8 @@ class MyCooperatives extends Controller
         }
     }
 
-    protected function ChairmanMyCoopPaymentOther(Request $request, $idCoop) {
+    protected function ChairmanMyCoopPaymentOther(Request $request, $idCoop)
+    {
         if ($request->ajax()) {
             try {
                 $data = request()->validate([
@@ -1002,7 +1165,9 @@ class MyCooperatives extends Controller
 
         return view('PagesForChairman.profile.pivotTableCoop.pagePaymentOther', compact('year', 'coopData', 'idCoop', 'usersCoop', 'blocksWithGarages', 'monthNow'));
     }
-    protected function ChairmanMyCoopPaymentOtherPost(Request $request, $idCoop) {
+
+    protected function ChairmanMyCoopPaymentOtherPost(Request $request, $idCoop)
+    {
         try {
             $data = request()->validate([
                 'id_user' => 'required|numeric|min:0',
@@ -1294,4 +1459,23 @@ class MyCooperatives extends Controller
         }
         return redirect()->back();
     }
+
+    protected function deleteOldImage($readings_meter_img, $meter, $nameAddress, $nameCity, $nameCoop)
+    {
+        // Проверяем, есть ли связанные записи с показаниями
+        if ($readings_meter_img->meterReadingsBlocks->isNotEmpty()) {
+            $meterReading = $readings_meter_img->meterReadingsBlocks->first();
+
+            // Проверяем, существует ли старое изображение
+            if ($meterReading->img_meter) {
+                $oldImagePath = '../../StoragePiGarage/CoopMeters/' . $meter['id_year'] . '/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . 'Показания рядов' . '/' . $meter['id_block'] . '/' . $meterReading->img_meter;
+
+                // Удаляем старое изображение, если оно существует
+                if (File::exists($oldImagePath)) {
+                    File::delete($oldImagePath);
+                }
+            }
+        }
+    }
+
 }

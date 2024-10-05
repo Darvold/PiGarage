@@ -58,7 +58,7 @@
                             <input type="hidden" name="initially_kw" value="">
                             <input type="hidden" name="idPost" value="1">
                             <input type="hidden" name="number_id" value="{{$meter->id_meter_number}}">
-                            <button type="submit">Изменить номер</button>
+                            <button type="submit">Изменить данные</button>
                         </form>
                     </div>
                 </div>

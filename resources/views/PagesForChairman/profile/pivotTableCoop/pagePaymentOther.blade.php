@@ -750,7 +750,7 @@ function sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idM
         },
         error: function (error) {
             let errorText = error.responseJSON.error
-            $('.body_table_block').html(`<span style="font-size: 23px">Что-то пошло не так, повторите попытку позже. ${errorText}</span>`);
+            $('.body_table_block').html(`<span style="font-size: 23px">${errorText}</span>`);
             
         }
     });

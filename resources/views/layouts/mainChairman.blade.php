@@ -72,6 +72,12 @@
     </div>
     <script>
         $(document).ready(function() {
+            lightbox.option({
+                'resizeDuration': 100,
+                'wrapAround': true,
+                'fadeDuration': 300,
+                'imageFadeDuration': 300,
+            })
         $(".notification").css('top', '-100px'); // Скрываем уведомление за пределами видимой области
         setTimeout(function() {
             $(".notification").animate({top: 20}, 500, function() {
