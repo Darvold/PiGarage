@@ -53,6 +53,18 @@
     <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
 </head>
 <body>
+<?php
+echo "<script>
+    $(document).ajaxComplete(function(event, xhr, settings) {
+        var response = JSON.parse(xhr.responseText);
+        if (response.redirect) {
+            window.location.href = response.redirect;
+        }
+    });
+</script>";
+?>
+
+
     <script src="{{ asset('js/moment-with-locales.js') }}"></script>
     <script src="{{ asset('js/lightbox/dist/js/lightbox.js') }}"></script>
     <div class="form-msg">
