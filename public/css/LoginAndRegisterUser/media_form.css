@@ -96,6 +96,15 @@ button[type="submit"]:hover {
 	font-size: 24px;
 	font-weight: bold;
 }
+.success {
+	box-shadow: 0 5px 5px 5px rgba(89, 172, 67, 0.8);
+}
+.error {
+	box-shadow: 0 5px 5px 5px rgba(211, 43, 48, 0.8);
+}
+.info {
+	box-shadow: 0 5px 5px 5px rgba(31, 45, 223, 0.8);
+}
 .form-msg {
 	position: relative;
 	top: 180px;

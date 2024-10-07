@@ -35,7 +35,7 @@
                         @if($meter->active == 1)
                         <span class="status">Статус: <span class="true">активный</span></span>
                         @else
-                        <span class="status">Статус: <span class="false">Не активный</span></span>
+                        <span class="status">Статус: <span class="false">неактивный</span></span>
                         @endif
                         <span>Дата создания: {{$meter->creation_date}}</span>
                     </div>

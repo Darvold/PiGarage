@@ -356,7 +356,7 @@ class PageProfileController extends Controller
             return redirect()->back()->with('error', 'Ошибка валидации данных');
         } catch (\Exception $e) {
             // Общая обработка исключений
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->with('error', "Что-то пошло не так, повторите попытку позже");
         }
     }
 

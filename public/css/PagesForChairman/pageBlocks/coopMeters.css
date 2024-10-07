@@ -55,7 +55,7 @@
 	flex-direction: column;
 	border: 1px solid black;
 	gap: 10px;
-	max-height: 540px;
+	max-height: 350px;
 	overflow-y: auto;
 	border-radius: 4px;
 	overflow-x: hidden;
@@ -63,7 +63,6 @@
 .block_meter {
 	width: 100%;
 	height: auto;
-	min-height: 145px;
 	border: 1px solid black;
 	padding: 4px;
 	border-radius: 4px;

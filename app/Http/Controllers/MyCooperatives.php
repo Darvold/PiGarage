@@ -10,6 +10,7 @@ use App\Models\Cooperatives;
 use App\Models\CooperativesBlocksLossesKw;
 use App\Models\coopLosses;
 use App\Models\Garages;
+use App\Models\MeterNumbersBlocks;
 use App\Models\MeterNumbersCoops;
 use App\Models\MeterNumbersGarages;
 use App\Models\MeterReadingsBlocks;
@@ -437,7 +438,13 @@ class MyCooperatives extends Controller
                         ->whereYear('date_indication', $numberYear)
                         ->orderByRaw('MONTH(date_indication)')
                         ->get();
-                    return response()->json(['blockMessages' => $blocksKW, 'id_block' => $id_block, 'defaultKW' => $blockDefaultKw]);
+
+                    $messageMeters = MeterNumbersBlocks::where('id_block', $id_block)
+                        ->orderBy('creation_date', 'desc')
+                        ->orderBy('active', 'desc')
+                        ->get();
+                    return response()->json(['blockMessages' => $blocksKW, 'id_block' => $id_block,
+                        'defaultKW' => $blockDefaultKw, 'messageMeters' => $messageMeters]);
                 }
             } catch (\Exception $e) {
                 return response()->json(['error' => $e->getMessage()], 500);
@@ -543,6 +550,7 @@ class MyCooperatives extends Controller
                 return back()->with('error', "Что-то пошло не так, повторите попытку позже");
             }
         }
+        //Сохранения изображения и кВт в месяце
         if ($id_message == 4) {
             try {
                 $meter = request()->validate([
@@ -634,10 +642,77 @@ class MyCooperatives extends Controller
 
                 return back()->with(['success' => "Успешно сохранено"] + $returnData);
             } catch (\Exception $e) {
-                return back()->with(['error' => $e->getMessage()] + $returnData);
+                return back()->with(['error' => "Что-то пошло не так, повторите запрос позже"] + $returnData);
             }
         }
-        return back()->with('error', 'Что-то пошло не так, повторите запрос позже');
+        // Создание счётчика и изменения текущего
+        if ($id_message == 5) {
+            $returnData = [
+                'id_block' => $request->input('id_block', null),
+                'id_year' => $request->input('id_year', null),
+                'id_month_number' => $request->input('id_month_number', null)
+            ];
+            try {
+                $data = $request->validate([
+                    'meter_number' => 'required|integer|min:0',
+                    'number_id' => 'integer|min:1',
+                    'idPost' => 'required|integer|min:0',
+                    'id_block' => 'required|integer|min:0',
+                    'id_year' => 'required|integer|min:0',
+                    'initially_kw' => 'required|integer|min:0',
+                    'id_month_number' => 'required|integer|min:0|max:12',
+                ]);
+                $returnData = [
+                    'id_block' => $data['id_block'],
+                    'id_year' => $data['id_year'],
+                    'id_month_number' => $data['id_month_number']
+                ];
+                // Создание нового счётчика
+                if ($data['idPost'] == 0) {
+                    $number_meter = MeterNumbersBlocks::where('id_block', $data['id_block'])
+                        ->whereYear('creation_date', Date::now('Y'))->get();
+                    if (count($number_meter) > 3) {
+                        return back()->with(['error' => 'Нельзя добавить больше 3 счётчиков в год'] + $returnData);
+                    }
+                    MeterNumbersBlocks::where('id_block', $data['id_block'])->update(['active' => 0]);
+                    MeterNumbersBlocks::create([
+                        'id_block' => $data['id_block'],
+                        'meter_number' => $data['meter_number'],
+                        'initially_kw' => $data['initially_kw'],
+                        'active' => 1,
+                        'creation_date' => Date::now(),
+                    ]);
+                    return redirect()->back()->with(['success' => 'Счётчик успешно добавлен!'] + $returnData);
+                }
+
+                // Обновление счётчика
+                if ($data['idPost'] == 1) {
+                    $number_meter = MeterNumbersBlocks::where('id_block', $data['id_block'])
+                        ->where('id_meter_number', $data['number_id'])
+                        ->where('active', 1)->first();
+
+                    if ($number_meter) {
+                        // Обновление данных
+                        $number_meter->update(['meter_number' => $data['meter_number'], 'initially_kw' => $data['initially_kw']]);
+                        return redirect()->back()->with(['success' => 'Успешно изменено!'] + $returnData);
+                    }
+
+                    // Случай, когда номер не найден
+                    return redirect()->back()->with(['error' => 'Не удалось найти счётчик или он является не активным.'] + $returnData);
+                }
+
+                // Если idPost не равен 1
+                return redirect()->back()->with(['error' => 'Что-то пошло не так, повторите попытку позже'] + $returnData);
+
+            } catch (ValidationException $e) {
+                // Обработка исключений валидации
+                return redirect()->back()->with(['error' => 'Ошибка валидации данных'] + $returnData);
+            } catch (\Exception $e) {
+                // Общая обработка исключений
+                return redirect()->back()->with(['error' => "Что-то пошло не так, повторите попытку позже"] + $returnData);
+            }
+        }
+        return back()->with(['error' => 'Что-то пошло не так, повторите запрос позже']);
     }
 
 

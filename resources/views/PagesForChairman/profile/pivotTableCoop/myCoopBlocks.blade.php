@@ -114,7 +114,7 @@
             </div>
             <div class="flex_column">
                 <div style="margin-bottom: 10px;">
-                    <form method="post" action="{{route('coopMetersPost.store', ['idCoop' => $idCoop])}}" class="create_new_meter">
+                    <form method="post" action="{{ route('ChairmanMyCoopNewBlocks.store', ['idCoop' => $idCoop]) }}" class="create_new_meter">
                         <div class="input_block">
                             @csrf
                             <div>
@@ -126,6 +126,10 @@
                                 <input type="tel" name="initially_kw" placeholder="Если нет, то впишите 0" required/>
                             </div>
                             <input type="hidden" name="idPost" value="0">
+                            <input type="hidden" name="id_message" value="5">
+                            <input type="hidden" class="id_block_create_meter" name="id_block" value="">
+                            <input type="hidden" class="id_year_create_meter" name="id_year" value="{{session('id_month_number') ?? date('Y')}}">
+                            <input type="hidden" class="id_month_number" name="id_month_number" value="{{session('id_month_number') ?? date('m')}}">
                         </div>
                         <div class="button_block">
                             <button class="submit">Добавить новый счётчик</button>
@@ -136,31 +140,7 @@
                     <span class="my_meters">Мои счётчики</span>
                 </div>
                 <div class="list_number_meter">
-                    <div class="block_meter">
-                        <div class="head_meter">
-                            <div class="meter_number_span">
-                                <div>
-                                    <span>Номер счётчика: </span>
-                                    <input type="tel" name="meter_number" value="" />
-                                </div>
-                                <div>
-                                    <span>Прошлые показания: </span>
-                                    <input type="tel" name="initially_kw" value="" />
-                                </div>
-                            </div>
-                            <span class="status">Статус: <span class="true">активный</span></span>
-                        </div>
-                        <div class="body_meter">
-                            <form method="post" action="{{route('coopMetersPost.store', ['idCoop' => $idCoop])}}" class="form_update">
-                                @csrf
-                                <input type="hidden" name="meter_number" value="">
-                                <input type="hidden" name="initially_kw" value="">
-                                <input type="hidden" name="idPost" value="1">
-                                <input type="hidden" name="number_id" value="">
-                                <button type="submit">Изменить данные</button>
-                            </form>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -199,8 +179,9 @@
             // Создаем массивы месяцев и их номеров
     let months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
     let numberMonths = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-
+    $('.id_year_create_meter').val(currentYearInput);
     function sendAjaxRequestBlockKw(currentYearInput, idBlockValue) {
+        $('.id_year_create_meter').val(currentYearInput);
         $.ajax({
             url: '{{ route('ChairmanMyCoopBlocks.index', ['idCoop' => $idCoop]) }}',
             type: "GET",
@@ -212,8 +193,7 @@
                 _token: '{{ csrf_token() }}',
             },
             success: function (response) {
-                $('.table_kw_mouth').empty();
-                $('.request_fail').empty();
+                $('.list_number_meter, .table_kw_mouth, .request_fail').empty();
                         // Блокируем новую кнопку
                 let currentButton = $(`.button_block[data-id-button='${idBlockValue}']`);
                 currentButton.prop("disabled", true);
@@ -235,7 +215,6 @@
 
                 let blockMessages = response.blockMessages;
                 let default_kw = response.defaultKW;
-
                 var groupedByMonth = {};
 
                 if (blockMessages !== null && blockMessages.length > 0) {
@@ -260,7 +239,7 @@
                     var html = `<form method="post" action="{{ route('ChairmanMyCoopNewBlocks.store', ['idCoop' => $idCoop]) }}" class="form_month" id="${formId}">
                     @csrf
                     <input type="hidden" class="id_message" name="id_message" value="3">
-                    <input type="hidden" class="id_block" name="id_block" value="${blockNumber}">
+                    <input type="hidden" class="id_block" name="id_block" value="${idBlockValue}">
                     <input type="hidden" class="id_year" name="id_year" value="${currentYearInput}">
                     <input type="hidden" class="id_month_number" name="id_month_number" value="${monthNumber}">`;
 
@@ -294,8 +273,42 @@
                     html += `</form>`;
                     $('.table_kw_mouth').append(html);
                 }
+                for (var i = 0; i < response.messageMeters.length; i++) {
+                    var meter = response.messageMeters[i]; // Получаем текущий элемент
+                    var htmlMeters = `<div class="block_meter">
+                                <form method="post" action="{{ route('ChairmanMyCoopNewBlocks.store', ['idCoop' => $idCoop]) }}" class="form_update">
+                            <div class="head_meter">
+                                <div class="meter_number_span">
+                                    <div>
+                                        <span>Номер счётчика: </span>
+                                        <input type="tel" name="meter_number" value="${meter.meter_number}" />
+                                    </div>
+                                    <div>
+                                        <span>Прошлые показания: </span>
+                                        <input type="tel" name="initially_kw" value="${meter.initially_kw}" />
+                                    </div>
+                                </div>
+                                <span class="status">Статус: <span class="${meter.active ? 'true' : 'false'}">${meter.active ? 'активный' : 'неактивный'}</span></span>
+                                <span>Дата создания: ${meter.creation_date}</span>
+                            </div>
+                            <div class="body_meter">
+                                    @csrf
+                                    <input type="hidden" class="id_block" name="id_block" value="${idBlockValue}">
+                                    <input type="hidden" class="id_year" name="id_year" value="${currentYearInput}">
+                                    <input type="hidden" name="number_id" value="${meter.id_meter_number}">
+                                    <input type="hidden" name="idPost" value="1">
+                                    <input type="hidden" class="id_month_number" name="id_month_number" value="${selectedMonth}">
+                                    <input type="hidden" name="id_message" value="5">
+                                    <button type="submit">Изменить данные</button>
+                            </div>
+                                </form>
+                        </div>`;
+                    $('.list_number_meter').append(htmlMeters);
+                }
+
             },
             error: function (error) {
+                $('.list_number_meter, .table_kw_mouth, .request_fail').empty();
                 $('.request_fail').text('Что-то пошло не так, повторите попытку позже');
             }
         });
@@ -305,8 +318,8 @@ $('.last_year, .next_year').click(function (e) {
         let currentTime = new Date().getTime();
         let timeDifference = currentTime - lastClickTime;
         currentYear = parseInt($('.year').text());
-        $('.table_kw_mouth').empty();
-        $('.table_kw_mouth').html('Подождите, запрос выполняется...');
+        $('.table_kw_mouth, .request_fail').empty();
+        $('.table_kw_mouth, .list_number_meter, .list_number_meter').html('Подождите, запрос выполняется...');
         if (timeDifference < 2000 && clickCount > 5) {
                         // Отображаем сообщение об ошибке
             $(".request_fail").text("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
@@ -369,9 +382,10 @@ $('.myBlock').click(function (e) {
     $('.button_block').prop("disabled", false);
     idBlockValue = $(this).data('id-block');
     blockNumber = $(this).find('input[name="block_number"]').val();
+    $('.id_block_create_meter').val(blockNumber);
     isSubmitMyBlock = true;
-    $('.table_kw_mouth').empty();
-    $('.table_kw_mouth').html('Подождите, запрос выполняется...');
+    $('.table_kw_mouth, .request_fail, .list_number_meter').empty();
+    $('.table_kw_mouth, .list_number_meter').html('Подождите, запрос выполняется...');
     let currentTime = new Date().getTime();
     let timeDifference = currentTime - lastClickTime;
                 // Если прошло менее 1 секунд с предыдущего нажатия и количество нажатий больше 3
@@ -447,8 +461,8 @@ $('#monthButton').closest('form').submit();
         });*/
 @if(session('id_block') != null)
 idBlockValue = {{ session('id_block') }};
-currentYearInput = {{ session('id_year') }};
-selectedMonth = {{ session('id_month_number') }};
+currentYearInput = {{ session('id_year') ?? 'new Date().getFullYear()' }};
+selectedMonth = {{ session('id_month_number') ?? 'new Date().getMonth() + 1' }};
 isSubmitMyBlock = true;
 if (currentYearInput === 2023) {
     $('.last_year').prop("disabled", true);
@@ -457,6 +471,8 @@ sendAjaxRequestBlockKw(currentYearInput, idBlockValue);
 sendAjaxRequestBlockImg (currentYearInput, idBlockValue, selectedMonth);
 @endif
 function sendAjaxRequestBlockImg (currentYearInput, idBlockValue, selectedMonth) {
+    $('.body_indication').empty();
+    $('.body_indication').append(`<span style="font-size: 23px">Загрузка...</span>`);
     $.ajax({
         url: '{{ route('ChairmanMyCoopBlocks.index', ['idCoop' => $idCoop]) }}',
         type: "GET",
