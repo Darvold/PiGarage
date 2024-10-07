@@ -17,6 +17,7 @@ class CheckChairmanAccess
      */
     public function handle($request, Closure $next)
     {
+        $textInfo = "Ваша сессия истекла или отсутствует. Пожалуйста, войдите снова.";
         if (Auth::check()) {
        // $id = $request->route('id');
         $user = Users::where('id', Auth::id())->first();
@@ -25,12 +26,23 @@ class CheckChairmanAccess
             // Пользователь авторизован и имеет правильный id и уровень доступа
             return $next($request);
         } else {
-            return redirect()->route('login.index');
+            // Пользователь авторизован, но не имеет нужного уровня доступа
+            if ($request->ajax() || $request->wantsJson()) {
+                // Возвращаем JSON-ответ с указанием, что требуется авторизация
+                session()->flash('info', $textInfo);
+                return response()->json(['redirect' => route('login.index')], 403);
+            }
+            return redirect()->route('login.index')->with('info', $textInfo);
         }
-
         } else {
+            // Пользователь авторизован, но не имеет нужного уровня доступа
+            if ($request->ajax() || $request->wantsJson()) {
+                // Возвращаем JSON-ответ с указанием, что требуется авторизация
+                session()->flash('info', $textInfo);
+                return response()->json(['redirect' => route('login.index')], 403);
+            }
             // Пользователь не авторизован
-            return redirect()->route('login.index');
+            return redirect()->route('login.index')->with('info', $textInfo);
         }
     }
 }
