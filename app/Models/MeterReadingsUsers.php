@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class MeterReadingsUsers extends Model
 {
     use HasFactory;
-    use SoftDeletes;
     protected $table = 'meter_readings_users';
     protected $primaryKey = 'id_reading';
     public $timestamps = false;

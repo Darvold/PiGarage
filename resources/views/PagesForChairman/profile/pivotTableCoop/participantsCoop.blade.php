@@ -144,7 +144,7 @@
                 @endforeach
 
                 @if($emptyBlocks->isNotEmpty())
-                    <span class="text_block">Гаражные блоки: {{ $emptyBlocks->pluck('number_block')->implode(', ') }} – нет участников.</span>
+                    <span class="text_block">Гаражные ряды: {{ $emptyBlocks->pluck('number_block')->implode(', ') }} – нет участников.</span>
                 @endif
             </div>
         </div>

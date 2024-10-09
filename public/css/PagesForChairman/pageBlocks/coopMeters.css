@@ -210,3 +210,14 @@
 .create_new_meter .button_block button:hover {
 	background-color: #1C82E7;
 }
+
+.text_memo {
+	padding: 20px;
+}
+.not_found:not(:empty) {
+	float: right;
+	font-size: 22px;
+	border: 2px dotted red;
+	padding: 2px 4px 2px 4px;
+	transition: .3s;
+}

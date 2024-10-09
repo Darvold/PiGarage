@@ -44,11 +44,11 @@
     @endphp
 
     @foreach ($profileStyles as $styleVar => $stylePath)
-    @if (isset($$styleVar) && is_array($$styleVar))
-    @foreach ($$styleVar as $style)
-    <link rel="stylesheet" href="{{ asset('css/' . $stylePath . $style) }}">
-    @endforeach
-    @endif
+        @if (isset($$styleVar) && is_array($$styleVar))
+            @foreach ($$styleVar as $style)
+            <link rel="stylesheet" href="{{ asset('css/' . $stylePath . $style) }}">
+            @endforeach
+        @endif
     @endforeach
     <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
 </head>

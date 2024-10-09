@@ -32,10 +32,6 @@
 }
 
 /*Ниже остальной CSS принадлежащий содержание страницы*/
-.left_block {
-    display: block;
-    width: 30%;
-}
 
 .right_block {
     display: block;

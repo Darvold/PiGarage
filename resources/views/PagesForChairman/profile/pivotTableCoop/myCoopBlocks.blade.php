@@ -119,15 +119,15 @@
                             @csrf
                             <div>
                                 <span>Номер счётчика: </span>
-                                <input type="tel" name="meter_number" required/>
+                                <input type="tel" pattern="\d{1,20}" maxlength="20" oninput="this.value=this.value.replace(/\D/g,'')" name="meter_number" value required/>
                             </div>
                             <div>
                                 <span>Прошлые показания кВт: </span>
-                                <input type="tel" name="initially_kw" placeholder="Если нет, то впишите 0" required/>
+                                <input type="tel" pattern="\d{1,20}" oninput="this.value=this.value.replace(/\D/g,'')" name="initially_kw" placeholder="Если нет, то впишите 0" required/>
                             </div>
                             <input type="hidden" name="idPost" value="0">
                             <input type="hidden" name="id_message" value="5">
-                            <input type="hidden" class="id_block_create_meter" name="id_block" value="">
+                            <input type="hidden" class="id_block_create_meter" name="id_block" value="{{session('id_block')}}">
                             <input type="hidden" class="id_year_create_meter" name="id_year" value="{{session('id_month_number') ?? date('Y')}}">
                             <input type="hidden" class="id_month_number" name="id_month_number" value="{{session('id_month_number') ?? date('m')}}">
                         </div>
@@ -135,15 +135,30 @@
                             <button class="submit">Добавить новый счётчик</button>
                         </div>
                     </form>
+                <span class="not_found"></span>
                 </div>
                 <div class="span_absolute">
                     <span class="my_meters">Мои счётчики</span>
                 </div>
                 <div class="list_number_meter">
-
+                    {{-- Счётчики гаражного ряда --}}
                 </div>
             </div>
         </div>
+    </div>
+    <div class="text_memo">
+        <span style="font-size: 23px;">Памятка (обязательно к ознакомлению!)</span>
+        <br>
+        <span style="font-size: 23px;">
+            Все показания привязываются к вашему номеру счётчика. Если вы добавляете новый номер счётчика, последующие показания будут привязываться к новому номеру (статус станет "активный"). Добавляйте новый номер счётчика только в случае замены счётчика в вашем кооперативе, чтобы новые показания начинались с 0 кВт.
+            <br><br>
+            Если вы ошиблись в цифрах номера счётчика при добавлении нового, вы всегда можете изменить номер активного счётчика или прошлые показания. 
+            <br></br>
+            Нельзя добавить больше 3 счётчиков в год.
+            <br></br>
+            Важно!!!<br>
+            Все показания участников привязываются к вашему счётчику. Если в нём уже есть прошлые показания, то новые значения добавляются к общему показателю кооператива. При изменении показаний общие значения для всех месяцев также обновляются, так как они основываются на прошлых показаниях, указанных на этой странице. Рекомендуем не изменять значения после того, как показания участников были приняты.
+        </span>
     </div>
 </div>
 <script type="text/javascript">
@@ -168,6 +183,7 @@
     let idBlockValue;
     let currentYear;
     let blockNumber;
+    let numberIdmeter;
     let currentYearInput = {{session('id_year') ?? date('Y')}};
     let selectedMonth = $('#months').val() ?? {{$currentMonth}};
                 // Обработчик события изменения селекта
@@ -281,11 +297,11 @@
                                 <div class="meter_number_span">
                                     <div>
                                         <span>Номер счётчика: </span>
-                                        <input type="tel" name="meter_number" value="${meter.meter_number}" />
+                                        <input type="tel" pattern="\d{1,20}" oninput="this.value=this.value.replace(/\D/g,'')" name="meter_number" value="${meter.meter_number}" />
                                     </div>
                                     <div>
                                         <span>Прошлые показания: </span>
-                                        <input type="tel" name="initially_kw" value="${meter.initially_kw}" />
+                                        <input type="tel" pattern="\d{1,20}" oninput="this.value=this.value.replace(/\D/g,'')" name="initially_kw" value="${meter.initially_kw}" />
                                     </div>
                                 </div>
                                 <span class="status">Статус: <span class="${meter.active ? 'true' : 'false'}">${meter.active ? 'активный' : 'неактивный'}</span></span>
@@ -309,7 +325,8 @@
             },
             error: function (error) {
                 $('.list_number_meter, .table_kw_mouth, .request_fail').empty();
-                $('.request_fail').text('Что-то пошло не так, повторите попытку позже');
+                let errorText = error.responseJSON.error
+                $('.request_fail').text(errorText);
             }
         });
 }
@@ -379,6 +396,7 @@ $('.myBlock').click(function (e) {
         border: '',
         color: 'black'
     });
+    $('.not_found').empty();
     $('.button_block').prop("disabled", false);
     idBlockValue = $(this).data('id-block');
     blockNumber = $(this).find('input[name="block_number"]').val();
@@ -436,6 +454,20 @@ $('#button_form_default_kw').click(async function (e) {
     $('#button_form_default_kw').closest('form').submit();
 
 });
+$(document).on('submit', '.create_new_meter', function(event) {
+    event.preventDefault(); // Отменяем стандартное поведение формы
+    // Получаем значение id_block
+    var idBlockValue = $(this).find('input[name="id_block"]').val();
+    // Проверяем, есть ли значение
+    if (!idBlockValue) {
+        // Если значение отсутствует, выводим предупреждение
+        $('.not_found').text('Сначала выберите гаражный ряд.');
+    } else {
+        // Если значение присутствует, отправляем форму
+        this.submit();
+    }
+});
+
 $(document).on('click', '.monthButton', async function (e) {
     e.preventDefault(); // Предотвращаем отправку формы
     var form = $(this).closest('.form_month');
@@ -505,7 +537,7 @@ function sendAjaxRequestBlockImg (currentYearInput, idBlockValue, selectedMonth)
                         @csrf
                         <div class="head_block_indication">
                         <span>Показания кВт: </span>
-                        <input type="tel" name="kw_meter" value="${kw_meter ?? ''}" required/>
+                        <input type="tel" pattern="[0-9]{1,10}" maxlength="20" oninput="this.value=this.value.replace(/\D/g,'')"  name="kw_meter" value="${kw_meter ?? ''}" required/>
                         <input type="hidden" class="id_message" name="id_message" value="4">
                         <input type="hidden" class="id_block" name="id_block" value="${idBlockValue}">
                         <input type="hidden" class="id_year" name="id_year" value="${currentYearInput}">

@@ -17,5 +17,9 @@ class MeterReadingsBlocks extends Model
     public function Cooperative() {
         return $this->belongsTo(Cooperatives::class, 'id_coop', 'id_coop');
     }
+    public function MeterNumberBlockActive() {
+        return $this->hasOne(MeterNumbersBlocks::class, 'id_block', 'id_block');
+    }
+
 
 }

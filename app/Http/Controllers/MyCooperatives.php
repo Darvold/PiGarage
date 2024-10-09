@@ -380,18 +380,37 @@ class MyCooperatives extends Controller
     protected function ChairmanMyCoopBlocks(Request $request, $idCoop)
     {
         if ($request->ajax()) {
-            $numberYear = $request->input('numberYear');
-            $id_block = $request->input('id_block');
-            $month = $request->input('month');
             try {
-                if ($request->input('id_message') == 2 && $month) {
-                    $readings_meter_img = MeterReadingsBlocks::where('id_block', $id_block)
-                        ->where('id_coop', $idCoop)
-                        ->whereMonth('save_day', $month)
-                        ->whereYear('save_day', $numberYear)
+                $data = $request->validate([
+                    'numberYear' => 'required|integer|min:1900',
+                    'id_block' => 'required|integer|exists:cooperative_blocks,id_block', // Проверка на существование id_block
+                    'month' => 'numeric|between:1,12', // Проверяем, что месяц - это число от 1 до 12
+                ]);
+                $numberYear = $data['numberYear'];
+                $id_block = $data['id_block'];
+                $month = $data['month'] ?? null;
+                // Показания + фотография счётчика
+                if ($request->input('id_message') == 2 && $month !== null) {
+                    $readings_meter_img = MeterReadingsBlocks::with(['MeterNumberBlockActive' => function ($query) use ($id_block) {
+                        $query->where('id_block', $id_block)
+                            ->where('active', 1);
+                    }])
                         ->with(['Cooperative' => function ($query) {
                             $query->select('id_coop', 'name', 'address', 'city');
-                        }])->first();
+                        }])
+                        ->where('id_block', $id_block)
+                        ->where('id_coop', $idCoop)
+                        ->where('id_meter_number_block', function ($query) use ($id_block) {
+                            $query->select('id_meter_number')
+                                ->from('meter_numbers_blocks')
+                                ->where('id_block', $id_block)
+                                ->where('active', 1)
+                                ->limit(1);
+                        })
+                        ->whereMonth('save_day', $month)
+                        ->whereYear('save_day', $numberYear)
+                        ->first();
+
 
                     if (!$readings_meter_img) {
                         return response()->json(['blockMessages' => false]);
@@ -399,7 +418,7 @@ class MyCooperatives extends Controller
                     $imgHtml = '<span style="color: forestgreen; font-size: 22px;">Без файла</span>';
                     $kw_meter = $readings_meter_img->kw_meter;
                     if ($readings_meter_img->img_meter != null) {
-                        $nameCoop = $readings_meter_img->Cooperative->name;
+                        $nameCoop = $readings_meter_img->Cooperative->name . '_' . $readings_meter_img->Cooperative->id_coop;
                         $regionFolder = explode(',', $readings_meter_img->Cooperative->address);
                         $cityFolder = explode(',', $readings_meter_img->Cooperative->city);
                         $nameAddress = trim($regionFolder[0]);
@@ -428,6 +447,7 @@ class MyCooperatives extends Controller
                     return response()->json(['kw_meter' => $kw_meter, 'imgHtml' => $imgHtml]);
 
                 }
+                // Таблица потерь + счётчики гаражного ряда
                 if ($request->input('id_message') == 1) {
                     $blockDefaultKw = CooperativeBlocks::where('id_block', $id_block)
                         ->where('id_coop', $idCoop)->first();
@@ -438,7 +458,6 @@ class MyCooperatives extends Controller
                         ->whereYear('date_indication', $numberYear)
                         ->orderByRaw('MONTH(date_indication)')
                         ->get();
-
                     $messageMeters = MeterNumbersBlocks::where('id_block', $id_block)
                         ->orderBy('creation_date', 'desc')
                         ->orderBy('active', 'desc')
@@ -446,8 +465,10 @@ class MyCooperatives extends Controller
                     return response()->json(['blockMessages' => $blocksKW, 'id_block' => $id_block,
                         'defaultKW' => $blockDefaultKw, 'messageMeters' => $messageMeters]);
                 }
+            } catch (ValidationException $e) {
+                return response()->json(['error' => "Ошибка валидации"], 500);
             } catch (\Exception $e) {
-                return response()->json(['error' => $e->getMessage()], 500);
+                return response()->json(['error' => "Что-то пошло не так, повторите попытку позже"], 500);
             }
         }
         $blocks = CooperativeBlocks::leftJoin('garages', 'garages.id_block', '=', 'cooperative_blocks.id_block')
@@ -459,7 +480,6 @@ class MyCooperatives extends Controller
         $coopData = Cooperatives::where('id_coop', $idCoop)->first();
         $year = Date::now()->format('Y');
         return view('PagesForChairman.profile.pivotTableCoop.myCoopBlocks', compact('coopData', 'year', 'idCoop', 'blocks'));
-
     }
 
     protected function ChairmanMyCoopBlocksPost(Request $request, $idCoop)
@@ -487,6 +507,8 @@ class MyCooperatives extends Controller
                 } else {
                     return back()->with('info', "Создано максимальное количество гаражных рядов $count_block/50");
                 }
+            } catch (ValidationException $e) {
+                return back()->with(['error' => 'Ошибка валидации']);
             } catch (\Exception $e) {
                 return back()->with('error', "Что-то пошло не так, повторите попытку позже");
             }
@@ -504,6 +526,8 @@ class MyCooperatives extends Controller
                     return back()->with('error', "Не найден гаражный ряд, попробуйте позже");
                 }
                 return back()->with('success', "Успешно изменилось % потерь по умолчанию = {$garage_block['default_kw']}");
+            } catch (ValidationException $e) {
+                return back()->with(['error' => 'Ошибка валидации']);
             } catch (\Exception $e) {
                 return back()->with('error', "Что-то пошло не так, повторите попытку позже");
             }
@@ -515,9 +539,8 @@ class MyCooperatives extends Controller
                     'lossesNumber' => 'required|numeric|min:0',
                     'id_block' => 'required|numeric|min:0',
                     'id_year' => 'required|numeric|min:0',
-                    'id_month_number' => 'required|numeric|min:0',
+                    'id_month_number' => 'required|numeric|between:1,12',
                 ]);
-
                 $month = $mouthKW['id_month_number'];
                 $year = $mouthKW['id_year'];
                 if (($year < 2023 || $year > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $month)) {
@@ -546,6 +569,8 @@ class MyCooperatives extends Controller
                 }
 
                 return back()->with(['success' => $message, 'id_block' => $mouthKW['id_block']]);
+            } catch (ValidationException $e) {
+                return back()->with(['error' => 'Ошибка валидации']);
             } catch (\Exception $e) {
                 return back()->with('error', "Что-то пошло не так, повторите попытку позже");
             }
@@ -558,7 +583,7 @@ class MyCooperatives extends Controller
                     'img_meter' => 'nullable|image|mimes:jpeg,png,jpg|max:50000',
                     'id_block' => 'required|numeric|min:0',
                     'id_year' => 'required|numeric|min:0',
-                    'id_month_number' => 'required|numeric|min:0|max:12',
+                    'id_month_number' => 'required|numeric|between:1,12',
                 ]);
                 $returnData = [
                     'id_block' => $meter['id_block'],
@@ -568,16 +593,26 @@ class MyCooperatives extends Controller
                 $readings_meter_img = Cooperatives::with(['meterReadingsBlocks' => function ($query) use ($meter, $idCoop) {
                     $query->where('id_block', $meter['id_block'])
                         ->where('id_coop', $idCoop)
+                        ->where('id_meter_number_block', function ($query) use ($meter) {
+                            $query->select('id_meter_number')
+                                ->from('meter_numbers_blocks')
+                                ->where('id_block', $meter['id_block'])
+                                ->where('active', 1)
+                                ->limit(1);
+                        })
                         ->whereYear('save_day', $meter['id_year'])
                         ->whereMonth('save_day', $meter['id_month_number'])
                         ->withTrashed();
                 }])->where('id_coop', $idCoop)
                     ->where('user_id', Auth::id())->first();
                 if (!$readings_meter_img) {
-                    return back()->with(['error', "Не найден кооператив"] + $returnData);
+                    return back()->with(['error' => "Не найден кооператив"] + $returnData);
                 }
-
-                $nameCoop = $readings_meter_img->name;
+                $activeMeter = MeterNumbersBlocks::where('id_block', $meter['id_block'])->where('active', 1)->first();
+                if (!$activeMeter) {
+                    return back()->with(['error' => "Добавьте счётчик!"] + $returnData);
+                }
+                $nameCoop = $readings_meter_img->name . '_' . $readings_meter_img->id_coop;
                 $regionFolder = explode(',', $readings_meter_img->address);
                 $cityFolder = explode(',', $readings_meter_img->city);
                 $nameAddress = trim($regionFolder[0]);
@@ -626,6 +661,7 @@ class MyCooperatives extends Controller
 
                     $meterReading->update([
                         'kw_meter' => $meter['kw_meter'],
+                        'id_meter_number_block' => $activeMeter->id_meter_number,
                         'img_meter' => $imageNameWithExtension ?? $meterReading->img_meter, // Сохраняем старое имя, если новое не задано
                         'save_day' => $saveDay,
                     ]);
@@ -634,6 +670,7 @@ class MyCooperatives extends Controller
                     MeterReadingsBlocks::create([
                         'id_block' => $meter['id_block'],
                         'id_coop' => $idCoop,
+                        'id_meter_number_block' => $activeMeter->id_meter_number,
                         'kw_meter' => $meter['kw_meter'],
                         'img_meter' => $imageNameWithExtension ?? null,
                         'save_day' => $saveDay,
@@ -641,17 +678,14 @@ class MyCooperatives extends Controller
                 }
 
                 return back()->with(['success' => "Успешно сохранено"] + $returnData);
+            } catch (ValidationException $e) {
+                return back()->with(['error' => 'Ошибка валидации']);
             } catch (\Exception $e) {
-                return back()->with(['error' => "Что-то пошло не так, повторите запрос позже"] + $returnData);
+                return back()->with(['error' => 'Что-то пошло не так, повторите попытку']);
             }
         }
         // Создание счётчика и изменения текущего
         if ($id_message == 5) {
-            $returnData = [
-                'id_block' => $request->input('id_block', null),
-                'id_year' => $request->input('id_year', null),
-                'id_month_number' => $request->input('id_month_number', null)
-            ];
             try {
                 $data = $request->validate([
                     'meter_number' => 'required|integer|min:0',
@@ -660,13 +694,18 @@ class MyCooperatives extends Controller
                     'id_block' => 'required|integer|min:0',
                     'id_year' => 'required|integer|min:0',
                     'initially_kw' => 'required|integer|min:0',
-                    'id_month_number' => 'required|integer|min:0|max:12',
+                    'id_month_number' => 'required|numeric|min:0|max:12',
                 ]);
                 $returnData = [
                     'id_block' => $data['id_block'],
                     'id_year' => $data['id_year'],
                     'id_month_number' => $data['id_month_number']
                 ];
+                $selectIdBlock = CooperativeBlocks::where('id_block', $data['id_block'])
+                    ->where('id_coop', $idCoop)->first();
+                if (!$selectIdBlock) {
+                    return back()->with(['error' => 'Что-то пошло не так, не найден гаражный ряд текущего кооператива'] + $returnData);
+                }
                 // Создание нового счётчика
                 if ($data['idPost'] == 0) {
                     $number_meter = MeterNumbersBlocks::where('id_block', $data['id_block'])
@@ -706,10 +745,10 @@ class MyCooperatives extends Controller
 
             } catch (ValidationException $e) {
                 // Обработка исключений валидации
-                return redirect()->back()->with(['error' => 'Ошибка валидации данных'] + $returnData);
+                return redirect()->back()->with(['error' => 'Ошибка валидации данных']);
             } catch (\Exception $e) {
                 // Общая обработка исключений
-                return redirect()->back()->with(['error' => "Что-то пошло не так, повторите попытку позже"] + $returnData);
+                return redirect()->back()->with(['error' => "Что-то пошло не так, повторите попытку позже"]);
             }
         }
         return back()->with(['error' => 'Что-то пошло не так, повторите запрос позже']);
@@ -769,7 +808,7 @@ class MyCooperatives extends Controller
                 $folderPathsOld = [];
                 foreach ($meters_readings as $index => $file_url) {
                     $fio = $file_url->garages[0]->user->fio;
-                    $nameCoop = $file_url->cooperative->name;
+                    $nameCoop = $file_url->cooperative->name . '_' . $file_url->cooperative->id_coop;
                     $regionFolder = explode(',', $file_url->cooperative->address);
                     $cityFolder = explode(',', $file_url->cooperative->city);
                     $nameAddress = trim($regionFolder[0]);
@@ -796,12 +835,12 @@ class MyCooperatives extends Controller
                         }
                     } else {
                         // Обработка отсутствия файла
-                        $folderPaths[] = '<span style="color: red;" data-date="' . $date . '">Файл не существует или не доступен для чтения</span>';
+                        $folderPaths[] = '<span style="color: red; font-size: 22px;" data-date="' . $date . '">Файл не существует или не доступен для чтения</span>';
                     }
                 }
                 foreach ($meters_readings_old as $index => $file_url) {
                     $fio = $file_url->garages[0]->user->fio;
-                    $nameCoop = $file_url->cooperative->name;
+                    $nameCoop = $file_url->cooperative->name . '_' . $file_url->cooperative->id_coop;
                     $regionFolder = explode(',', $file_url->cooperative->address);
                     $cityFolder = explode(',', $file_url->cooperative->city);
                     $nameAddress = trim($regionFolder[0]);
@@ -809,7 +848,7 @@ class MyCooperatives extends Controller
                     $nameFile = $file_url->img_meter;
                     $date = $file_url->send_date;
                     $oldKw_meter = $file_url->kw_meter;
-                    $folderPath = '../../StoragePiGarage/CoopMeters/' . $data['year'] . '/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . $fio . '/' . $nameFile;
+                    $folderPath = '../../StoragePiGarage/CoopMeters/' . $data['year'] . '/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . 'Участники' . '/' . $fio . '/' . $nameFile;
 
                     // Проверяем существование файла перед чтением
                     if (file_exists($folderPath) && is_readable($folderPath)) {
@@ -849,7 +888,7 @@ class MyCooperatives extends Controller
         $currentMonth = Date::now()->format('m');
         $coopData = Cooperatives::where('id_coop', $idCoop)->first();
         $blocks = CooperativeBlocks::where('id_coop', $idCoop)
-            ->withCount(['meterReadings' => function ($query) {
+            ->withCount(['meterReadingsUsers' => function ($query) {
                 $query->where('status', 'pending');
             }])
             ->get();
@@ -870,16 +909,6 @@ class MyCooperatives extends Controller
         } catch (ValidationException|\Exception $e) {
             return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
         }
-        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //То что ниже
-        return response()->json(['response' => 'error']);
-        //То что сверху
-        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //УДАЛИТЬ ПОТОМ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         $metersReadings = MeterReadingsUsers::where('id_reading', $data['idReading']);
         if ($data['idMessage'] == 0) {

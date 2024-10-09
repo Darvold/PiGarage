@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('id_reading');
             $table->bigInteger('id_block');
             $table->bigInteger('id_coop');
+            $table->bigInteger('meter_number_block');
             $table->bigInteger('kw_meter');
             $table->string('img_meter');
             $table->datetime('save_day');

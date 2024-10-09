@@ -71,7 +71,7 @@ class AdminPagesController extends Controller
                 ApplicationsCreateNewCoop::where('id_application', $application->id_application)
                     ->update(['status' => 'accepted']);
 
-                $basePath = '../../CoopMeters/';
+/*                $basePath = '../../StoragePiGarage/';
                 $regionFolder = explode(',', $application->address);
                 $cityFolder = explode(',', $application->city);
 
@@ -97,7 +97,7 @@ class AdminPagesController extends Controller
                     // Создаем новую папку
                     mkdir($folderPathCoopName, 0755, true);
                     //  return 'Папка успешно создана: ' . $folderPath;
-                }
+                }*/
 
                 return redirect()->back()->with('success', 'Кооператив успешно создался');
             } catch (\Exception $e) {

@@ -246,8 +246,7 @@ class PageProfileController extends Controller
             $cityFolder = explode(',', $coopURL->cooperative->city);
             $region = trim($regionFolder[0]);
             $city = trim($cityFolder[0]);
-            $name = $coopURL->cooperative->name;
-
+            $name = $coopURL->cooperative->name . '_' . $coopURL->cooperative->id_coop;
             $userFIO = $coopURL->user->fio;
             // Генерируйте уникальное имя файла
             $imageExtension = $data['img_meter']->getClientOriginalExtension();
@@ -268,7 +267,7 @@ class PageProfileController extends Controller
                 'id_garage' => $idGarage,
                 'id_block' => $coopURL->id_block,
                 'id_coop' => $coopURL->id_coop,
-                'id_meter_number' => $coopURL->id_meter_number,
+                'id_meter_number_garage' => $coopURL->id_meter_number,
                 'kw_meter' => $data['kw_meter'],
                 'status' => 'pending',
                 'image_hash' => $imageHash,
@@ -285,7 +284,7 @@ class PageProfileController extends Controller
             }
             return redirect()->back()->with('error', 'Ошибка валидации, повторите попытку.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Произошла ошибка, повторите попытку позже');
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
