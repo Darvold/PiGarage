@@ -45,7 +45,7 @@
                     <div class="block_payment">
                         <div class="blocks_flex_content">
                             <div class="image_avatar_block">
-                                <img src="{{asset('image/user/defaultUser.jpg')}}">
+                                <img src="{{asset('image/user/defaultUserMinSize.jpg')}}"  width="100" height="100">
                             </div>
                             <div class="flex_column_container">
                                 <div class="head_container">
@@ -65,6 +65,7 @@
                                 </div>
                                 <div class="footer_container">
                                     <button type="submit" class="button_save">Сохранить</button>
+                                    <span>Баланс: <span class="balance">{{$user->balance ? $user->balance : 0}}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -403,7 +404,7 @@
             });
 
 
-            function searchPaymentValue() {
+            function searchPaymentValue(balanceUser, form) {
                 $('.body_table_block .form_payment').each(function () {
                     let fioUser = $(this).find('.head_container .head_container_fio').text();
                     let paymentValue = $(this).find('input[name="tariff_value"]').val();
@@ -419,6 +420,9 @@
                         }
                     });
                 });
+                if (balanceUser) {
+                    form.find('.balance').text(balanceUser);
+                }
             }
 
 
@@ -432,7 +436,7 @@
             let currentTime = new Date().getTime();
             let timeDifference = currentTime - lastClickTime;
             let currentYear;
-            let idMonth = '0' + {{$monthNow}};
+            let idMonth = {{$monthNow}} < 10 ? '0' + {{$monthNow}} : {{$monthNow}};
             let currentYearInput = {{$year}};
 
             $('.id_month[data-month={{$monthNow}}]').css({
@@ -497,6 +501,7 @@
                             </div>
                             <div class="footer_container">
                             <button type="submit" class="button_save">Сохранить</button>
+                            <span>Баланс: <span class="balance">${blockMessages[i].balance}</span></span>
                             </div>
                             </div>
                             </div>
@@ -599,7 +604,7 @@ $('.id_month').click(function (e) {
         backgroundColor: '#1C82E7',
         color: 'white'
     });
-    $('.last_year, .next_year, .id_month').prop("disabled", true);
+    $('.id_month').prop("disabled", true);
     idMonth = $(this).data('month');
     isSubmitMyBlock = true;
     $('.body_table_block').empty();
@@ -617,8 +622,9 @@ $('.id_month').click(function (e) {
             $('.last_year, .next_year, .id_month').prop("disabled", false);
             if (currentYearInput === 2023) {
                 $('.last_year').prop("disabled", true);
-            } else {
-                $('.last_year').prop("disabled", false);
+            }
+            if (currentYearInput === 2024) {
+                $('.next_year').prop("disabled", true);
             }
             sendAjaxRequestPayment(currentYearInput, idMonth);
             clickCount = 0;
@@ -630,7 +636,7 @@ $('.id_month').click(function (e) {
         if (timeDifference >= 1000) {
             clickCount = 0;
         }
-                    // Снимаем блокировку с предыдущей кнопки, если она существует
+       
         if (previousButton) {
             previousButton.prop("disabled", false);
         }
@@ -643,13 +649,14 @@ $('.id_month').click(function (e) {
 
 function messageBlock(text, form, bool) {
     if (bool == false) {
+        $('.button_save').prop("disabled", true);
         form.closest('.form_payment').find('.error-message').html(text).slideDown(500);
 
         setTimeout(function () {
             form.closest('.form_payment').find('.error-message').slideUp(500);
             form.closest('.form_payment').find('.error-message').html();
-            form.closest('.form_payment').find('.button_save').prop("disabled", false);
-        }, 3000);
+            $('.button_save').prop("disabled", false);
+        }, 5000);
     } else {
         form.closest('.form_payment').find('.success-message').html(text).slideDown(500);
 
@@ -675,11 +682,11 @@ function sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idM
         },
         success: function (response) {
             if (response.error) {
-                messageBlock("Не удалось отправить запрос", form, false);
+                messageBlock(response.error, form, false);
                 return;
             }
             messageBlock(response.success, form, true);
-            searchPaymentValue();
+            searchPaymentValue(response.balance, form);
         },
         error: function (error) {
             $('.body_table_block').text('Что-то пошло не так, повторите попытку позже');
@@ -712,46 +719,7 @@ $(document).on('submit', '.form_payment', function (e) {
 
 
     sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idMonth, form, id_number_garage);
-                /*
-                        isSubmitMyBlock = true;
-                        $('.body_table_block').empty();
-                        $('.body_table_block').html('Подождите, запрос выполняется...');
-                        let currentTime = new Date().getTime();
-                        let timeDifference = currentTime - lastClickTime;
-                            // Если прошло менее 1 секунд с предыдущего нажатия и количество нажатий больше 3
-                        if (timeDifference < 2000 && clickCount > 5) {
-                                // Отображаем сообщение об ошибке
-                            $(".body_table_block").append("Ошибка: Слишком много запросов. Пожалуйста, подождите.");
-                                // Блокируем кнопки на 3 секунды
-                            $('.last_year, .next_year, .id_month').prop("disabled", true);
-
-                            setTimeout(function () {
-                                $('.last_year, .next_year, .id_month').prop("disabled", false);
-                                if (currentYearInput === 2023) {
-                                    $('.last_year').prop("disabled", true);
-                                } else {
-                                    $('.last_year').prop("disabled", false);
-                                }
-                                sendAjaxRequestPayment(currentYearInput, idMonth);
-                                clickCount = 0;
-
-                            }, 3000);
-
-                        } else {
-                                // Сбрасываем счетчик, если прошло более 1 секунд с предыдущего нажатия
-                            if (timeDifference >= 1000) {
-                                clickCount = 0;
-                            }
-                                // Снимаем блокировку с предыдущей кнопки, если она существует
-                            if (previousButton) {
-                                previousButton.prop("disabled", false);
-                            }
-                            e.preventDefault();
-
-                            if (isSubmitMyBlock === true) {
-                                sendAjaxRequestPayment(currentYearInput, idMonth);
-                            }
-                        }*/
+  
 });
 });
 </script>

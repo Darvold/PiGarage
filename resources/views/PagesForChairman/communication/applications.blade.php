@@ -52,6 +52,7 @@
     <script>
       $(document).ready(function () {
         function sendAjaxRequestUser() {
+            $('.messages_container').append("Загрузка...");
             $.ajax({
                 url: '{{ route('Applications.index', ['id' => Auth::id()]) }}',
                 type: "GET",
@@ -76,8 +77,6 @@
                     }).text();
                     let coopMessages = response.coopMessages;
                     let garageMessages = response.garagesUsers;
-                    console.log(coopMessages);
-                    console.log(garageMessages);
 
                     // Перебираем массив и обновляем содержимое на странице
                     if (coopMessages !== null && coopMessages.length > 0) {
@@ -89,7 +88,7 @@
                                     <div class="error-post-message" style="display: none"></div>
                                 </div>
                                 <div class="img_center_left">
-                                    <img src="{{asset('image/user/DefaultUser.jpg')}}" alt="кооператив">
+                                    <img src="{{asset('image/user/defaultUserMinSize.jpg')}}" alt="кооператив">
                                 </div>
                                 <div class="right_text">
                                     <span class="right_text_fio">${coopMessage.user_fio}</span>`;
@@ -205,7 +204,7 @@
                                     <div class="success-message-garage" style="display: none"></div>
                                 </div>
                                 <div class="img_center_left">
-                                    <img src="{{asset('image/user/DefaultUser.jpg')}}" alt="кооператив">
+                                    <img src="{{asset('image/user/defaultUserMinSize.jpg')}}" alt="кооператив">
                                 </div>
                                 <div class="right_text_garage">
                                     <span>${coopMessage.user_fio}</span>
@@ -340,9 +339,11 @@
 
                     if (isSubmitMyForm === true && isSubmitButton === true/* && id_applications === 1*/) {
                     if (id_applications === 1) {
+                        $('.messages_container').empty();
                         sendAjaxRequestUser();
                     }
                     if (id_applications === 2) {
+                        $('.messages_container').empty();
                         sendAjaxRequestParticipant();
                     }
                     } /*else {

@@ -56,7 +56,7 @@
                     <div class="block_payment">
                         <div class="blocks_flex_content">
                             <div class="image_avatar_block">
-                                <img src="{{asset('image/user/defaultUser.jpg')}}">
+                                <img src="{{asset('image/user/defaultUserMinSize.jpg')}}">
                             </div>
                             <div class="flex_column_container">
                                 <div class="head_container">
@@ -195,7 +195,7 @@
         <div class="coop-payments">
             <h2>Виды оплат для участников гаражного кооператива</h2>
             <p>
-                Участники гаражного кооператива могут вносить различные платежи, которые необходимы для поддержания работы и развития кооператива. 
+                Участники гаражного кооператива могут вносить различные платежи, которые необходимы для поддержания работы и развития кооператива.
                 Важно отметить, что эти виды оплат не являются обязательными для всех кооперативов. Структура и необходимость взносов зависят от конкретных решений вашего кооператива и его устава.
             </p>
             <div class="payment-type">
@@ -751,7 +751,7 @@ function sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idM
         error: function (error) {
             let errorText = error.responseJSON.error
             $('.body_table_block').html(`<span style="font-size: 23px">${errorText}</span>`);
-            
+
         }
     });
 }

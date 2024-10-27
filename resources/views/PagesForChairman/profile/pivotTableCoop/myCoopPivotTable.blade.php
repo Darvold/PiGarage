@@ -8,7 +8,7 @@
     </div>
     <div class="main_head_tools">
         <div class="block_information_link">
-            <a href="{{route('coopMeters.index', ['idCoop' => $coopData -> id_coop])}}">История/замена счётчика</a>
+            <a href="{{route('coopMeters.index', ['idCoop' => $coopData -> id_coop])}}">История/замена общего счётчика</a>
             <a href="{{route('ChairmanMyCoopParticipants.index', ['idCoop' => $coopData -> id_coop])}}">Все
             участники</a>
             <a href="{{route('MessagesMeters.index', ['idCoop' => $coopData -> id_coop])}}">Показания участников</a>
@@ -21,6 +21,7 @@
             <a href="{{route('ChairmanMyCoopRate.index', ['idCoop' => $idCoop])}}">Установить тариф</a>
             <a href="{{route('ChairmanMyCoopLosses.index', ['idCoop' => $idCoop])}}">Установить потери</a>
             <a href="{{route('ChairmanMyCoopPayment.index', ['idCoop' => $idCoop])}}">Внести оплату участников</a>
+            <a href="{{route('ChairmanMyCoopGeneralCounter.index', ['idCoop' => $idCoop])}}">Показания общего счётчика</a>
         </div>
         <div class="year_buttons">
             <button id="prev-year-btn" class="Button_correct_left">&lt;</button>

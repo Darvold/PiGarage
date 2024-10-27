@@ -26,6 +26,7 @@
     'ProfileApplicationToCoopStyles' => 'PagesForChairman/applicationToCoop/',
     'ProfileCoopPivotTableStyles' => 'PagesForChairman/myCoopPivotTable/',
     'ProfileCoopBlocksStyles' => 'PagesForChairman/pageBlocks/',
+    'ProfileCoopGeneralCounter' => 'PagesForChairman/generalCounter/',
     'ProfileCoopRate' => 'PagesForChairman/rate/',
     'ProfileCoopPayment' => 'PagesForChairman/payment/',
     'ProfileCoopPaymentOther' => 'PagesForChairman/paymentOther/',
@@ -108,7 +109,7 @@ echo "<script>
         <span class="Logotip"><img src="{{asset('icons/user/logo.svg')}}" alt="Логотип" class="svg">PiGarage</span>
         <div class="Block_Text_User" id="arrow_img">
             <span class="Text_user">Председатель</span>
-            <img src="{{asset('image/user/defaultUser.jpg')}}" alt="профиль" class="image_profile">
+            <img src="{{asset('image/user/defaultUserMinSize.jpg')}}" alt="профиль" class="image_profile">
             <div class="block_arrow">
                 <div class="block_arrow_botton">
                     <img src="{{asset('icons/user/arrowToLeft.svg')}}" alt="стрелка" class="arrow" id="arrow">

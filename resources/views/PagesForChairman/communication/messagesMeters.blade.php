@@ -267,7 +267,7 @@
                             var html = `<div class="block_applications" data-value-id="${idReading}">
                                 <div class="head_block">
                                     <div class="img_center_right">
-                                        <img src="{{asset('image/user/DefaultUser.jpg')}}" alt="Пользователь">
+                                        <img src="{{asset('image/user/defaultUserMinSize.jpg')}}" alt="Пользователь">
                                     </div>
                                     <div class="right_text_right_block">
                                         <div style="display: flex;">

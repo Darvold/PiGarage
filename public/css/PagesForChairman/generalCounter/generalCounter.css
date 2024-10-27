@@ -1,0 +1,203 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.main_block_coop {
+	margin-bottom: 10px;
+	margin-top: 10px;
+	margin-left: 10px;
+	width: 1400px;
+	height: 100%;
+	border-radius: 4px;
+	background-color: white;
+	box-shadow: 0px 2px 10px 2px black;
+}
+.main_body {
+	position: relative;
+	padding: 20px;
+	height: 100%;
+	min-height: 820px;
+	width: 100%;
+	float: left;
+}
+
+
+/*Ниже остальной CSS принадлежащий содержание страницы*/
+
+.flex_column {
+	display: flex;
+	gap: 10px;
+}
+
+.meter_indication .block_1 {
+    width: 100%;
+    justify-content: center;
+    height: 100%;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.block_1 button {
+    font-size: 39px;
+    background-color: white;
+    border: none;
+    transition: .1s;
+    display: flex;
+}
+
+.block_1 button:hover {
+    background-color: #CCC;
+}
+
+.block_1 span {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    font-size: 26px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.block_2 {
+    width: 100%;
+    display: flex;
+    justify-content: start;
+}
+
+.block_2 span {
+    margin-left: 10px;
+    font-size: 25px;
+}
+
+
+.meter_indication {
+    margin-bottom: 20px;
+    border: 1px solid black;
+    border-radius: 4px;
+    width: 450px;
+    padding: 5px;
+    height: 260px;
+}
+
+.head_indication {
+    border-bottom: 1px solid black;
+    padding-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.container_mouth {
+	margin-top: 0px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+.container_mouth button {
+	background-color: white;
+	border: 1px solid black;
+	padding: 0px 4px 0px 4px;
+	font-size: 24px;
+	border-radius: 4px;
+}
+.container_mouth button:hover {
+	background-color: #CCC;
+}
+
+.body_indication {
+    padding: 5px;
+}
+
+
+.head_block_indication {
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.head_block_indication span {
+    font-size: 22px;
+}
+
+.head_block_indication input {
+    border-radius: 4px;
+    padding: 2px 4px 2px 4px;
+    display: block;
+    height: 35px;
+    font-size: 23px;
+    width: 240px;
+    outline: none;
+    transition: background-color 0.4s ease;
+}
+
+.head_block_indication input:focus {
+    border: 1px solid #4180BDFF;
+    box-shadow: 0px 0px 0px 2px #4180BDFF;
+    z-index: 99;
+    transition: 0.3s ease;
+}
+
+.img_block {
+    position: relative;
+}
+
+.flex_img {
+    display: flex;
+}
+
+.flex_img a {
+    position: absolute;
+    right: 0px;
+    top: -10px;
+    transition: 0.3s ease;
+}
+
+.img_block button {
+    margin: 5px 5px 5px 0px;
+    border-radius: 4px;
+    padding: 2px;
+    font-size: 21px;
+    height: 35px;
+    transition: 0.3s ease;
+    background-color: white;
+    color: black;
+    text-decoration: none;
+    border: 2px solid rgb(19, 105, 192);
+}
+
+.img_block button:hover {
+    background-color: #EEE;
+}
+
+.file_img {
+    font-size: 17px;
+}
+
+.img_block img:first-child {
+    margin: 25px 10px 10px 10px;
+    border: 2px solid black;
+    width: 90px;
+    height: 90px;
+    float: right;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.img_block span {
+    position: absolute;
+    right: 0px;
+    top: 40px;
+}
+
+.check {
+    position: absolute;
+    width: 45px;
+    bottom: 0;
+    right: 0;
+    border: 2px solid black;
+    border-radius: 50%;
+}

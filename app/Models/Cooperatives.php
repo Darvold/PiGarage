@@ -34,5 +34,9 @@ class Cooperatives extends Model
     {
         return $this->hasMany(MeterReadingsBlocks::class, 'id_coop', 'id_coop');
     }
+    public function meterReadingsCoops()
+    {
+        return $this->hasMany(MeterReadingsCoops::class, 'id_coop', 'id_coop');
+    }
 
 }

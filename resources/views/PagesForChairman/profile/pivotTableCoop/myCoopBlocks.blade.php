@@ -138,7 +138,7 @@
                 <span class="not_found"></span>
                 </div>
                 <div class="span_absolute">
-                    <span class="my_meters">Мои счётчики</span>
+                    <span class="my_meters">Мои счётчики:</span>
                 </div>
                 <div class="list_number_meter">
                     {{-- Счётчики гаражного ряда --}}
@@ -289,6 +289,9 @@
                     html += `</form>`;
                     $('.table_kw_mouth').append(html);
                 }
+                if (response.messageMeters.length === 0) {
+                    $('.list_number_meter').append(`<span style="font-size: 22px">Добавьте новый счётчик</span>`);
+                }
                 for (var i = 0; i < response.messageMeters.length; i++) {
                     var meter = response.messageMeters[i]; // Получаем текущий элемент
                     var htmlMeters = `<div class="block_meter">
@@ -297,11 +300,11 @@
                                 <div class="meter_number_span">
                                     <div>
                                         <span>Номер счётчика: </span>
-                                        <input type="tel" pattern="\d{1,20}" oninput="this.value=this.value.replace(/\D/g,'')" name="meter_number" value="${meter.meter_number}" />
+                                        <input type="tel" pattern="[0-9]{1,10}" oninput="this.value=this.value.replace(/\D/g,'')" name="meter_number" value="${meter.meter_number}" />
                                     </div>
                                     <div>
                                         <span>Прошлые показания: </span>
-                                        <input type="tel" pattern="\d{1,20}" oninput="this.value=this.value.replace(/\D/g,'')" name="initially_kw" value="${meter.initially_kw}" />
+                                        <input type="tel" pattern="[0-9]{1,10}" oninput="this.value=this.value.replace(/\D/g,'')" name="initially_kw" value="${meter.initially_kw}" />
                                     </div>
                                 </div>
                                 <span class="status">Статус: <span class="${meter.active ? 'true' : 'false'}">${meter.active ? 'активный' : 'неактивный'}</span></span>
@@ -325,7 +328,7 @@
             },
             error: function (error) {
                 $('.list_number_meter, .table_kw_mouth, .request_fail').empty();
-                let errorText = error.responseJSON.error
+                let errorText = error.responseJSON.error;
                 $('.request_fail').text(errorText);
             }
         });
@@ -558,7 +561,7 @@ function sendAjaxRequestBlockImg (currentYearInput, idBlockValue, selectedMonth)
                         $('.body_indication').append(html_img);
                     },
                     error: function (error) {
-                        let errorText = error.responseJSON.error
+                        let errorText = error.responseJSON.error;
                         $('.request_fail_img').html(`<span style="font-size: 23px">${errorText}</span>`);
                     }
                 });

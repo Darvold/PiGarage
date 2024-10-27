@@ -25,7 +25,7 @@ class UserAndCoop extends Model
     }
     public function payments()
     {
-        return $this->hasMany(PayMents::class, 'user_id', 'user_id');
+        return $this->hasMany(Payments::class, 'user_id', 'user_id');
     }
     public function garages() {
         return $this->hasMany(Garages::class, 'user_id', 'user_id');

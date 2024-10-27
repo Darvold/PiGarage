@@ -11,7 +11,7 @@
                 <div class="flex_block_content">
                     <div class="block_coop">
                         <div class="image_block_user">
-                            <img src="{{asset('image/user/defaultGarage.jpg')}}" alt="кооператив">
+                            <img src="{{asset('image/user/defaultGarageMinSize.jpg')}}" alt="кооператив">
                             <!-- <div class="Button_update_img">
                                 <a class="Update_img" href="">Изменить фото</a>
                             </div> -->
