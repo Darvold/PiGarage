@@ -75,9 +75,9 @@ th {
 	background-color: hsla(0, 0%, 80%, 0.6);
 }
 
-th:first-child {
+/*th:first-child {
 	text-align: left;
-}
+}*/
 .table_two th:first-child {
 	text-align: left;
 }
@@ -85,7 +85,7 @@ td:nth-child(1) {
 	font-size: 27px;
 }
 
-
+/*
 table:first-of-type td:nth-child(4) {
 	background-color: hsla(0, 0%, 80%, 0.6);
 }
@@ -101,7 +101,7 @@ table:first-of-type td:nth-child(6):not(.table_two) {
 table:first-of-type tr td:nth-child(6):not(.table_two) {
 	background-color: hsla(0, 0%, 80%, 0.6);
 }
-
+*/
 .table_two:first-of-type td:nth-child(4) {
 		background-color: white;
 }

@@ -1,34 +1,34 @@
-<table>
-   <thead>
-    <tr>
-        <th colspan="10" style="font-size: 28px; text-align: center; background-color: white;">Сводная таблица электричества</th>
-    </tr>
-    <tr>
-        <th style="text-align: center;"  rowspan="2">Месяц</th>
-        <th rowspan="2" >Показания счётчика</th>
-        <th rowspan="2">Потреблено кВт гаражами</th>
-        <th rowspan="2">Установка потерь</th>
-        <th rowspan="2">Потреблено кВт с потерями</th>
-        <th rowspan="2">Тариф</th>
-        <th rowspan="2">К оплате за электричество</th>
-        <th rowspan="2">Внесено</th>
-        <th rowspan="2">Долг</th>
-    </tr>
-</thead>
-<tbody>
-    <tr>
-        <td>Январь</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-    </tr>
-
-</tbody>
+<table id="table_one">
+  <thead>
+       <tr>
+           <th colspan="10" style="font-size: 28px; text-align: center; background-color: white;">Сводная таблица электричества</th>
+       </tr>
+       <tr>
+           <th rowspan="2" style="text-align: center;">Месяц</th>
+           <th rowspan="2">Показания счётчика (разница с прошлым)</th>
+           <th rowspan="2">Потреблено кВт гаражами</th> <!-- Общий заголовок -->
+           <th rowspan="2">Установка потерь</th>
+           <th rowspan="2">Потреблено кВт с потерями</th>
+           <th rowspan="2">Тариф</th>
+           <th rowspan="2">К оплате за электричество</th>
+           <th rowspan="2">Внесено</th>
+           <th rowspan="2">Долг</th>
+       </tr>
+   </thead>
+   <tbody>
+       {{-- <tr>
+           <td>Январь</td>
+           <td></td>
+           <td></td>
+           <td></td> 
+           <td></td>
+           <td></td>
+           <td></td>
+           <td></td>
+           <td></td>
+           <td></td>
+       </tr> --}}
+   </tbody>
 <tfoot>
     <tr>
         <td style="font-size: 28px;">Итого:</td>

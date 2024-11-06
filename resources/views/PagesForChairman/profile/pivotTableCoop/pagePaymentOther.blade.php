@@ -27,9 +27,8 @@
                             <button class="next_year">></button>
                             <div class="name_table_payment">
                                 <select id="paymentType" name="payment_type">
-                                    <option value="membership_fee" data-id="2">Членские взносы (Общий сбор)</option>
-                                    <option value="target_fee" data-id="3">Целевые взносы</option>
-                                    <option value="water_fee" data-id="4">Оплата за воду</option>
+                                    <option value="membership_fee" data-id="3">Членские взносы (Общий сбор)</option>
+                                    <option value="target_fee" data-id="4">Целевые взносы</option>
                                     <option value="security_fee" data-id="5">Оплата за охрану</option>
                                     <option value="cleaning_fee" data-id="6">Оплата за уборку и содержание территории</option>
                                     <option value="maintenance_fee" data-id="7">Оплата за ремонт и техническое обслуживание</option>
@@ -38,6 +37,25 @@
                                     <option value="construction_fee" data-id="10">Строительные взносы</option>
                                     <option value="reserve_fund" data-id="11">Фонд резервного капитала</option>
                                 </select>
+                            </div>
+                            <div class="contribute">
+                                <span>Необходимо внести каждому:</span>
+                                <div class="contribute_save">
+                                    <form method="post" action="{{route('ChairmanMyCoopPaymentOtherPost.store', ['idCoop' => $idCoop])}}">
+                                        @csrf
+                                        <input type="hidden" name="type_payment" value="3">
+                                        <input type="hidden" name="id_month_number" value="{{$monthNow}}">
+                                        <input type="hidden" name="id_year" value="{{$year}}">
+                                        <input type="tel" pattern="[0-9]{1,10}" title="Только цифры"
+                                        name="value"
+                                        id="fee_value"
+                                        maxlength="10"
+                                        oninput="this.value=this.value.replace(/\D/g,'')"
+                                        value="{{$fees}}">
+                                        <button type="submit" class="button_save">Сохранить</button>
+                                    </form>
+                                </div>
+                                    <span>Руб.</span>
                             </div>
                         </div>
                     </div>
@@ -243,7 +261,7 @@
 </div>
 <script>
     $(document).ready(function () {
-        let dataIdTypePayment = 2;
+        let dataIdTypePayment = 3;
         let currentPage = 1;
         let usersPerPage = 8;
         let selectedId = "rbx-1";
@@ -492,7 +510,7 @@
             let currentTime = new Date().getTime();
             let timeDifference = currentTime - lastClickTime;
             let currentYear;
-            let idMonth = '0' + {{$monthNow}};
+            let idMonth = {{$monthNow}} < 10 ? '0' + {{$monthNow}} : {{$monthNow}};
             let currentYearInput = {{$year}};
 
             $('.id_month[data-month={{$monthNow}}]').css({
@@ -530,6 +548,8 @@
                         lastClickTime = new Date().getTime();
                         clickCount++;
                         let blockMessages = response.blockMessages;
+                        let fee = response.fee;
+                        $('.contribute_save').find('input[name="value"]').val(fee);
                         // Перебираем все месяцы
                         for (var i = 0; i < blockMessages.length; i++) {
                             var randomString = getRandomString();
@@ -651,6 +671,7 @@ $('.last_year, .next_year').click(function (e) {
 $('#paymentType').on('change', function() {
     let selectedOption = $(this).find('option:selected');
     dataIdTypePayment = selectedOption.data('id');
+    $('.contribute_save').find('input[name="type_payment"]').val(dataIdTypePayment);
     $('.body_table_block').empty();
     $('.body_table_block').html('<span style="font-size: 23px">Подождите, запрос выполняется...</span>');
     sendAjaxRequestPayment(currentYearInput, idMonth, dataIdTypePayment);
@@ -667,6 +688,7 @@ $('.id_month').click(function (e) {
     });
     $('.id_month').prop("disabled", true);
     idMonth = $(this).data('month');
+    $('.contribute_save').find('input[name="id_month_number"]').val(idMonth);
     isSubmitMyBlock = true;
     $('.body_table_block').empty();
     $('.body_table_block').html('<span style="font-size: 23px">Подождите, запрос выполняется...</span>');
@@ -742,7 +764,7 @@ function sendAjaxRequestPaymentPost(paymentValue, numbers, currentYearInput, idM
         },
         success: function (response) {
             if (response.error) {
-                messageBlock("Не удалось отправить запрос", form, false);
+                messageBlock(response.error, form, false);
                 return;
             }
             messageBlock(response.success, form, true);

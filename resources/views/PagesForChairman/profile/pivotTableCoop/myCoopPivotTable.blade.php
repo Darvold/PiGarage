@@ -3,8 +3,8 @@
 @section('profile')
 <div class="main_block_coop">
     <div class="main_head">
-        <a href="{{route('ChairmanMyCoop.index', ['id' => Auth::id()])}}">Мои кооперативы</a>
-        <a href="{{route('ChairmanMyCoop.index', ['id' => Auth::id()])}}" class="active">{{$coopData->name}}</a>
+        <a href="{{route('ChairmanMyCoop.index', ['idCoop' => $idCoop])}}">Мои кооперативы</a>
+        <a href="{{route('ChairmanMyCoopPivotTable.index', ['idCoop' => $idCoop])}}" class="active">{{$coopData->name}}</a>
     </div>
     <div class="main_head_tools">
         <div class="block_information_link">
@@ -23,6 +23,7 @@
             <a href="{{route('ChairmanMyCoopPayment.index', ['idCoop' => $idCoop])}}">Внести оплату участников</a>
             <a href="{{route('ChairmanMyCoopGeneralCounter.index', ['idCoop' => $idCoop])}}">Показания общего счётчика</a>
         </div>
+        <button id="load-data">Загрузить данные</button>
         <div class="year_buttons">
             <button id="prev-year-btn" class="Button_correct_left">&lt;</button>
             <span id="current-year" class="Number_year">2023</span>
@@ -38,10 +39,49 @@
             </div>
             <div class="block_information_two_table">
                 <div class="block_information_link">
-                    <a href="{{route('ChairmanMyCoopPaymentOther.index', ['idCoop' => $idCoop])}}">Внести оплату сборов</a>
+                    <a href="{{route('ChairmanMyCoopPaymentOther.index', ['idCoop' => $idCoop])}}">Внести/установить оплату сборов</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script>
+$(document).ready(function() {
+    $('#load-data').on('click', function() {
+        $.ajax({
+            url: '{{route('ChairmanMyCoopPivotTable.index', ['idCoop' => $idCoop])}}', // URL к методу контроллера
+            method: 'GET',
+            data: {
+                   _token: '{{ csrf_token() }}',
+            },
+            success: function(response) {
+                console.log(response.data);
+                // Очистка существующих данных
+                $('#table_one tbody').empty();
+
+                // Заполнение таблицы данными
+                $.each(response.data, function(month, data) {
+                    $('#table_one tbody').append(`
+                        <tr>
+                            <td>${month}</td>
+                            <td>${data.meter_readings}</td>
+                            <td>${data.kw_garages}</td>
+                            <td>${data.losses}</td>
+                            <td>${data.kw_with_losses}</td>
+                            <td>${data.tariff}</td>
+                            <td>${data.total_cost}</td>
+                            <td>${data.paid}</td>
+                            <td>${data.debt}</td>
+                        </tr>
+                    `);
+                });
+            },
+            error: function(error) {
+                let textError = error.responseJSON.error;
+                console.error(textError);
+            }
+        });
+    });
+});
+</script>
 @endsection

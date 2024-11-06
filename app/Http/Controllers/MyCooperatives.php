@@ -9,6 +9,7 @@ use App\Models\CooperativeBlocks;
 use App\Models\Cooperatives;
 use App\Models\CooperativesBlocksLossesKw;
 use App\Models\coopLosses;
+use App\Models\Fees;
 use App\Models\Garages;
 use App\Models\MeterNumbersBlocks;
 use App\Models\MeterNumbersCoops;
@@ -18,6 +19,7 @@ use App\Models\MeterReadingsCoops;
 use App\Models\MeterReadingsUsers;
 use App\Models\Payments;
 use App\Models\Rates;
+use App\Models\TotalPaidForElectricity;
 use App\Models\UserAndCoop;
 use App\Models\UserBalance;
 use App\Rules\MyYear;
@@ -371,8 +373,64 @@ class MyCooperatives extends Controller
 
 
     //Главная таблица, сводная таблица кооператива
-    protected function ChairmanMyCoopPivotTable($idCoop)
+    protected function ChairmanMyCoopPivotTable(Request $request, $idCoop)
     {
+        if ($request->ajax()) {
+            try {
+                $dataInput = /*$request->validate([
+                    'numberYear' => ['required', 'numeric', new MyYear()],
+                ]);*/ ['numberYear' => 2024];
+                // Создаем массив для хранения данных по каждому месяцу
+                $data = [];
+
+                // Получаем данные из всех необходимых таблиц
+                $meterReadings = MeterReadingsCoops::where('id_coop', $idCoop)
+                    ->whereYear('save_day', $dataInput['numberYear'])->get();
+                $totalPaid = TotalPaidForElectricity::where('id_coop', $idCoop)
+                    ->whereYear('date_indication', $dataInput['numberYear'])
+                    ->orderBy('date_indication')->get();
+                $tariffs = Rates::where('id_coop', $idCoop)->whereYear('date_indication', $dataInput['numberYear'])
+                    ->orderBy('date_indication')->get();
+                $losses = CoopLosses::where('id_coop', $idCoop)->whereYear('date_indication', $dataInput['numberYear'])
+                    ->orderBy('date_indication')->get();
+
+                $previousReading = null;
+
+                foreach ($meterReadings as $reading) {
+                    // Определяем месяц по дате показаний
+                    $month = $reading->save_day->format('F');
+
+                    // Проверка наличия достаточных данных
+                    $hasData = $reading && $reading->kw_meter && $reading->save_day;
+                    if (!$hasData) {
+                        $data[$month] = "Недостаточно данных";
+                        continue;
+                    }
+
+
+                    // Заполняем массив данных для текущего месяца
+                    $data[$month] = [
+                        'meter_readings' => $reading->kw_meter ?? "Недостаточно данных",
+                        /*'kw_garages' => $kwGarages,
+                        'kw_rows' => $kwRows,
+                        'losses' => $lossValue,
+                        'kw_with_losses' => $kwWithLosses,
+                        'tariff' => $tariffValue,
+                        'total_cost' => $totalCost,
+                        'paid' => $paidAmount,
+                        'debt' => $debt*/
+                    ];
+
+                    $previousReading = $reading; // Сохраняем текущее значение для расчета разницы в следующем цикле
+                }
+                // Возвращаем данные в формате JSON для обработки на клиенте
+                return response()->json(['data' => $meterReadings]);
+
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        }
+
         $coopData = Cooperatives::where('id_coop', $idCoop)->first();
         return view('PagesForChairman.profile.pivotTableCoop.myCoopPivotTable', compact('coopData', 'idCoop'));
 
@@ -1299,7 +1357,7 @@ class MyCooperatives extends Controller
                 return back()->with(['error' => $yearError]);
             }
             return back()->with('error', "Ошибка валидации");
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return back()->with('error', "Что-то пошло не так, повторите попытку позже");
         }
 
@@ -1338,9 +1396,10 @@ class MyCooperatives extends Controller
                             ->whereColumn('payments.id_garage', 'garages.id_garage')
                             ->whereYear('payments.date_indication', $data['id_year'])
                             ->whereMonth('payments.date_indication', $data['id_month_number']);
-                    })->leftJoin('user_balances', function ($join) use ($idCoop, $data) {
-                        $join->on('garages.id_garage', '=', 'user_balances.id_garage');
                     })
+                    /*->leftJoin('user_balances', function ($join) use ($idCoop, $data) {
+                        $join->on('garages.id_garage', '=', 'user_balances.id_garage');
+                    })*/
                     ->where('user_and_coop.id_coop', $idCoop)
                     ->orderBy('users.fio')
                     ->select(
@@ -1349,7 +1408,7 @@ class MyCooperatives extends Controller
                         'garages.id_garage as garage_id',  // Альтернативное имя для избежания коллизии
                         'garages.number_garage',
                         'garages.number_block',
-                        'user_balances.balance',
+                        /*'user_balances.balance',*/
                         'payments.*'
                     )
                     ->get();
@@ -1374,9 +1433,9 @@ class MyCooperatives extends Controller
                     ->whereYear('payments.date_indication', $year)
                     ->whereMonth('payments.date_indication', $monthNow);
             })
-            ->leftJoin('user_balances', function ($join) use ($idCoop) {
+            /*->leftJoin('user_balances', function ($join) use ($idCoop) {
                 $join->on('garages.id_garage', '=', 'user_balances.id_garage');
-            })
+            })*/
             ->where('user_and_coop.id_coop', $idCoop)
             ->orderBy('users.fio')
             ->select(
@@ -1385,7 +1444,7 @@ class MyCooperatives extends Controller
                 'garages.id_garage as garage_id',  // Альтернативное имя для избежания коллизии
                 'garages.number_garage',
                 'garages.number_block',
-                'user_balances.balance',
+                /*'user_balances.balance',*/
                 'payments.*'
             )
             ->get();
@@ -1416,29 +1475,24 @@ class MyCooperatives extends Controller
                 'id_year' => ['required', 'numeric', new MyYear()],
                 'id_month_number' => 'required|numeric|between:1,12',
             ]);
+
             $selectUser = UserAndCoop::where('id_coop', $idCoop)
                 ->where('user_id', $data['id_user'])
                 ->whereHas('garages', function ($query) use ($data, $idCoop) {
                     $query->where('id_coop', $idCoop)
                         ->where('id_garage', $data['id_garage']);
                 })->first();
+
             if (!$selectUser) {
                 return response()->json(['error' => 'Не найден участник']);
             }
 
             $currentDate = Date::now();
             $targetDate = Date::create($data['id_year'], $data['id_month_number'], 1);
-            // Проверка разницы в месяцах
-            if ($currentDate->diffInMonths($targetDate) > 2) {
-                return response()->json(['error' => 'Запрещено изменять оплату: можно менять только записи не старше двух месяцев']);
-            }
 
-            $balanceGarage = UserBalance::where('id_garage', $data['id_garage'])->first();
-            if (!$balanceGarage) {
-                $balanceGarage = UserBalance::create([
-                    'id_garage' => $data['id_garage'],
-                    'balance' => 0,
-                ]);
+            // Проверка разницы в месяцах
+            if ($currentDate->diffInMonths($targetDate) > 12) {
+                return response()->json(['error' => 'Запрещено изменять оплату: можно менять только записи не старше двух месяцев']);
             }
 
             $payMents = Payments::where('id_coop', $idCoop)
@@ -1447,62 +1501,64 @@ class MyCooperatives extends Controller
                 ->whereYear('date_indication', $data['id_year'])
                 ->whereMonth('date_indication', $data['id_month_number'])
                 ->first();
-            if (!$payMents || $payMents->payment_value == 0 && $data['payment_value'] == 0) {
-                return response()->json(['success' => "Без изменений"]);
+
+            if ((!$payMents || $payMents->payment_value == 0) && $data['payment_value'] == 0) {
+                return response()->json(['error' => "Без изменений"]);
             }
+
+
             if ($payMents) {
-                // Приводим значения к числу (если null, то 0)
                 $oldPaymentValue = $payMents->payment_value ?? 0;
                 $newPaymentValue = $data['payment_value'] ?? 0;
 
                 // Обновляем значение оплаты
                 $payMents->update(['payment_value' => $newPaymentValue]);
 
-                // Разница между новым и старым значениями
-                $difference = $newPaymentValue - $oldPaymentValue;
-
-                // Обновляем баланс, прибавляя или вычитая разницу
-                $balanceGarage->update(['balance' => $balanceGarage->balance + $difference]);
+                // Обновляем или вставляем запись в таблицу total_paid_for_electricity
+                TotalPaidForElectricity::updateOrCreate(
+                    [
+                        'date_indication' => $targetDate,
+                        'id_coop' => $idCoop,
+                    ],
+                    [
+                        'value' => DB::raw("value + " . ($newPaymentValue - $oldPaymentValue)),
+                    ]
+                );
 
             } else {
                 if ($data['payment_value'] !== '0' && $data['payment_value'] !== null) {
                     $newPaymentValue = $data['payment_value'];
 
-                    // Создаём новую запись для оплаты
                     Payments::create([
                         'id_coop' => $idCoop,
                         'id_garage' => $data['id_garage'],
                         'payment_value' => $newPaymentValue,
                         'type_payment' => 0,
-                        'date_indication' => $data['id_year'] . '-' . $data['id_month_number'] . '-' . Date::now()->format('d'),
+                        'date_indication' => $targetDate,
                     ]);
 
-                    // Прибавляем новую сумму к балансу
-                    $balanceGarage->update(['balance' => $balanceGarage->balance + $newPaymentValue]);
+                    // Обновляем или вставляем запись в таблицу total_paid_for_electricity
+                    TotalPaidForElectricity::updateOrCreate(
+                        [
+                            'date_indication' => $targetDate,
+                            'id_coop' => $idCoop,
+                        ],
+                        [
+                            'value' => DB::raw("value + " . $newPaymentValue),
+                        ]
+                    );
                 }
             }
-            $balanceGarage = UserBalance::where('id_garage', $data['id_garage'])->first();
-            return response()->json(['success' => "Сохранено", 'balance' => $balanceGarage->balance]);
-        } catch (ValidationException $e) {
-            $errors = $e->validator->errors();
-            if ($errors->has('id_year')) {
-                $yearErrors = $errors->get('id_year');
-                // Объединяем массив ошибок в строку
-                $yearError = implode(', ', $yearErrors);
-                return response()->json(['error' => $yearError]);
-            }
-            if ($errors->has('payment_value')) {
-                // Получаем изначально введённое значение и приводим его к числу
-                $originalValue = $request->input('payment_value');
-                $truePaymentValue = intval($originalValue); // Преобразуем в целое число для убирания ведущих нулей
 
-                return response()->json(['error' => "Измените значение $originalValue на $truePaymentValue"]);
-            }
-            return response()->json(['error' => "Ошибка валидации"]);
+            return response()->json(['success' => "Сохранено"]);
         } catch (\Exception $e) {
             return response()->json(['error' => "Что-то пошло не так, повторите попытку позже"]);
         }
     }
+
+    //Контроллеры (ChairmanMyCoopPaymentOther, ChairmanMyCoopPaymentOtherPost) временно не работают,
+    // так как нужно многое продумать (дата комментария: 04.11.2024)
+    // дата когда закончу: где-то в следующем году :)
     protected function ChairmanMyCoopPaymentOther(Request $request, $idCoop)
     {
         if ($request->ajax()) {
@@ -1510,7 +1566,7 @@ class MyCooperatives extends Controller
                 $data = request()->validate([
                     'id_year' => ['required', 'numeric', new MyYear()],
                     'id_month_number' => 'required|numeric|between:1,12',
-                    'type_payment' => 'required|numeric|min:2',
+                    'type_payment' => 'required|integer|in:3,4,5,6,7,8,9,10,11',
                 ]);
             } catch (ValidationException|\Exception $e) {
                 return response()->json(['error' => 'Ошибка валидации'], 500);
@@ -1519,6 +1575,10 @@ class MyCooperatives extends Controller
                 if (($data['id_year'] < 2023 || $data['id_year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['id_month_number'])) {
                     return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже']);
                 }
+                $fees = Fees::where('id_coop', $idCoop)
+                    ->whereYear('date_indication', $data['id_year'])
+                    ->where('type_payment', $data['type_payment'])
+                    ->whereMonth('date_indication', $data['id_month_number'])->pluck('value')->first();
                 $valuePayMents = UserAndCoop::leftJoin('users', 'user_and_coop.user_id', '=', 'users.id')
                     ->leftJoin('garages', function ($join) use ($idCoop) {
                         $join->on('garages.user_id', '=', 'users.id')
@@ -1543,7 +1603,7 @@ class MyCooperatives extends Controller
                         'payments.*'
                     )
                     ->get();
-                return response()->json(['blockMessages' => $valuePayMents, 'year' => $data['id_year'], 'monthNow' => $data['id_month_number']]);
+                return response()->json(['blockMessages' => $valuePayMents, 'fee' => $fees, 'year' => $data['id_year'], 'monthNow' => $data['id_month_number']]);
             } catch (ValidationException $e) {
                 $errors = $e->validator->errors();
 
@@ -1561,6 +1621,10 @@ class MyCooperatives extends Controller
         $year = Date::now()->format('Y');
         $monthNow = Date::now()->format('m');
         $coopData = Cooperatives::where('id_coop', $idCoop)->first();
+        $fees = Fees::where('id_coop', $idCoop)
+            ->whereYear('date_indication', $year)
+            ->where('type_payment', 3)
+            ->whereMonth('date_indication', $monthNow)->pluck('value')->first();
         $usersCoop = UserAndCoop::leftJoin('users', 'user_and_coop.user_id', '=', 'users.id')
             ->leftJoin('garages', function ($join) use ($idCoop) {
                 $join->on('garages.user_id', '=', 'users.id')
@@ -1569,7 +1633,7 @@ class MyCooperatives extends Controller
             ->leftJoin('payments', function ($join) use ($idCoop, $year, $monthNow) {
                 $join->on('payments.id_garage', '=', 'garages.id_garage')
                     ->where('payments.id_coop', $idCoop)
-                    ->where('payments.type_payment', 2)
+                    ->where('payments.type_payment', 3)
                     ->whereColumn('payments.id_garage', 'garages.id_garage')
                     ->whereYear('payments.date_indication', $year)
                     ->whereMonth('payments.date_indication', $monthNow);
@@ -1594,73 +1658,156 @@ class MyCooperatives extends Controller
             ->get()
             ->groupBy('number_block');
 
-        return view('PagesForChairman.profile.pivotTableCoop.pagePaymentOther', compact('year', 'coopData', 'idCoop', 'usersCoop', 'blocksWithGarages', 'monthNow'));
+        return view('PagesForChairman.profile.pivotTableCoop.pagePaymentOther', compact('fees', 'year', 'coopData', 'idCoop', 'usersCoop', 'blocksWithGarages', 'monthNow'));
     }
 
     protected function ChairmanMyCoopPaymentOtherPost(Request $request, $idCoop)
     {
-        try {
-            $data = request()->validate([
-                'id_user' => 'required|numeric|min:1',
-                'id_garage' => 'required|numeric|min:1',
-                'payment_value' => [
-                    'nullable',
-                    'numeric',
-                    'min:0',
-                    Rule::notIn([-1]),
-                ],
-                'id_year' => ['required', 'numeric', new MyYear()],
-                'id_month_number' => 'required|numeric|between:1,12',
-                'type_payment' => 'required|numeric|min:2'
-            ]);
-            if (($data['id_year'] < 2023 || $data['id_year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['id_month_number'])) {
-                return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже'], 500);
-            }
-            $selectUser = UserAndCoop::where('id_coop', $idCoop)
-                ->where('user_id', $data['id_user'])
-                ->whereHas('garages', function ($query) use ($data, $idCoop) {
-                    $query->where('id_coop', $idCoop)
-                        ->where('id_garage', $data['id_garage']);
-                })->first();
+        if ($request->ajax()) {
+            try {
+                $data = request()->validate([
+                    'id_user' => 'required|numeric|min:1',
+                    'id_garage' => 'required|numeric|min:1',
+                    'payment_value' => [
+                        'nullable',
+                        'numeric',
+                        'min:0',
+                        Rule::notIn([-1]),
+                    ],
+                    'id_year' => ['required', 'numeric', new MyYear()],
+                    'id_month_number' => 'required|numeric|between:1,12',
+                    'type_payment' => 'required|integer|in:3,4,5,6,7,8,9,10,11'
+                ]);
+                if (($data['id_year'] < 2023 || $data['id_year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['id_month_number'])) {
+                    return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже'], 500);
+                }
+                $selectUser = UserAndCoop::where('id_coop', $idCoop)
+                    ->where('user_id', $data['id_user'])
+                    ->whereHas('garages', function ($query) use ($data, $idCoop) {
+                        $query->where('id_coop', $idCoop)
+                            ->where('id_garage', $data['id_garage']);
+                    })->first();
 
-            if (!$selectUser) {
-                return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже'], 500);
-            }
-
-            $payMents = Payments::where('id_coop', $idCoop)
-                ->where('id_garage', $data['id_garage'])
-                ->where('type_payment', $data['type_payment'])
-                ->whereYear('date_indication', $data['id_year'])
-                ->whereMonth('date_indication', $data['id_month_number'])
-                ->first();
-            if ($payMents) {
-                $paymentValue = ($data['payment_value'] === '0' || $data['payment_value'] === null) ? null : $data['payment_value'];
-                $payMents->update(['payment_value' => $paymentValue]);
-            } else {
-                if ($data['payment_value'] !== '0' && $data['payment_value'] !== null) {
-                    Payments::create([
-                        'id_coop' => $idCoop,
+                if (!$selectUser) {
+                    return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже'], 500);
+                }
+                $balanceGarage = UserBalance::where('id_garage', $data['id_garage'])->first();
+                if (!$balanceGarage) {
+                    $balanceGarage = UserBalance::create([
                         'id_garage' => $data['id_garage'],
-                        'payment_value' => $data['payment_value'],
-                        'type_payment' => $data['type_payment'],
-                        'date_indication' => $data['id_year'] . '-' . $data['id_month_number'] . '-' . Date::now()->format('d'),
+                        'balance' => 0,
                     ]);
                 }
+                $payMents = Payments::where('id_coop', $idCoop)
+                    ->where('id_garage', $data['id_garage'])
+                    ->where('type_payment', $data['type_payment']) // от 3 до 11 (2 - это вода)
+                    ->whereYear('date_indication', $data['id_year'])
+                    ->whereMonth('date_indication', $data['id_month_number'])
+                    ->first();
+                if ((!$payMents || $payMents->payment_value == 0) && $data['payment_value'] == 0) {
+                    return response()->json(['error' => "Без изменений"]);
+                }
+                $feeAmount = Fees::where('id_coop', $idCoop)
+                    ->whereYear('date_indication', $data['id_year'])
+                    ->whereMonth('date_indication', $data['id_month_number'])
+                    ->where('type_payment', $data['type_payment'])
+                    ->pluck('value')
+                    ->first();
+                if(!$feeAmount) {
+                    return response()->json(['error' => "Установите сумму сбора!"]);
+                }
+                // Основная логика
+                if ($payMents && $data['payment_value'] !== 0) {
+                    $oldPaymentValue = $payMents->payment_value;
+                    $newPaymentValue = $data['payment_value'];
+                    $difference = $newPaymentValue - $oldPaymentValue;
+
+                    // Проверка внесенной суммы относительно суммы сбора
+                    if ($newPaymentValue == $feeAmount) {
+                        // Если внесенная сумма равна сбору, баланс не изменяется
+                        // Но здесь вы можете убрать или оставить эту проверку для читабельности
+                    } elseif ($newPaymentValue > $feeAmount) {
+                        // Если внесенная сумма больше сбора, добавляем разницу в баланс
+                        $balanceGarage->update(['balance' => $balanceGarage->balance + ($difference)]);
+                    } else {
+                        // Если внесенная сумма меньше сбора, уменьшаем баланс на разницу
+                        $balanceGarage->update(['balance' => $balanceGarage->balance - $difference]);
+                    }
+
+                    // Обновляем запись об оплате с новой суммой
+                    $payMents->update(['payment_value' => $newPaymentValue]);
+                } else {
+                    if ($data['payment_value'] !== '0' && $data['payment_value'] !== null) {
+                        $newPaymentValue = $data['payment_value'];
+
+                        // Создаем новую запись для оплаты
+                        Payments::create([
+                            'id_coop' => $idCoop,
+                            'id_garage' => $data['id_garage'],
+                            'payment_value' => $newPaymentValue,
+                            'type_payment' => $data['type_payment'],
+                            'date_indication' => $data['id_year'] . '-' . $data['id_month_number'] . '-' . Date::now()->format('d'),
+                        ]);
+
+                        // Обновление баланса в зависимости от суммы оплаты и сбора
+                        if ($newPaymentValue == $feeAmount) {
+                            $balanceGarage->update(['balance' => $balanceGarage->balance - $feeAmount]);
+                        } elseif ($newPaymentValue > $feeAmount) {
+                            $balanceGarage->update(['balance' => $balanceGarage->balance + ($newPaymentValue - $feeAmount)]);
+                        } else {
+                            $balanceGarage->update(['balance' => $balanceGarage->balance - ($feeAmount - $newPaymentValue)]);
+                        }
+                    }
+                }
+                $message = "Сохранено";
+                return response()->json(['success' => $message]);
+            } catch (ValidationException $e) {
+                $errors = $e->validator->errors();
+
+                if ($errors->has('id_year')) {
+                    $yearErrors = $errors->get('id_year');
+                    // Объединяем массив ошибок в строку
+                    $yearError = implode(', ', $yearErrors);
+                    return response()->json(['error' => $yearError]);
+                }
+                return response()->json(['error' => 'Ошибка валидации'], 500);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Что-то пошло не так, повторите попытку'], 500);
             }
-            $message = "Сохранено";
-            return response()->json(['success' => $message]);
+        }
+        try {
+            $data = request()->validate([
+                'id_year' => ['required', 'integer', new MyYear()],
+                'id_month_number' => 'required|numeric|between:1,12',
+                'value' => 'required|integer|min:1',
+                'type_payment' => 'required|integer|in:3,4,5,6,7,8,9,10,11'
+            ]);
+            $selectFee = Fees::where('id_coop', $idCoop)
+                ->where('type_payment', $data['type_payment'])
+                ->whereYear('date_indication', $data['id_year'])
+                ->whereMonth('date_indication', $data['id_month_number'])->first();
+            if ($selectFee) {
+                $selectFee->update(['value' => $data['value']]);
+                return back()->with(['success' => 'Успешно установлен сбор']);
+            }
+            Fees::create([
+                'id_coop' => $idCoop,
+                'type_payment' => $data['type_payment'],
+                'value' => $data['value'],
+                'date_indication' => $data['id_year'] . '-' . $data['id_month_number'] . '-' . Date::now()->format('d H:i:s'),
+            ]);
+            return back()->with(['success' => 'Успешно установлен сбор']);
         } catch (ValidationException $e) {
             $errors = $e->validator->errors();
-
             if ($errors->has('id_year')) {
                 $yearErrors = $errors->get('id_year');
                 // Объединяем массив ошибок в строку
                 $yearError = implode(', ', $yearErrors);
-                return response()->json(['error' => $yearError]);
+                return  back()->with(['error' => $yearError]);
             }
-            return response()->json(['error' => 'Ошибка валидации'], 500);
+            return back()->with(['error' => 'Ошибка валидации'], 500);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Что-то пошло не так, повторите попытку'], 500);
+            return back()->with(['error' => 'Что-то пошло не так, повторите попытку'], 500);
         }
     }
 
@@ -1918,6 +2065,7 @@ class MyCooperatives extends Controller
             }
         }
     }
+
     protected function deleteOldImageCoops($readings_meter_img, $meter, $nameAddress, $nameCity, $nameCoop)
     {
         // Проверяем, есть ли связанные записи с показаниями
@@ -1926,7 +2074,7 @@ class MyCooperatives extends Controller
 
             // Проверяем, существует ли старое изображение
             if ($meterReading->img_meter) {
-                $oldImagePath = '../../StoragePiGarage/CoopMeters/' . $meter['id_year'] . '/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . 'Показания общего счётчика' . '/' .$meterReading->img_meter;
+                $oldImagePath = '../../StoragePiGarage/CoopMeters/' . $meter['id_year'] . '/' . $nameAddress . '/' . $nameCity . '/' . $nameCoop . '/' . 'Показания общего счётчика' . '/' . $meterReading->img_meter;
 
                 // Удаляем старое изображение, если оно существует
                 if (File::exists($oldImagePath)) {

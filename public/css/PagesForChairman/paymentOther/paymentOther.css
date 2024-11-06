@@ -36,7 +36,7 @@
 }
 .head_table_block {
 	width: 100%;
-	height: 85px;
+	height: 185px;
 	border-bottom: 1px solid black;
 }
 .button_form_ajax {
@@ -44,7 +44,6 @@
 	height: 100%;
 	display: flex;
 	flex-direction: column;
-	align-items: center;
 }
 .block_1 {
 	margin-top: 0px;
@@ -65,7 +64,7 @@
 	background-color: #CCC;
 }
 
-.block_1 span:not(:last-child) {
+.block_1 span:not(:last-child):not(.contribute span) {
 	height: 100%;
 	display: flex;
 	align-items: center;
@@ -731,4 +730,61 @@ select option:checked {
 
 .coop-payments .payment-type:nth-child(odd) {
 	background-color: #f1f1f1;
+}
+.contribute {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	display: flex;
+	gap: 5px;
+	justify-content: center;
+	bottom: -80px;
+
+}
+.contribute span {
+	font-size: 22px;
+}
+.contribute span:first-child {
+	margin-left: 10px;
+	width: 200px;
+}
+.contribute input {
+	outline: none;
+	border-radius: 4px;
+	font-size: 22px;
+	width: 120px;
+	padding: 0px 2px 0px 2px;
+	height: 32px;
+}
+
+.contribute input:focus {
+	border: 1px solid #4180BDFF;
+	border-color: #4180BDFF;
+	box-shadow: 0px 0px 0px 2px #4180BDFF;
+	z-index: 99;
+	transition: 0.3s ease;
+}
+.contribute button {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	width: 120px;
+	height: 30px;
+	padding: 4px;
+	border: 2px solid black;
+	border-radius: 4px;
+	font-size: 20px;
+	transition: 0.3s ease;
+	color: white;
+	background-color: #2dcb6f;
+}
+
+.contribute button:hover {
+	background-color: #26ae60;
+}
+.contribute_save {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }

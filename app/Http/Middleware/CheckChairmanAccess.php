@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Cooperatives;
 use App\Models\Users;
 use Closure;
 use Illuminate\Http\Request;
@@ -18,31 +19,52 @@ class CheckChairmanAccess
     public function handle($request, Closure $next)
     {
         $textInfo = "Ваша сессия истекла или отсутствует. Пожалуйста, войдите снова.";
-        if (Auth::check()) {
-       // $id = $request->route('id');
-        $user = Users::where('id', Auth::id())->first();
+        $textError = "Пользователю не принадлежит указанный кооператив.";
 
-        if (Auth::check() == Auth::id() && $user->id_al == 2) {
-            // Пользователь авторизован и имеет правильный id и уровень доступа
-            return $next($request);
-        } else {
-            // Пользователь авторизован, но не имеет нужного уровня доступа
-            if ($request->ajax() || $request->wantsJson()) {
-                // Возвращаем JSON-ответ с указанием, что требуется авторизация
-                session()->flash('info', $textInfo);
-                return response()->json(['redirect' => route('login.index')], 403);
+        // Проверка, что пользователь авторизован
+        if (Auth::check()) {
+            $userId = Auth::id();
+            $user = Users::where('id', $userId)->first();
+
+            // Проверка уровня доступа пользователя
+            if ($user && $user->id_al == 2) {
+
+                // Проверка на наличие id_coop в запросе
+                $idCoop = $request->input('id_coop') ?? $request->route('id_coop');
+                if ($idCoop) {
+                    // Проверяем, существует ли кооператив с указанным id_coop и привязан ли он к авторизованному пользователю
+                    $coop = Cooperatives::where('id_coop', $idCoop)
+                        ->where('user_id', $userId)
+                        ->first();
+
+                    // Если кооператив не найден или не принадлежит пользователю, возвращаем ошибку
+                    if (!$coop) {
+                        return $this->unauthorizedResponse($request, $textError);
+                    }
+                }
+
+                return $next($request);
+            } else {
+                // Если уровень доступа не соответствует
+                return $this->unauthorizedResponse($request, $textInfo);
             }
-            return redirect()->route('login.index')->with('info', $textInfo);
-        }
         } else {
-            // Пользователь авторизован, но не имеет нужного уровня доступа
-            if ($request->ajax() || $request->wantsJson()) {
-                // Возвращаем JSON-ответ с указанием, что требуется авторизация
-                session()->flash('info', $textInfo);
-                return response()->json(['redirect' => route('login.index')], 403);
-            }
-            // Пользователь не авторизован
-            return redirect()->route('login.index')->with('info', $textInfo);
+            // Если пользователь не авторизован
+            return $this->unauthorizedResponse($request, $textInfo);
         }
     }
+
+    /**
+     * Метод для возвращения ответа об отсутствии авторизации
+     */
+    protected function unauthorizedResponse($request, $textInfo)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            session()->flash('info', $textInfo);
+            return response()->json(['redirect' => route('login.index')], 403);
+        }
+
+        return redirect()->route('login.index')->with('info', $textInfo);
+    }
+
 }

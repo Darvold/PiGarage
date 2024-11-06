@@ -65,7 +65,7 @@
                                 </div>
                                 <div class="footer_container">
                                     <button type="submit" class="button_save">Сохранить</button>
-                                    <span>Баланс: <span class="balance">{{$user->balance ? $user->balance : 0}}</span></span>
+                                    {{-- <span>Баланс: <span class="balance">{{$user->balance ? $user->balance : 0}}</span></span> --}}
                                 </div>
                             </div>
                         </div>
@@ -407,7 +407,7 @@
             function searchPaymentValue(balanceUser, form) {
                 $('.body_table_block .form_payment').each(function () {
                     let fioUser = $(this).find('.head_container .head_container_fio').text();
-                    let paymentValue = $(this).find('input[name="tariff_value"]').val();
+                    let paymentValue = $(this).find('#tariff_value').val();
                     let numberGarageUser = $(this).find('.head_container input[name="table_user_number_garage"]').val();
 
                     $('.container_users .flex_fio_check').each(function () {
@@ -420,9 +420,9 @@
                         }
                     });
                 });
-                if (balanceUser) {
+                if (form) {
                     form.find('.balance').text(balanceUser);
-                }
+                } 
             }
 
 
@@ -501,7 +501,6 @@
                             </div>
                             <div class="footer_container">
                             <button type="submit" class="button_save">Сохранить</button>
-                            <span>Баланс: <span class="balance">${blockMessages[i].balance}</span></span>
                             </div>
                             </div>
                             </div>
@@ -527,7 +526,8 @@
                     }
                 });
 }
-
+{{-- //Будущий баланс, пока нет времени чтоб его сделать
+<span>Баланс: <span class="balance">${blockMessages[i].balance ? blockMessages[i].balance : 0}</span></span> --}}
 $('.last_year, .next_year').click(function (e) {
     let currentTime = new Date().getTime();
     let timeDifference = currentTime - lastClickTime;
