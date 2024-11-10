@@ -115,6 +115,7 @@ Route::middleware([CheckChairmanAccess::class])->group(function () {
         Route::post('/Chairman/MyCoop/{idCoop}/Blocks', 'MyCooperatives@ChairmanMyCoopBlocksPost')
             ->name('ChairmanMyCoopNewBlocks.store');
 
+        // Общий счётчик
         Route::get('/Chairman/MyCoop/{idCoop}/GeneralCounter', 'MyCooperatives@ChairmanMyCoopGeneralCounter')
             ->name('ChairmanMyCoopGeneralCounter.index');
         Route::post('/Chairman/MyCoop/{idCoop}/GeneralCounter', 'MyCooperatives@ChairmanMyCoopGeneralCounterPost')

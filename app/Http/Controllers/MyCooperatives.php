@@ -136,7 +136,7 @@ class MyCooperatives extends Controller
     }
 
 
-    //Контроллер для просмотр заявков других пользователей
+    //Контроллер для просмотр заявко других пользователей
     protected function ChairmanConnectCoop(Request $request)
     {
         if ($request->ajax()) {
@@ -372,64 +372,113 @@ class MyCooperatives extends Controller
     }
 
 
-    //Главная таблица, сводная таблица кооператива
+    //Главная таблица, сводная таблица кооператива, НЕ ДОДЕЛАНА
     protected function ChairmanMyCoopPivotTable(Request $request, $idCoop)
     {
         if ($request->ajax()) {
             try {
-                $dataInput = /*$request->validate([
-                    'numberYear' => ['required', 'numeric', new MyYear()],
-                ]);*/ ['numberYear' => 2024];
+                $dataInput = ['numberYear' => 2024];
+
                 // Создаем массив для хранения данных по каждому месяцу
                 $data = [];
 
                 // Получаем данные из всех необходимых таблиц
+                $meterNumber = MeterNumbersCoops::where('id_coop', $idCoop)
+                    ->where('active', 1)->first();
+
                 $meterReadings = MeterReadingsCoops::where('id_coop', $idCoop)
-                    ->whereYear('save_day', $dataInput['numberYear'])->get();
+                    ->whereYear('save_day', $dataInput['numberYear'])
+                    ->orderBy('save_day', 'asc')->get();
+
                 $totalPaid = TotalPaidForElectricity::where('id_coop', $idCoop)
                     ->whereYear('date_indication', $dataInput['numberYear'])
-                    ->orderBy('date_indication')->get();
-                $tariffs = Rates::where('id_coop', $idCoop)->whereYear('date_indication', $dataInput['numberYear'])
-                    ->orderBy('date_indication')->get();
-                $losses = CoopLosses::where('id_coop', $idCoop)->whereYear('date_indication', $dataInput['numberYear'])
-                    ->orderBy('date_indication')->get();
+                    ->orderBy('date_indication', 'asc')->get();
 
-                $previousReading = null;
+                $tariffs = Rates::where('id_coop', $idCoop)
+                    ->whereYear('date_indication', $dataInput['numberYear'])
+                    ->orderBy('date_indication', 'asc')->get();
 
+                $losses = CoopLosses::where('id_coop', $idCoop)
+                    ->whereYear('date_indication', $dataInput['numberYear'])->get();
+
+                // Инициализируем переменную для хранения показаний предыдущего месяца
+                $previousReading = MeterReadingsCoops::where('id_coop', $idCoop)
+                    ->whereYear('save_day', $dataInput['numberYear'] - 1)
+                    ->latest('save_day')->first();
                 foreach ($meterReadings as $reading) {
-                    // Определяем месяц по дате показаний
-                    $month = $reading->save_day->format('F');
+                    $saveDay = Date::parse($reading->save_day);
 
-                    // Проверка наличия достаточных данных
-                    $hasData = $reading && $reading->kw_meter && $reading->save_day;
+                // Получаем числовое значение месяца
+                    $month = $saveDay->format('m'); // Месяц всегда в формате "01", "02" и т.д.
+                    $hasData = $reading && $reading->kw_meter;
                     if (!$hasData) {
                         $data[$month] = "Недостаточно данных";
                         continue;
                     }
+                    // Разница показаний текущего и предыдущего месяца
+                    $kwConsumed = $reading->kw_meter - ($previousReading->kw_meter ?? 0);
 
+                      $kwGarages = MeterReadingsUsers::where('id_coop', $idCoop)
+                          ->whereMonth('send_date', $month)
+                          ->where('status', 'accepted')
+                          ->whereYear('send_date', $dataInput['numberYear'])
+                          ->sum('kw_meter');
+
+                    /* $kwRows = MeterReadingsBlocks::where('id_coop', $idCoop)
+                         ->whereMonth('save_day', $month)
+                         ->sum('kw_meter');*/
+
+                    $monthlyLoss = $losses->firstWhere(function ($loss) use ($month) {
+                        return Date::parse($loss->date_indication)->format('m') === $month;
+                    });
+                    $lossValue = $monthlyLoss->losses_value ?? "Не установлено";
+
+                     /*$currentTariff = $tariffs->where('date_indication', '<=', $reading->save_day)->last();*/
+                 /*    $tariffValue = $currentTariff ? $currentTariff->tariff_value : 0;*/
+                    if ($lossValue) {
+                        $lossValueForKw = $kwGarages * (0.01 * $lossValue); // 2% от $kwGarages
+                        $kwWithLosses = $kwGarages + $lossValueForKw; // Итоговое значение с учетом потерь
+                    }
+                    $monthTariffs = $tariffs->firstWhere(function ($tariff) use ($month) {
+                        return Date::parse($tariff->date_indication)->format('m') === $month;
+                    });
+                    $tariffValue = $monthTariffs->tariff_value ?? "Не установлено";
+
+                    if ($lossValue && $tariffValue) {
+                        $totalCost = $kwWithLosses * $tariffValue;
+                        $paidAmount = $totalPaid->firstWhere(function ($paid) use ($month) {
+                            return Date::parse($paid->date_indication)->format('m') === $month;
+                        });
+                        $paidElic =  $paidAmount->value ?? 0;
+                        if ($paidAmount) {
+                            $debt = $paidElic - $paidElic;
+                        }
+                    }
 
                     // Заполняем массив данных для текущего месяца
                     $data[$month] = [
-                        'meter_readings' => $reading->kw_meter ?? "Недостаточно данных",
-                        /*'kw_garages' => $kwGarages,
-                        'kw_rows' => $kwRows,
+                        'meter_readings' => $reading->kw_meter . " ($kwConsumed)",
+                        'kw_garages' => $kwGarages,
+                          /*'kw_rows' => $kwRows,*/
                         'losses' => $lossValue,
                         'kw_with_losses' => $kwWithLosses,
                         'tariff' => $tariffValue,
                         'total_cost' => $totalCost,
-                        'paid' => $paidAmount,
-                        'debt' => $debt*/
+                        'paid' => $paidElic,
+                        'debt' => $debt ?? "Нет данных"
                     ];
 
-                    $previousReading = $reading; // Сохраняем текущее значение для расчета разницы в следующем цикле
+                    // Обновляем `$previousReading` для следующей итерации
+                    $previousReading = $reading;
                 }
-                // Возвращаем данные в формате JSON для обработки на клиенте
-                return response()->json(['data' => $meterReadings]);
 
-            } catch (\Exception $e) {
+                return response()->json(['data' => $data]);
+
+            } catch (ValidationException|\Exception $e) {
                 return response()->json(['error' => $e->getMessage()], 500);
             }
         }
+
 
         $coopData = Cooperatives::where('id_coop', $idCoop)->first();
         return view('PagesForChairman.profile.pivotTableCoop.myCoopPivotTable', compact('coopData', 'idCoop'));
@@ -978,7 +1027,7 @@ class MyCooperatives extends Controller
             }
             $saveDay = Carbon::create($meter['id_year'], $meter['id_month_number'], now()->day)
                 ->setTime(now()->hour, now()->minute, now()->second);
-            $saveDay = $saveDay->format('Y-m-d_H-i-s');
+            $saveDay = $saveDay->format('Y-m-d');
 
             $imageNameWithExtension = null;
             if (isset($meter['img_meter'])) {
@@ -1050,11 +1099,13 @@ class MyCooperatives extends Controller
                     'id_block' => 'required|integer|min:1',
                     'year' => ['required', 'numeric', new MyYear()],
                     'month' => 'required|numeric|between:1,12',
+                    'typeReadings' => 'required|in:pending,accepted,canceled',
                 ]);
             } catch (ValidationException|\Exception $e) {
                 return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
             }
             try {
+
                 if (($data['year'] < 2023 || $data['year'] > Date::now()->format('Y')) || !preg_match('/^(0[1-9]|1[0-2])$/', $data['month'])) {
                     return response()->json(['error' => 'Что-то пошло не так, повторите попытку позже']);
                 }
@@ -1070,7 +1121,7 @@ class MyCooperatives extends Controller
                     ->where('id_coop', $idCoop)
                     ->whereYear('send_date', $data['year'])
                     ->whereMonth('send_date', $data['month'])
-                    ->where('status', 'pending')
+                    ->where('status', $data['typeReadings'])
                     ->orderBy('id_reading', 'desc')
                     ->get();
 
@@ -1165,7 +1216,8 @@ class MyCooperatives extends Controller
                         'current' => $folderPaths, // Пути к фотографиям текущих показаний
                         'old' => $folderPathsOld, // Пути к фотографиям прошлых показаний
                     ],
-                    'monthNow' => $data['month']
+                    'monthNow' => $data['month'],
+                    'typeReadings' => $data['typeReadings']
                 ]);
             } catch (ValidationException $e) {
                 $errors = $e->validator->errors();
@@ -1199,31 +1251,38 @@ class MyCooperatives extends Controller
     {
         try {
             $data = $request->validate([
-                'idMessage' => 'required|integer|min:1',
+                'idMessage' => 'required|integer|min:0',
                 'numberMeter' => 'required|integer|min:0',
                 'idReading' => 'required|integer|min:1',
             ]);
         } catch (ValidationException|\Exception $e) {
-            return response()->json(['error' => 'Произошла ошибка, повторите попытку позже'], 500);
+            return response()->json(['error' => 'Произошла ошибка, повторите попытку позже 2'], 500);
         }
+        try {
+            $metersReadings = MeterReadingsUsers::where('id_reading', $data['idReading']);
+            if ($data['idMessage'] == 0) {
+                $metersReadings->update([
+                    'status' => 'accepted',
+                    'kw_meter' => $data['numberMeter']
+                ]);
+            } elseif ($data['idMessage'] == 1) {
+                $metersReadings->update(['status' => 'canceled']);
+            } elseif ($data['idMessage'] == 2) {
+                $metersReadings->update([
+                    'kw_meter' => $data['numberMeter']
+                ]);
+            } else {
+                return response()->json(['response' => 'error']);
+            }
 
-        $metersReadings = MeterReadingsUsers::where('id_reading', $data['idReading']);
-        if ($data['idMessage'] == 0) {
-            $metersReadings->update([
-                'status' => 'accepted',
-                'kw_meter' => $data['numberMeter']
-            ]);
-        } elseif ($data['idMessage'] == 1) {
-            $metersReadings->update(['status' => 'canceled']);
-        } else {
+            if ($metersReadings->get()) {
+                return response()->json(['response' => $data['idReading'], 'idMessage' => $data['idMessage']]);
+            }
+
             return response()->json(['response' => 'error']);
+        } catch (ValidationException|\Exception $e) {
+            return response()->json(['error' => 'Что-то пошло не так, повторите попытку'], 500);
         }
-
-        if ($metersReadings->get()) {
-            return response()->json(['response' => $data['idReading']]);
-        }
-
-        return response()->json(['response' => 'error']);
     }
 
 
@@ -1713,7 +1772,7 @@ class MyCooperatives extends Controller
                     ->where('type_payment', $data['type_payment'])
                     ->pluck('value')
                     ->first();
-                if(!$feeAmount) {
+                if (!$feeAmount) {
                     return response()->json(['error' => "Установите сумму сбора!"]);
                 }
                 // Основная логика
@@ -1803,7 +1862,7 @@ class MyCooperatives extends Controller
                 $yearErrors = $errors->get('id_year');
                 // Объединяем массив ошибок в строку
                 $yearError = implode(', ', $yearErrors);
-                return  back()->with(['error' => $yearError]);
+                return back()->with(['error' => $yearError]);
             }
             return back()->with(['error' => 'Ошибка валидации'], 500);
         } catch (\Exception $e) {
@@ -1913,7 +1972,7 @@ class MyCooperatives extends Controller
                     'meter_number' => $data['meter_number'],
                     'initially_kw' => $data['initially_kw'],
                     'active' => 1,
-                    'creation_date' => Date::now(),
+                    'creation_date' => Date::now()->format('d'),
                 ]);
                 return redirect()->back()->with('success', 'Счётчик успешно добавлен!');
             }
@@ -1942,7 +2001,7 @@ class MyCooperatives extends Controller
             return redirect()->back()->with('error', 'Ошибка валидации данных');
         } catch (\Exception $e) {
             // Общая обработка исключений
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку позже');
         }
     }
 

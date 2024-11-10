@@ -13,6 +13,12 @@
         <div class="main_body">
             <div class="right_two_block">
                 <div class="top_block">
+                    <div class="buttons">
+                        <button data-id="pending">Новые показания (Н)
+                        </button>
+                        <button data-id="accepted">Принятые показания</button>
+                        <button data-id="canceled">Отклонённые показания</button>
+                    </div>
                     <div class="button_form_ajax">
                         <div class="block_1">
                             <button class="last_year"><</button>
@@ -25,7 +31,7 @@
                         <button class="button_number_garage" data-id-block={{$block->id_block}}>
                             Гаражный ряд №{{$block->number_block}}
                             @if($block->meter_readings_users_count > 0)
-                            ({{$block->meter_readings_users_count}})
+                            ({{$block->meter_readings_users_count}} Н)
                             @endif
                         </button>
                         @empty
@@ -35,7 +41,7 @@
                 </div>
                 <div class="flex_block_2">
                     <div class="right_block">
-                        <span class="text_error_year">Выберите гаражый блок и месяц для получения показаний</span>
+                        <span class="text_error_year">Выберите вариант показаний, гаражый блок и месяц для получения показаний</span>
                     </div>
                     <div class="container_mouth">
                         @foreach ($months as $month => $key)
@@ -79,7 +85,7 @@
                         $('.next_year').prop("disabled", false);
                     }
 
-                    sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                    sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth, buttonClickDataId);
                 }, 3000);
                 clickCount = 0;
             } else {
@@ -92,7 +98,7 @@
                         // Если нажата кнопка "last_year"
                         currentYear = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
                         currentYearInput = Math.max(currentYearInput - 1, 2022); // Ограничение до 2020
-                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth, buttonClickDataId);
                         if (currentYearInput === 2023) {
                             $('.last_year').prop("disabled", true);
                         } else {
@@ -104,7 +110,7 @@
                         // Если нажата кнопка "next_year"
                         currentYear = currentYearInput + 1;
                         currentYearInput = currentYearInput + 1;
-                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth, buttonClickDataId);
                         if (currentYearInput === {{$year}} || currentYearInput >= {{$year}}) {
                             $('.next_year').prop("disabled", true);
                         } else {
@@ -119,6 +125,7 @@
             });
         $('.id_month').click(function (e) {
             e.preventDefault();
+
             $('.container_mouth button').css({
                 backgroundColor: 'white',
                 color: 'black'
@@ -151,7 +158,7 @@
                         $('.right_block').empty().html(`<span class="text_error_year">Выберите гаражый блок и месяц для получения показаний</span>`);
                         return false;
                     }
-                    sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                    sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth, buttonClickDataId);
 
                     clickCount = 0;
 
@@ -172,7 +179,7 @@
                     $('.right_block').empty().html(`<span class="text_error_year">Выберите гаражый блок и месяц для получения показаний</span>`);
                     return false;
                 }
-                sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth, buttonClickDataId);
 
             }
         });
@@ -181,6 +188,7 @@
             backgroundColor: '#1C82E7',
             color: 'white',
         });
+
             let isSubmitMyBlock = false;
             let isSubmitMonth = true;
             let previousButton; // Переменная для хранения предыдущей кнопки
@@ -192,9 +200,40 @@
             let currentButtonMonth;
             let previousButtonMouth;
             let currentYearInput = {{$year}};
+            let buttonIdClick = null;
+            let buttonClickDataId = 0;
+            $('.buttons button').on('click', function () {
+                $('.buttons button').removeClass('clicked');
+                $('.buttons button').prop("disabled", false);
+                $(this).prop("disabled", true);
+                $('.right_block').html('Подождите, запрос выполняется...');
+            let buttonClick = $(this).addClass('clicked');
+            buttonClickDataId = $(this).data('id');
+            buttonIdClick = true;
+            sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth, buttonClickDataId);
+
+            });
+
 // Глобальный объект для хранения оригинальных значений форм
             let originalMeterValues = [];
-            function sendAjaxRequestBlockKw(idBlockValue, year, idMonth) {
+            function sendAjaxRequestBlockKw(idBlockValue, year, idMonth, buttonClickDataId) {
+                console.log(buttonClickDataId);
+                if (!buttonIdClick) {
+                    $('.right_block').empty();
+                    $('.right_block').text("Выберите вариант показания!");
+                    $('.right_block').css({
+                                fontSize: '25px',
+                            });
+                    return false;
+                }
+                if (!idBlockValue) {
+                    $('.right_block').empty();
+                    $('.right_block').text("Выберите гаражный ряд!");
+                    $('.right_block').css({
+                                fontSize: '25px',
+                            });
+                    return false;
+                }
                 let month = idMonth ? idMonth : {{$currentMonth}};
                 if (month.toString().length === 1) {
                     month = '0' + month;
@@ -206,6 +245,7 @@
                             id_block: idBlockValue,
                             year: year ? year : {{$year}},
                             month: month,
+                            typeReadings: buttonClickDataId,
                             _token: '{{ csrf_token() }}',
                         },
                     success: function (response) {
@@ -236,7 +276,6 @@
                         clickCount++;
 
                         let blockMessages = response.metersReadings;
-                        console.log(blockMessages);
                         const currentFolderPaths = response.folderPaths.current; // Пути к фотографиям текущих показаний
                         const oldFolderPaths = response.folderPaths.old; // Пути к фотографиям прошлых показаний
                         if (blockMessages.length <= 0) {
@@ -262,7 +301,7 @@
                                 idReading: idReading,
                                 garageNumber: garageNumber,
                             };
-
+                            if (response.typeReadings === "pending") {
                             // Генерация HTML-кода для отображения текущих и прошлых показаний
                             var html = `<div class="block_applications" data-value-id="${idReading}">
                                 <div class="head_block">
@@ -306,6 +345,50 @@
                                     </div>
                                 </div>
                                 <div class="old_inf">`
+                                } else if (response.typeReadings === "accepted") {
+                                    var html = `<div class="block_applications" data-value-id="${idReading}">
+                                <div class="head_block">
+                                    <div class="img_center_right">
+                                        <img src="{{asset('image/user/defaultUserMinSize.jpg')}}" alt="Пользователь">
+                                    </div>
+                                    <div class="right_text_right_block">
+                                        <div style="display: flex;">
+                                            <div class="text_right_span">
+                                                <form method="POST" action="" class="form_update">
+                                                    @csrf
+                                                    <input type="hidden" name="idMessage" value="2">
+                                                    <div class="flex_head_block">
+                                                        <div class="left_block_span">
+                                                            <span class="fio">${fio}</span>
+                                                            <span>Номер гаража: ${garageNumber}</span>
+                                                            <div class="span_div_flex">
+                                                                <span>Показания (кВт):</span>
+                                                                <input type="number" class="input_numbers" name="inputNumbers" id="numberMeter" value="${metersReadings}" inputmode="none">
+                                                            </div>
+                                                        </div>
+                                                        <div class="img_meter">
+                                                            ${currentFolderPaths[index]} <!-- Текущее фото -->
+                                                        </div>
+                                                    </div>
+                                                    <div class="display_flex_button">
+                                                        <button type="submit" data-title="Фото счётчика" id="lightbox-image-${index}" data-lightbox="image-${index}" data-index="${index}" class="button_img">Смотреть текущее фото</button>
+                                                        <button type="submit" class="button_update" id="button_green-${index}">Изменить</button>
+                                                    </div>
+                                                </form>
+                                                <div class="flex_bottom_block">
+                                                    <form method="POST" action="" class="form_delete">
+                                                        @csrf
+                                                        <input type="hidden" name="idMessage" value="1">
+                                                        <button type="submit" class="button_red" id="button_red-${index}">Отклонить</button>
+                                                    </form>
+                                                    <span class="formattedDate">${formattedDate}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="old_inf">`
+                                }
                                 if (oldFolderPaths[index] == null) {
                                 html += `<div class="old_inf_block">
                                         <span>Прошлых показаний нет или не найдено</span>
@@ -322,6 +405,7 @@
                                 html += `</div>
                                 <div class="block_message">
                                     <div class="error-message" style="display: none;"></div>
+                                    <div class="success-message" style="display: none;"></div>
                                 </div>
                             </div>`;
                             // Добавляем HTML-код на страницу
@@ -347,7 +431,6 @@
                     }
                 });
             }
-
             $('.button_number_garage').click(function (e) {
                 $('.button_number_garage').css({
                     backgroundColor: 'white',
@@ -377,7 +460,7 @@
                     setTimeout(function () {
                         $('.button_number_garage').prop("disabled", false);
 
-                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth, buttonClickDataId);
                         clickCount = 0;
                     }, 3000);
 
@@ -393,7 +476,7 @@
                     e.preventDefault();
 
                     if (isSubmitMyBlock === true) {
-                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth);
+                        sendAjaxRequestBlockKw(idBlockValue, currentYearInput, idMonth, buttonClickDataId);
                     }
                 }
             });
@@ -405,7 +488,16 @@
                 })[0]; // Возвращает первый найденный объект или undefined, если ничего не найдено
             }
 
-            function messageBlock(text, form) {
+            function messageBlock(text, form, id) {
+                if (id == 2) {
+                    // Отображаем уведомление
+                form.closest('.block_applications').find('.success-message').html(text).slideDown(500);
+                // Задержка перед скрытием уведомления (например, 3 секунды)
+                setTimeout(function () {
+                    form.closest('.block_applications').find('.success-message').slideUp(500);
+                }, 4000);
+                return false;
+                }
                 // Отображаем уведомление
                 form.closest('.block_applications').find('.error-message').html(text).slideDown(500);
                 // Задержка перед скрытием уведомления (например, 3 секунды)
@@ -414,9 +506,9 @@
                 }, 4000);
             }
 
-            $(document).on('submit', '.form_input, .form_delete', function (e) {
+            $(document).on('submit', '.form_input, .form_delete, .form_update', function (e) {
                 e.preventDefault();
-                $('.button_green, .button_red').prop("disabled", true);
+                $('.button_green, .button_red, .button_update').prop("disabled", true);
 
                 var form = $(this); // Получаем текущую форму
 
@@ -427,8 +519,8 @@
                 var formattedDate = form.closest('.text_right_span').find('.formattedDate').text();
                 var idReading = form.closest('.block_applications').attr('data-value-id');
                 // Дополнительная проверка на тип переменной idMessage
-                if (idMessage !== "0" && idMessage !== "1") {
-                    $('.button_green, .button_red').prop("disabled", false);
+                if (idMessage !== "0" && idMessage !== "1" && idMessage !== "2") {
+                    $('.button_green, .button_red, .button_update').prop("disabled", false);
                     messageBlock("Не удалось отправить запрос", form)
                     return;
                 }
@@ -438,22 +530,26 @@
 
                 if (!isValidNumber.test(numberMeter)) {
                     messageBlock("В показателях содержутся недопустимые символы", form)
-                    $('.button_green, .button_red').prop("disabled", false);
+                    $('.button_green, .button_red, .button_update').prop("disabled", false);
                     return;
                 }
                 // Вызываем функцию для проверки наличия формы с такими же параметрами
                 if (checkDuplicateForm(idMessage, fio, formattedDate, idReading, form)) {
-                    // Выводим сообщение об ошибке
                     messageBlock("Не удалось отправить запрос", form)
-                    $('.button_green, .button_red').prop("disabled", false);
+                    $('.button_green, .button_red, .button_update').prop("disabled", false);
                     return;
                 }
 
                 function checkDuplicateForm(idMessage, fio, formattedDate, idReading, currentForm) {
                     var isDuplicate = false;
 
-                    var formClass = (idMessage == 0) ? '.form_input' : (idMessage == 1) ? '.form_delete' : '';
-
+                    var formClass = (idMessage == 0) 
+                    ? '.form_input' 
+                    : (idMessage == 1) 
+                    ? '.form_delete' 
+                    : (idMessage == 2) 
+                    ? '.form_update' 
+                    : '';
                     if (formClass) {
                         currentForm.closest('.right_block').find(formClass).not(currentForm).each(function () {
                             var existingForm = $(this);
@@ -475,7 +571,7 @@
                         });
                     } else {
                         messageBlock("Не удалось отправить запрос", form)
-                        $('.button_green, .button_red').prop("disabled", false);
+                        $('.button_green, .button_red, .button_update').prop("disabled", false);
                     }
                     return isDuplicate;
                 }
@@ -489,11 +585,11 @@
                     // Получение значения inputNumbers из той же формы
                     if (!valueToSend) {
                         messageBlock("Не удалось отправить запрос", form)
-                        $('.button_green, .button_red').prop("disabled", false);
+                        $('.button_green, .button_red, .button_update').prop("disabled", false);
                     }
                 } else {
                     messageBlock("Не удалось отправить запрос", form)
-                    $('.button_green, .button_red').prop("disabled", false);
+                    $('.button_green, .button_red, .button_update').prop("disabled", false);
                     return;
                 }
 
@@ -508,27 +604,31 @@
                     },
                     success: function (response) {
                         let blockMessages = response.response;
-                        $('.button_green, .button_red').prop("disabled", true);
+                        $('.button_green, .button_red, .button_update').prop("disabled", true);
                         // Блокируем кнопки
                         if (blockMessages == 'error') {
                             messageBlock("Произошла ошибка на сервере. Повторите попытку позже", form)
                             // Откладываем разблокировку кнопок после 4 секунд
                             setTimeout(function () {
                                 // Разблокировка кнопок
-                                $('.button_green, .button_red').prop("disabled", false);
+                                $('.button_green, .button_red, .button_update').prop("disabled", false);
                             }, 4000);
                         }
                         setTimeout(function () {
                             // Разблокировка кнопок
-                            $('.button_green, .button_red').prop("disabled", false);
+                            $('.button_green, .button_red, .button_update').prop("disabled", false);
                         }, 4000);
+                        if (response.idMessage == 2) {
+                            messageBlock("Успешно обновлено!", form, 2);
+                            return false;
+                        }
                         $(`.block_applications[data-value-id="${blockMessages}"]`).fadeOut(500, function () {
                             $(this).remove();
                         });
                     },
                     error: function (error) {
-                        $('.right_block').empty();
-                        $('.right_block').text('Что-то пошло не так, повторите попытку позже');
+                        let textError = error.responseJSON.error;
+                        $('.right_block').text(textError);
                         $('.right_block').css({
                             fontSize: '25px',
                         });

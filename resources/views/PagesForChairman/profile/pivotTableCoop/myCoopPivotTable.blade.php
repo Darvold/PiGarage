@@ -56,22 +56,43 @@ $(document).ready(function() {
             },
             success: function(response) {
                 console.log(response.data);
-                // Очистка существующих данных
                 $('#table_one tbody').empty();
 
-                // Заполнение таблицы данными
-                $.each(response.data, function(month, data) {
+                // Объект с названиями месяцев на русском
+                const monthsNames = {
+                    '01': 'Январь',
+                    '02': 'Февраль',
+                    '03': 'Март',
+                    '04': 'Апрель',
+                    '05': 'Май',
+                    '06': 'Июнь',
+                    '07': 'Июль',
+                    '08': 'Август',
+                    '09': 'Сентябрь',
+                    '10': 'Октябрь',
+                    '11': 'Ноябрь',
+                    '12': 'Декабрь'
+                };
+
+                // Массив с порядком месяцев
+                const monthsOrder = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+
+                // Проходим по порядку месяцев
+                monthsOrder.forEach(function(month) {
+                    const data = response.data[month];
+                    
+                    // Если данные для месяца есть, выводим их; если нет, добавляем пустую строку или значение по умолчанию
                     $('#table_one tbody').append(`
                         <tr>
-                            <td>${month}</td>
-                            <td>${data.meter_readings}</td>
-                            <td>${data.kw_garages}</td>
-                            <td>${data.losses}</td>
-                            <td>${data.kw_with_losses}</td>
-                            <td>${data.tariff}</td>
-                            <td>${data.total_cost}</td>
-                            <td>${data.paid}</td>
-                            <td>${data.debt}</td>
+                            <td>${monthsNames[month]}</td>
+                            <td>${data ? data.meter_readings : ''}</td>
+                            <td>${data ? data.kw_garages : ''}</td>
+                            <td>${data ? data.losses : ''}</td>
+                            <td>${data ? data.kw_with_losses : ''}</td>
+                            <td>${data ? data.tariff : ''}</td>
+                            <td>${data ? data.total_cost : ''}</td>
+                            <td>${data ? data.paid : ''}</td>
+                            <td>${data ? data.debt : ''}</td>
                         </tr>
                     `);
                 });

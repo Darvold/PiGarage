@@ -102,7 +102,7 @@ class CommunicationController extends Controller
                         'garageData' => ['required', new NoNegativeNumbers]
                     ]);
                 } elseif (in_array($request->input('ipMessage'), [4, 5, 6])) {
-                    //Участник который хочет присоединить свой гараж
+                    //Участник, который хочет присоединить свой гараж
                     $data = $request->validate([
                         'idUser' => 'required|integer|min:1',
                         'idCoop' => 'required|integer|min:1',
