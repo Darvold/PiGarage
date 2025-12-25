@@ -1,0 +1,62 @@
+.form-msg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.notification {
+    position: relative;
+    top: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    font-size: 16px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    animation: 
+        slideIn 0.5s ease forwards,
+        slideOut 0.5s ease 4s forwards;
+    pointer-events: auto;
+    min-width: 300px;
+    text-align: center;
+}
+
+/* Можно добавить в HTML классы success/error */
+.success {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+}
+
+.error {
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+}
+
+.info {
+    background: linear-gradient(135deg, #3853C6, #3C63C8);
+}
+@keyframes slideIn {
+    from {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-100px);
+        opacity: 0;
+        visibility: hidden;
+    }
+}
