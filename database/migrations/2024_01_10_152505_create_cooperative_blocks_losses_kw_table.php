@@ -16,6 +16,7 @@ return new class extends Migration
             $table->bigInteger('id_block');
             $table->float('percent_kw');
             $table->datetime('date_indication');
+            $table->timestampsTz();
         });
     }
 

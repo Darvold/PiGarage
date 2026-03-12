@@ -11,12 +11,12 @@ class Users extends Authenticatable
 {
     use HasFactory;
     use Notifiable;
-    public $timestamps = false;
+    public $timestamps = true;
     protected $table = 'users';
     protected $guarded = [];
     protected $primaryKey = 'id';
     protected $fillable = [
-        'fio', 'phone', 'email', 'password', 'region', 'data_reg', 'id_al',
+        'fio', 'phone', 'email', 'password', 'region', 'created_at',
     ];
     public function garages()
     {

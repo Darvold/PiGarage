@@ -15,10 +15,14 @@ return new class extends Migration
             $table->id('id_coop');
             $table->bigInteger('user_id');
             $table->string('name');
-            $table->string('city');
-            $table->string('address');
-            $table->datetime('data_create');
-            $table->string('id_point');
+            $table->string('city')->nullable();
+            $table->string('address')->nullable();
+            $table->string('status');
+            $table->datetime('date_create');
+            $table->integer('personal_number');
+            $table->double('latitude')->nullable();
+            $table->double('longitude')->nullable();
+            $table->timestampsTz();
         });
     }
 

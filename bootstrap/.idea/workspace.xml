@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="9de25f5b-a535-4ce6-9f31-06dbf11f1dfa" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/Http/Controllers/LoginAndRegistrController.php" beforeDir="false" afterPath="$PROJECT_DIR$/../app/Http/Controllers/LoginAndRegistrController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/Models/ApplicationsCreateNewCoop.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/Models/Cooperatives.php" beforeDir="false" afterPath="$PROJECT_DIR$/../app/Models/Cooperatives.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/Models/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/../app/Models/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/Models/Users.php" beforeDir="false" afterPath="$PROJECT_DIR$/../app/Models/Users.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/Providers/AppServiceProvider.php" beforeDir="false" afterPath="$PROJECT_DIR$/../app/Providers/AppServiceProvider.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../config/database.php" beforeDir="false" afterPath="$PROJECT_DIR$/../config/database.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2023_10_12_202635_create_users_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2023_10_12_202635_create_users_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2023_10_20_190550_create_cooperative_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2023_11_01_211749_create_garages_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2023_11_01_211749_create_garages_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2023_11_03_204246_create_applications_create_new_coops_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2023_11_22_211342_create_applications_for_accessions.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2023_11_22_211342_create_applications_for_accessions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2023_11_26_165050_create_user_and_coop_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2023_11_26_165050_create_user_and_coop_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2023_12_10_124822_create_applications_garage_to_coop_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2023_12_10_124822_create_applications_garage_to_coop_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_01_08_193442_create_meters_readings_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_01_08_193442_create_meters_readings_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_01_10_151716_create_cooperative_blocks_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_01_10_151716_create_cooperative_blocks_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_01_10_152505_create_cooperative_blocks_losses_kw_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_01_10_152505_create_cooperative_blocks_losses_kw_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_03_09_183345_create_rates_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_03_09_183345_create_rates_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_03_16_201726_create_payments_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_03_16_201726_create_payments_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_05_19_224010_create_coop_losses_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_05_19_224010_create_coop_losses_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_09_09_120412_create_meter_numbers_garages_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_09_09_120412_create_meter_numbers_garages_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_09_13_174755_create_meter_numbers_coops_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_09_13_174755_create_meter_numbers_coops_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_09_25_162432_create_meter_readings_blocks_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_09_25_162432_create_meter_readings_blocks_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_10_05_213239_create_meter_numbers_blocks_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_10_05_213239_create_meter_numbers_blocks_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_10_15_224042_create_meter_readings_coops_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_10_15_224042_create_meter_readings_coops_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_10_27_214043_create_user_balances_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_10_27_214043_create_user_balances_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_10_29_223037_create_fees_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_10_29_223037_create_fees_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../database/migrations/2024_11_04_224100_create_total_paid_for_electricity_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/../database/migrations/2024_11_04_224100_create_total_paid_for_electricity_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../phpunit.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../phpunit.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../public/css/template/logo.css" beforeDir="false" afterPath="$PROJECT_DIR$/../public/css/template/logo.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../public/css/template/white_theme.css" beforeDir="false" afterPath="$PROJECT_DIR$/../public/css/template/white_theme.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../public/css/userAuth/auth.css" beforeDir="false" afterPath="$PROJECT_DIR$/../public/css/userAuth/auth.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../public/favicon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/../public/favicon.ico" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../public/js/authUser/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/../public/js/authUser/auth.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../resources/views/template/msg.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/views/template/msg.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../resources/views/userAuth/login.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/views/userAuth/login.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../resources/views/userAuth/registr.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/views/userAuth/registr.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../resources/views/welcome.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/../resources/views/welcome.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/../routes/web.php" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings">
+    <execution />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="$PROJECT_DIR$/../../../../../bin/php/php.exe" />
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 2
+}]]></component>
+  <component name="ProjectId" id="3AqjCuLSr0TYYNeN0Egpy6D09yw" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "devNew",
+    "last_opened_file_path": "C:/Server/data/htdocs/PiGarageWEB/PiGarage/bootstrap",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PS-252.26830.95" />
+        <option value="bundled-php-predefined-a98d8de5180a-9b563d34894c-com.jetbrains.php.sharedIndexes-PS-252.26830.95" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9de25f5b-a535-4ce6-9f31-06dbf11f1dfa" name="Changes" comment="" />
+      <created>1773326870480</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1773326870480</updated>
+      <workItem from="1773326871711" duration="24000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

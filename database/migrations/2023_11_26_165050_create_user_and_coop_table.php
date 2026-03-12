@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('user_id');
             $table->integer('id_coop');
             $table->dateTime('deleted_at')->nullable();
+            $table->timestampsTz();
         });
     }
 

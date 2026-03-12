@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdminUsers;
+use App\Services\ValidatorService;
 use Illuminate\Support\Str;
 use App\Models\Users;
 use Illuminate\Support\Facades\Session;
@@ -17,18 +18,6 @@ use Illuminate\Validation\ValidationException;
 
 class LoginAndRegistrController extends Controller
 {
-    public function registrUser()
-    {
-/*        if (Auth::id()) {
-            $user = Users::where('id', Auth::id())->first();
-            if ($user->id_al == 2) {
-                return redirect()->route('ProfileChairman.index');
-            } else {
-                return redirect()->route('ProfileUser.index');
-            }
-        }*/
-        return view('userAuth.registr');
-    }
     public function loginUser()
     {
         /*if (Auth::id()) {
@@ -41,28 +30,24 @@ class LoginAndRegistrController extends Controller
         }*/
         return view('userAuth.login');
     }
+    public function registrUser()
+    {
+        /*        if (Auth::id()) {
+                    $user = Users::where('id', Auth::id())->first();
+                    if ($user->id_al == 2) {
+                        return redirect()->route('ProfileChairman.index');
+                    } else {
+                        return redirect()->route('ProfileUser.index');
+                    }
+                }*/
+        return view('userAuth.registr');
+    }
 
-    public function registrationUser(Request $request) {
+    public function registrUserPost(Request $request) {
         try {
-            $data = request()->validate([
-                'fio' => 'required|string|max:255',
-                'phone' => ['required', 'integer', 'regex:/^7[0-9]{10}$/'],
-                'email' => 'required|email|max:255',
-                'password' => 'required|max:255',
-                'password_confirmation' => 'required|max:255',
-                'region' => 'required|max:255',
-                'id_al' => 'required|integer|in:1,2'
-            ]);
-            //'phone' => ['required', 'regex:/^(\+7|8)[0-9]{10}$/'], Ожидаемый формат с префиксом +7 или 8
+            $data = ValidatorService::validate($request->all());
         } catch (ValidationException $e) {
-            $errors = $e->validator->errors();
-            if($errors->has('phone')) {
-                return redirect()->back()->with('error', "Что-то пошло не так, неправильный формат номера телефона")->withInput();
-            }
-            if($errors->has('email')) {
-                return redirect()->back()->with('error', "Что-то пошло не так, неправильная почта")->withInput();
-            }
-            return redirect()->back()->with('error', "Что-то пошло не так, повторите попытку")->withInput();
+            return ValidatorService::handleValidationError($e, $request);
         }
 
         if (preg_match('/[0-9!@#$%^&*()_+|~=`{}\[\]:";\'<>?,.\/]/', $data['fio'])) {
@@ -80,19 +65,11 @@ class LoginAndRegistrController extends Controller
         if ($data['password'] !== $data['password_confirmation']) {
             return redirect()->back()->with('error', 'Пароли не совпадают!')->withInput();
         }
-        if (!($data['id_al'] == 1 || $data['id_al'] == 2)) {
-            return redirect()->back()->with('error', "Что-то пошло не так, повторите попытку 1")->withInput();
-        }
-        // Хэшируем пароль
-        $data['password'] = bcrypt($data['password']);
         $newUser = Users::create([
             'fio' => $data['fio'],
             'phone' => $data['phone'],
-            'email' => $data['email'],
-            'password' => $data['password'],
-            'region' => $data['region'],
-            'data_reg' => Date::now(),
-            'id_al' => $data['id_al'],
+            'password' => bcrypt($data['password']),
+            'region' => $data['region']
         ]);
         if ($newUser) {
             return redirect()->route('login.index')->with('success', 'Вы успешно зарегестрировались!');
@@ -101,14 +78,11 @@ class LoginAndRegistrController extends Controller
         }
     }
 
-    public function loginUserS(Request $request) {
+    public function loginUserPost(Request $request) {
         try {
-        $data = request()->validate([
-            'phone' => ['required', 'integer', 'regex:/^7[0-9]{10}$/'],
-            'password' => 'required|max:255',
-        ]);
+            $data = ValidatorService::validate($request->all());
         } catch (ValidationException $e) {
-            return redirect()->back()->with('error', 'Что-то пошло не так, повторите попытку')->withInput();
+            return ValidatorService::handleValidationError($e, $request);
         }
         $user = Users::where('phone', $data['phone'])
             ->first();
@@ -119,11 +93,7 @@ class LoginAndRegistrController extends Controller
 
         if (password_verify($data['password'], $user->password)) {
             auth()->login($user);
-            if ($user->id_al == 2) {
-                return redirect()->route('ProfileChairman.index');
-            } elseif ($user->id_al == 1) {
-                return redirect()->route('ProfileUser.index');
-            }
+            return redirect()->route('profileUser.index');
         }
 
         return redirect()->back()->with('error', 'Неверный номер или пароль!')->withInput();

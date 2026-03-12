@@ -12,15 +12,14 @@ return new class extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id('id');
+            $table->integer('id')->autoIncrement();
             $table->string('fio');
-            $table->string('phone');
-            $table->string('email')->unique(); // Уникальный Email
+            $table->string('phone')->unique();
+            $table->string('email')->unique()->nullable(); // Уникальный Email
             $table->string('password');
             $table->string('region');
-            $table->datetime('data_reg')->useCurrent(); // Используйте текущее время
-            $table->integer('id_al');
             $table->rememberToken();
+            $table->timestampsTz();
         });
     }
 

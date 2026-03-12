@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('id_coop');
             $table->integer('losses_value');
             $table->date('date_indication');
+            $table->timestampsTz();
         });
     }
 

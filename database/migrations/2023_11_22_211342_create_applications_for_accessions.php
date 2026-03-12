@@ -20,6 +20,7 @@ return new class extends Migration
             $table->datetime('send_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->datetime('date_accepted')->nullable();
             $table->datetime('deleted_at')->nullable();
+            $table->timestampsTz();
         });
     }
 

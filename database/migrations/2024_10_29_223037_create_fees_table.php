@@ -17,6 +17,7 @@ return new class extends Migration
             $table->bigInteger('type_payment');
             $table->bigInteger('value');
             $table->datetime('date_indication');
+            $table->timestampsTz();
             $table->softDeletes();
         });
     }

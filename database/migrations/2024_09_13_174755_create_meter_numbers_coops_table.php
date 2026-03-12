@@ -18,6 +18,7 @@ return new class extends Migration
             $table->bigInteger('initially_kw');
             $table->bigInteger('active');
             $table->date('creation_date');
+            $table->timestampsTz();
 
         });
     }

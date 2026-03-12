@@ -17,6 +17,7 @@ return new class extends Migration
             $table->bigInteger('user_id');
             $table->bigInteger('payment_value');
             $table->dateTime('date_indication');
+            $table->timestampsTz();
         });
     }
 

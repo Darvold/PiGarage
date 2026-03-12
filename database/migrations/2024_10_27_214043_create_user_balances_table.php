@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('id_balance');
             $table->bigInteger('id_garage');
             $table->bigInteger('balance');
+            $table->timestampsTz();
             $table->softDeletes();
         });
     }

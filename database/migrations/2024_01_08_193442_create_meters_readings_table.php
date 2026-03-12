@@ -19,7 +19,7 @@ return new class extends Migration
             $table->bigInteger('kw_meter');
             $table->string('status');
             $table->string('img_meter');
-            $table->datetime('send_date');
+            $table->timestampsTz();
         });
     }
 

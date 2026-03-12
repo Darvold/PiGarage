@@ -22,6 +22,7 @@ return new class extends Migration
             $table->bigInteger('number_meter');
             /*$table->string('img_garage')->nullable()->default(null);*/
             $table->softDeletes();
+            $table->timestampsTz();
         });
     }
 

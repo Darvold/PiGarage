@@ -10,10 +10,16 @@ class Cooperatives extends Model
 {
     use HasFactory;
     use Notifiable;
-    public $timestamps = false;
+    public $timestamps = true;
     protected $table = 'cooperatives';
     protected $guarded = [];
     protected $primaryKey = 'id_coop';
+    protected $hidden = [
+        'id_coop'
+    ];
+    protected $fillable = [
+        'name', 'city', 'address', 'status', 'personal_number', 'created_at',
+    ];
     public function metersReadings()
     {
         return $this->hasMany(MeterReadingsUsers::class, 'id_coop', 'id_coop');
@@ -37,6 +43,28 @@ class Cooperatives extends Model
     public function meterReadingsCoops()
     {
         return $this->hasMany(MeterReadingsCoops::class, 'id_coop', 'id_coop');
+    }
+
+    public function getStatusRuAttribute(): string
+    {
+        return match($this->status) {
+            'pending' => 'На проверке',
+            'approved' => 'Одобрено',
+            'rejected' => 'Отклонено',
+            'active' => 'Активно',
+            'accepted' => 'Принято',
+            'inactive' => 'Неактивно',
+            default => $this->status,
+        };
+    }
+    public function getStatusClassAttribute()
+    {
+        return match($this->status_ru) {
+            'На проверке' => 'statusYellow',
+            'Одобрено', 'Активно' => 'statusGreen',
+            'Отклонено' => 'statusRed',
+            default => '',
+        };
     }
 
 }

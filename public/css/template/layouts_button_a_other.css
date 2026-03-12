@@ -1,0 +1,119 @@
+/* Оформленная кнопка */
+.btn-save-modern {
+    position: relative;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 16px 22px;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(74, 111, 165, 0.2);
+    min-width: 200px;
+}
+
+.btn-save-modern:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(74, 111, 165, 0.3);
+}
+
+.btn-save-modern:active {
+    transform: translateY(0);
+}
+
+.btn-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.3s ease;
+}
+
+.btn-text {
+    position: relative;
+    top: 1px;
+}
+
+.btn-check {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.btn-save-modern.saving .btn-content {
+    transform: translateY(30px);
+}
+
+.btn-save-modern.saving .btn-check {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.btn-save-modern i {
+    font-size: 19px;
+}
+
+/* Стили для кастомного чекбокса */
+.checkbox-group {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed var(--border);
+}
+
+.checkbox-input {
+    display: none;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text);
+    user-select: none;
+    transition: color 0.3s;
+}
+
+.checkbox-label:hover {
+    color: var(--primary);
+}
+
+.checkbox-custom {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-sm);
+    margin-right: 12px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.checkbox-input:checked + .checkbox-label .checkbox-custom {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.checkbox-input:checked + .checkbox-label .checkbox-custom::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.checkbox-hint {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-left: 8px;
+    font-weight: normal;
+}

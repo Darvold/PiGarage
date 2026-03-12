@@ -10,9 +10,10 @@
     <link rel="stylesheet" href="{{asset('css/welcome.css')}}">
     <link rel="stylesheet" href="{{asset('css/template/logo.css')}}">
     <link rel="stylesheet" href="{{asset('css/template/white_theme.css')}}">
-<link rel="stylesheet" href="{{ asset('css/fontawesome/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/fontawesome/css/all.min.css') }}">
 </head>
 <body>
+@include('template.msg')
 <!-- Шапка -->
 <header>
     <div class="container header-container">

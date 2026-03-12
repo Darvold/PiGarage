@@ -16,6 +16,7 @@ return new class extends Migration
             $table->bigInteger('id_coop');
             $table->float('tariff_value', 2, 2);
             $table->dateTime('date_indication');
+            $table->timestampsTz();
         });
     }
 

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->bigInteger('id_coop');
             $table->bigInteger('value');
             $table->datetime('date_indication');
+            $table->timestampsTz();
             $table->softDeletes();
         });
     }

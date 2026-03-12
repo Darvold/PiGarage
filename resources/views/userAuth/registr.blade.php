@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PiGarage - Авторизация</title>
+    <title>PiGarage - Регистрация</title>
     <link rel="stylesheet" href="{{asset('css/userAuth/auth.css')}}">
-    <link rel="stylesheet" href="{{asset('css/template/msg.css')}}">
     <link rel="stylesheet" href="{{asset('css/template/logo.css')}}">
     <link rel="stylesheet" href="{{asset('css/template/select2.min.css')}}">
     <link rel="stylesheet" href="{{ asset('css/fontawesome/css/all.min.css') }}">
@@ -69,21 +68,8 @@
                 <h2>Регистрация</h2>
             </div>
 
-            <form class="login-form" id="loginForm">
-                <div class="form-group">
-                    <label for="phone">ФИО</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="fio" name="fio" value="{{ old('fio') }}"placeholder="" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="phone">Почта</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="" required>
-                    </div>
-                </div>
+            <form class="login-form" id="loginForm" method="post" action="{{route('registr.store')}}">
+                @csrf
                 <div class="form-group">
                     <label for="phone">Телефон</label>
                     <div class="input-with-icon">
@@ -92,10 +78,17 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label for="phone">ФИО</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="fio" name="fio" value="{{ old('fio') }}"placeholder="" required>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="region">Регион</label>
                     <div class="input-with-icon">
-                        <select class="js-select-region" name="region" required>
-                            <option value="">Выберите регион</option>
+                        <select class="js-select-region" name="region">
+                            <option>Выберите регион</option>
                         </select>
                     </div>
                 </div>

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('img_meter');
             $table->datetime('save_day');
             $table->softDeletes();
+            $table->timestampsTz();
         });
     }
 

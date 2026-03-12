@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PiGarage - Авторизация</title>
     <link rel="stylesheet" href="{{asset('css/userAuth/auth.css')}}">
-    <link rel="stylesheet" href="{{asset('css/template/msg.css')}}">
     <link rel="stylesheet" href="{{asset('css/template/logo.css')}}">
     <link rel="stylesheet" href="{{ asset('css/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet" href="{{asset('css/template/white_theme.css')}}">
@@ -69,7 +68,8 @@
                 <p>Введите ваши учетные данные для доступа</p>
             </div>
 
-            <form class="login-form" id="loginForm">
+            <form method="post" action="{{route('login.store')}}" class="login-form" id="loginForm">
+                @csrf
                 <div class="form-group">
                     <label for="phone">Телефон</label>
                     <div class="input-with-icon">

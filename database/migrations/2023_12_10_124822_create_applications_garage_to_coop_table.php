@@ -23,6 +23,7 @@ return new class extends Migration
             $table->datetime('date_received')->nullable();
             $table->datetime('date_accepted')->nullable();
             $table->datetime('deleted_at')->nullable();
+            $table->timestampsTz();
         });
     }
 

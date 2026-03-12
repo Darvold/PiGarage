@@ -16,6 +16,7 @@ return new class extends Migration
             $table->bigInteger('id_coop');
             $table->bigInteger('number_block');
             $table->bigInteger('default_kw')->nullable();
+            $table->timestampsTz();
         });
     }
 

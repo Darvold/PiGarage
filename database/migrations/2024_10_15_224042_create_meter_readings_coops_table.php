@@ -18,6 +18,7 @@ return new class extends Migration
             $table->bigInteger('kw_meter');
             $table->string('img_meter');
             $table->datetime('save_day');
+            $table->timestampsTz();
             $table->softDeletes();
         });
     }
